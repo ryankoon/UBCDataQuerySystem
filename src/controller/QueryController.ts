@@ -31,8 +31,10 @@ export default class QueryController {
 
     public query(query: QueryRequest): QueryResponse {
         Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-
+        var queryMessage : string;
+        queryMessage = JSON.stringify(query);
         // TODO: implement this
+        Log.trace('here is query message ' + queryMessage);
         return {status: 'received', ts: new Date().getTime()};
     }
 }

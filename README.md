@@ -1,3 +1,9 @@
+# CPSC Lab 2
+
+We have a scrum board with proper user stories implemented. Stew should have access to it at:
+https://alekhrycaiko-310.visualstudio.com/alek-ryan-cpsc310/alek-ryan-cpsc310%20Team/_backlogs
+
+
 # CPSC 310 Project Repository
 
 This is the base project for CPSC310. You will extend this codebase for all of the deliverables in the project. Please keep your repository private.
@@ -38,7 +44,7 @@ If you use Windows; instead try:
 ### Executing the unit test suite
 
 The sample project ships with some automated unit tests. These commands will execute the suites:
- 
+
 * Test: ```npm run test``` (or ```npm test```)
 * Test coverage: ```npm run cover``` (or ```npm run coverwin``` if you use Windows). HTML reports can be found: ```./coverage/lcov-report/index.html```
 
@@ -70,5 +76,3 @@ If you are developing in Typescript you will have to re-compile the Typescript c
 While these instructions are for WebStorm, other IDEs (e.g., VSCode, Atom, etc.) and editors (e.g., Sublime) should be similar, or will at least be compatible with the command line options described above.
 
 To run or test the system in WebStorm you will need to configure run targets. To run the system go to the ```Run->Edit Configurations``` and tap on the ```+``` and then ```Node.js```. Point the 'JavaScript file' argument to ```src/App.js```. To run the system tests, go to the ```Run->Edit Configurations``` and tap on the ```+``` and then ```Mocha```. Point the 'Test Directory' file argument to ```test/```.
-
-

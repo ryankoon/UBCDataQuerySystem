@@ -8,9 +8,9 @@
     "sourceMap": true
   },
   "filesGlob": [
-    "/typings/index.d.ts",
-    "/src/**/*.ts",
-    "/test/**/*.ts"
+    "./typings/index.d.ts",
+    "./src/**/*.ts",
+    "./test/**/*.ts"
   ],
   "exclude": [
     "node_modules"

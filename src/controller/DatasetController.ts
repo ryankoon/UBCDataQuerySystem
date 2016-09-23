@@ -63,6 +63,9 @@ export default class DatasetController {
                     // You can depend on 'id' to differentiate how the zip should be handled,
                     // although you should still be tolerant to errors.
 
+                    // !!!
+                    console.log(zip.files);
+
                     that.save(id, processedDataset);
 
                     fulfill(true);
