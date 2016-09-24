@@ -4,6 +4,7 @@
 
 import Log from "../Util";
 import JSZip = require('jszip');
+import fs = require('fs');
 
 /**
  * In memory representation of all datasets.
@@ -38,7 +39,6 @@ export default class DatasetController {
 
         return this.datasets;
     }
-
     /**
      * Process the dataset; save it to disk when complete.
      *
@@ -47,39 +47,65 @@ export default class DatasetController {
      * @returns {Promise<boolean>} returns true if successful; false if the dataset was invalid (for whatever reason)
      */
     public process(id: string, data: any): Promise<boolean> {
-        Log.trace('DatasetController::process( ' + id + '... )');
-
-        let that = this;
-        return new Promise(function (fulfill, reject) {
-            try {
-                let myZip = new JSZip();
-                myZip.loadAsync(data, {base64: true}).then(function (zip: JSZip) {
-                    Log.trace('DatasetController::process(..) - unzipped');
-
-                    let processedDataset = {};
-                    // TODO: iterate through files in zip (zip.files)
-                    // The contents of the file will depend on the id provided. e.g.,
-                    // some zips will contain .html files, some will contain .json files.
-                    // You can depend on 'id' to differentiate how the zip should be handled,
-                    // although you should still be tolerant to errors.
-
-                    // !!!
-                    console.log(zip.files);
-
-                    that.save(id, processedDataset);
-
-                    fulfill(true);
-                }).catch(function (err) {
-                    Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
-                    reject(err);
-                });
-            } catch (err) {
-                Log.trace('DatasetController::process(..) - ERROR: ' + err);
-                reject(err);
-            }
-        });
+      var that = this;
+      /*
+      For ryan:
+      What im trying to do here is:
+      (1) Create a zipObject, this has its own API.
+      (2) For the zipObject, we will get every 'path' from this (including the zip root)
+      For example if we have files in the 'mini-data' zip. the path for every file will be given as:
+      'minipath/', 'minipath/aanb500', 'minipath/aanb504'
+      (3) Grab the first element (e.g. minipath/) and lets use that to parse the fileName
+      (minipath/aanb500 -> aanb500)
+      (4) Call async('text') to get the contents of each file (async)
+      (5) Store these at processedDataSet['courseName'] = newDatafromasync
+      (6) now im trouble. This promise needs to complete before save happens.
+      */
+      return new Promise(function (fulfill, reject) {
+        try {
+        let processedDataset : {[key:string]:string}  = {};
+          let myZip = new JSZip();
+          myZip.loadAsync(data, {base64: true})
+          .then(function processZipFile(zip: JSZip) {
+              Log.trace('DatasetController::process(..) - unzipped');
+              let zipObject  = zip.files;
+              var rootFolder:string = Object.keys(zipObject)[0];
+              delete zipObject[rootFolder];
+              for (let filePath in zipObject){
+                var fileName:string;
+                var splitPath:Array<string>;
+                var parsedFileName:string;
+                splitPath = zipObject[filePath]['name'].split(rootFolder);
+                delete splitPath[0];
+                parsedFileName = splitPath.join("");
+                zipObject[filePath].async('text')
+                .then(function storeDataFromFilesInDictionary(data) {
+                    processedDataset[parsedFileName] = data;
+                    return processedDataset;
+                })
+                .catch(function errorFromFailingToStoreInDict(err) {
+                  Log.error('Error! : ' + err);
+                })
+              }
+              return processedDataset;
+            })
+            .then (function () {
+              console.log(processedDataset['AANB500']);
+              console.log(processedDataset['AANB504']);
+              that.save(id, processedDataset);
+              fulfill(true);
+            })
+            .catch(function (err) {
+              Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
+              reject(err);
+            });
+          }
+        catch (err) {
+            Log.trace('DatasetController::process(..) - ERROR: ' + err);
+            reject(err);
+        }
+      });
     }
-
     /**
      * Writes the processed dataset to disk as 'id.json'. The function should overwrite
      * any existing dataset with the same name.
@@ -89,8 +115,9 @@ export default class DatasetController {
      */
     private save(id: string, processedDataset: any) {
         // add it to the memory model
+        console.log('save has been hit');
         this.datasets[id] = processedDataset;
 
         // TODO: actually write to disk in the ./data directory
     }
-}
+  }
