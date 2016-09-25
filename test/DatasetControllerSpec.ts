@@ -7,6 +7,7 @@ import Log from "../src/Util";
 
 import JSZip = require('jszip');
 import {expect} from 'chai';
+import fs = require('fs');
 
 describe("DatasetController", function () {
 
@@ -16,7 +17,7 @@ describe("DatasetController", function () {
     afterEach(function () {
     });
 
-    it("Should be able to receive a Dataset", function () {
+    it("Should be able to receive a Dataset and save it", function () {
         Log.test('Creating dataset');
         let content = {key: 'value'};
         let zip = new JSZip();
@@ -28,11 +29,12 @@ describe("DatasetController", function () {
             Log.test('Dataset created');
             let controller = new DatasetController();
             return controller.process('setA', data);
-        }).then(function (result) {
+        })
+        .then(function (result) {
             Log.test('Dataset processed; result: ' + result);
             expect(result).to.equal(true);
+            var stat = fs.statSync('./data/setA.json');
+            expect(stat.isFile()).to.equal(true);
         });
-
-    });
-
+      });
 });
