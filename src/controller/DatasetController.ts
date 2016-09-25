@@ -5,6 +5,7 @@
 import Log from "../Util";
 import JSZip = require('jszip');
 import fs = require('fs');
+import path = require('path');
 
 /**
  * In memory representation of all datasets.
@@ -112,6 +113,7 @@ export default class DatasetController {
         }
       });
     }
+
     /**
      * Writes the processed dataset to disk as 'id.json'. The function should overwrite
      * any existing dataset with the same name.
@@ -120,74 +122,30 @@ export default class DatasetController {
      * @param processedDataset
      */
     private save(id: string, processedDataset: any) {
-        // TODO:
-        /**
-        For this task, what needs to be done:
-        (1) Check the directory is there.
-        (2) If it isnt there, then create one.
-        (3) Create a file with a buffer and take the contents from process and write to the file
-        In the case the file exists already, overwrite the buffer.
-        */
-      //  console.log(JSON.stringify(processedDataset));
         Log.trace('DatasetController saving zip files to disk ...');
         this.datasets[id] = processedDataset;
-        let dir:string = './data';
+        let jsonData:string = JSON.stringify(this.datasets[id]);
+    //    console.log(jsonData);
+        let pathToData:string = './data';
         let filePath:string;
-
-        var checkDirectory:any = new Promise(function (fulfill, reject) {
-          fs.stat(dir, function (err, stats) {
-            if (err){
-              reject(err);
-            }
-            if (stats && stats.isDirectory()){
-              fulfill(stats.isDirectory());
-            }
-            else {
-              fulfill(false);
-            }
-          });
-        });
-
-        var writeFile = new Promise(function (fulfill, reject) {
-          fs.writeFile(dir, this.datasets[id], function (err, data){
-            if (err){
-              console.log('hi we have an error!');
-            }
-          });
-        });
-
-        var generateDirectory = new Promise(function (fulfill, reject){
-          checkDirectory
-          /*
-          // TODO: implement directory creation in-case not provided.
-          .then(function makeDirectory(success:boolean){
-            if (!success){
-              fs.mkdir(dir, function(err) {
-                if (err){
-                  reject(err);
-                }
-                fulfill(true);
-              });
+      let checkDirExists = function () {
+        let out:any = fs.statSync(pathToData);
+        let result:boolean;
+        out === undefined ? result = false : result = true;
+        return result;
+      }
+      let directoryCreation = function () {
+        if (checkDirExists) {
+          // TODO: using deprecated method. Better to use stat or access.
+          if (!fs.existsSync(pathToData)){
+            Log.trace('Directory for data is being created ...');
+            fs.mkdirSync(pathToData);
           }
-          })
-          */
-          .then(function() {
-            fs.writeFile(filePath, this.datasets[id], function (err, data){
-              if (err){
-                console.log('hi we have an error!');
-              }
-            });
-          })
-          .catch(function (err: string) {
-            Log.error('Error when saving files: ' + err);
-          })
-        });
-
-        /*
-        fs.writeFile(‘id.json’, ‘data’, function err(err) {
-	throw new Error(‘file writing was unsuccessful for new json file: ‘ + err)
-});
-*/
-        // TODO: actually write to disk in the ./data directory
+        }
+      }
+      directoryCreation();
+      fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+        if (err){ Log.trace('Writefile error! ' + err);}
+      });
     }
   }
