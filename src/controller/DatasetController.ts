@@ -127,21 +127,29 @@ export default class DatasetController {
     //    console.log(jsonData);
         let pathToData:string = './data';
         let filePath:string;
+
       let checkDirExists = function () {
-        let out:any = fs.statSync(pathToData);
-        let result:boolean;
-        out === undefined ? result = false : result = true;
-        return result;
-      }
-      let directoryCreation = function () {
-        if (checkDirExists) {
-          // TODO: using deprecated method. Better to use stat or access.
-          if (!fs.existsSync(pathToData)){
-            Log.trace('Directory for data is being created ...');
-            fs.mkdirSync(pathToData);
+        try {
+          return fs.statSync(pathToData).isDirectory();
+        } catch (e) {
+          if (e.code === 'ENOENT') {
+            console.log("ENOENT - directory does not exist")
+           return false;
+          } else {
+            Log.trace('StatSync error! ' + e);
+            //  throw e;
+            return false;
           }
         }
       }
+
+      let directoryCreation = function () {
+        if (!checkDirExists()) {
+            Log.trace('Directory for data is being created ...');
+            fs.mkdirSync(pathToData);
+        }
+      }
+
       directoryCreation();
       fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
         if (err){ Log.trace('Writefile error! ' + err);}
