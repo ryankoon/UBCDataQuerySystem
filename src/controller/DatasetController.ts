@@ -82,7 +82,12 @@ export default class DatasetController {
                 var parsedFileName:string;
 
                 splitPath = zipObject[filePath]['name'].split(rootFolder);
-                delete splitPath[0];
+                // only remove root folder path if file is not in root folder
+                // e.g. list_courses is not in the courses folder
+                if (splitPath[0] == rootFolder) {
+                  delete splitPath[0];
+                }
+
                 parsedFileName = splitPath.join("");
 
                 let filePromise: Promise<any> = new Promise((fulfill, reject) => {
@@ -112,7 +117,7 @@ export default class DatasetController {
               .then(() => {
                 console.log("Finished storing " + filePromises.length + " files.");
                 //console.log(processedDataset['WRDS150']);
-                console.log(processedDataset['AANB500']);
+                //console.log(processedDataset['list_courses']);
                 console.log(processedDataset['AANB504']);
                 that.save(id, processedDataset);
                 fulfill(true);
