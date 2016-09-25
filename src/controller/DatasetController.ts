@@ -71,29 +71,52 @@ export default class DatasetController {
               let zipObject  = zip.files;
               var rootFolder:string = Object.keys(zipObject)[0];
               delete zipObject[rootFolder];
+
+              // keeps track of all promises for each file as it is being stored
+              // in the dictionary
+              let filePromises: Promise<any>[] = [];
+
               for (let filePath in zipObject){
                 var fileName:string;
                 var splitPath:Array<string>;
                 var parsedFileName:string;
+
                 splitPath = zipObject[filePath]['name'].split(rootFolder);
                 delete splitPath[0];
                 parsedFileName = splitPath.join("");
-                zipObject[filePath].async('text')
-                .then(function storeDataFromFilesInDictionary(data) {
-                    processedDataset[parsedFileName] = data;
-                    return processedDataset;
-                })
-                .catch(function errorFromFailingToStoreInDict(err) {
-                  Log.error('Error! : ' + err);
-                })
+
+                let filePromise: Promise<any> = new Promise((fulfill, reject) => {
+                  // even with an arrow function, we need to pass in
+                  // parsedfilename to be able to access parsedFileName
+                  // in storeDataFromFilesInDictionary function
+                  let pfn = parsedFileName;
+
+                  zipObject[filePath].async('text')
+                  .then(function storeDataFromFilesInDictionary(data) {
+                    processedDataset[pfn] = data;
+
+                    // file can now be accessed in dictionary
+                    fulfill();
+                  })
+                  .catch(function errorFromFailingToStoreInDict(err) {
+                    Log.error('Error! : ' + err);
+                    reject();
+                  });
+                });
+
+                filePromises.push(filePromise);
               }
-              return processedDataset;
-            })
-            .then (function () {
-              console.log(processedDataset['AANB500']);
-              console.log(processedDataset['AANB504']);
-              that.save(id, processedDataset);
-              fulfill(true);
+
+              // wait until all files have been processed and stored in dictionary
+              Promise.all(filePromises)
+              .then(() => {
+                console.log("Finished storing " + filePromises.length + " files.");
+                //console.log(processedDataset['WRDS150']);
+                console.log(processedDataset['AANB500']);
+                console.log(processedDataset['AANB504']);
+                that.save(id, processedDataset);
+                fulfill(true);
+              });
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
