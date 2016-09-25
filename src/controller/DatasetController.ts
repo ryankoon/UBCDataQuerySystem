@@ -4,6 +4,7 @@
 
 import Log from "../Util";
 import JSZip = require('jszip');
+import fs = require('fs');
 
 /**
  * In memory representation of all datasets.
@@ -38,7 +39,6 @@ export default class DatasetController {
 
         return this.datasets;
     }
-
     /**
      * Process the dataset; save it to disk when complete.
      *
@@ -47,39 +47,71 @@ export default class DatasetController {
      * @returns {Promise<boolean>} returns true if successful; false if the dataset was invalid (for whatever reason)
      */
     public process(id: string, data: any): Promise<boolean> {
-        Log.trace('DatasetController::process( ' + id + '... )');
+      var that = this;
+      return new Promise(function (fulfill, reject) {
+        try {
+        let processedDataset : {[key:string]:string}  = {};
+          let myZip = new JSZip();
+          myZip.loadAsync(data, {base64: true})
+          .then(function processZipFile(zip: JSZip) {
+              Log.trace('DatasetController::process(..) - unzipped');
+              let zipObject  = zip.files;
+              var rootFolder:string = Object.keys(zipObject)[0];
+              delete zipObject[rootFolder];
 
-        let that = this;
-        return new Promise(function (fulfill, reject) {
-            try {
-                let myZip = new JSZip();
-                myZip.loadAsync(data, {base64: true}).then(function (zip: JSZip) {
-                    Log.trace('DatasetController::process(..) - unzipped');
+              // keeps track of all promises for each file as it is being stored
+              // in the dictionary
+              let filePromises: Promise<any>[] = [];
 
-                    let processedDataset = {};
-                    // TODO: iterate through files in zip (zip.files)
-                    // The contents of the file will depend on the id provided. e.g.,
-                    // some zips will contain .html files, some will contain .json files.
-                    // You can depend on 'id' to differentiate how the zip should be handled,
-                    // although you should still be tolerant to errors.
+              for (let filePath in zipObject){
+                var fileName:string;
+                var splitPath:Array<string>;
+                var parsedFileName:string;
 
-                    // !!!
-                    console.log(zip.files);
+                splitPath = zipObject[filePath]['name'].split(rootFolder);
+                // only remove root folder path if file is not in root folder
+                // e.g. list_courses is not in the courses folder
+                if (splitPath[0] == rootFolder) {
+                  delete splitPath[0];
+                }
 
-                    that.save(id, processedDataset);
+                parsedFileName = splitPath.join("");
 
-                    fulfill(true);
-                }).catch(function (err) {
-                    Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
-                    reject(err);
+                let filePromise: Promise<any> = new Promise((fulfill, reject) => {
+                  let pfn = parsedFileName;
+                  zipObject[filePath].async('text')
+                  .then(function storeDataFromFilesInDictionary(data) {
+                    processedDataset[pfn] = data;
+                    // file can now be accessed in dictionary
+                    fulfill();
+                  })
+                  .catch(function errorFromFailingToStoreInDict(err) {
+                    Log.error('Error! : ' + err);
+                    reject();
+                  });
                 });
-            } catch (err) {
-                Log.trace('DatasetController::process(..) - ERROR: ' + err);
-                reject(err);
-            }
-        });
-    }
 
+                filePromises.push(filePromise);
+              }
+
+              // wait until all files have been processed and stored in dictionary
+              Promise.all(filePromises)
+              .then(() => {
+                that.save(id, processedDataset);
+                fulfill(true);
+              });
+            })
+            .catch(function (err) {
+              Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
+              reject(err);
+            });
+          }
+        catch (err) {
+            Log.trace('DatasetController::process(..) - ERROR: ' + err);
+            reject(err);
+        }
+      });
+    }
     /**
      * Writes the processed dataset to disk as 'id.json'. The function should overwrite
      * any existing dataset with the same name.
@@ -88,9 +120,74 @@ export default class DatasetController {
      * @param processedDataset
      */
     private save(id: string, processedDataset: any) {
-        // add it to the memory model
+        // TODO:
+        /**
+        For this task, what needs to be done:
+        (1) Check the directory is there.
+        (2) If it isnt there, then create one.
+        (3) Create a file with a buffer and take the contents from process and write to the file
+        In the case the file exists already, overwrite the buffer.
+        */
+      //  console.log(JSON.stringify(processedDataset));
+        Log.trace('DatasetController saving zip files to disk ...');
         this.datasets[id] = processedDataset;
+        let dir:string = './data';
+        let filePath:string;
 
+        var checkDirectory:any = new Promise(function (fulfill, reject) {
+          fs.stat(dir, function (err, stats) {
+            if (err){
+              reject(err);
+            }
+            if (stats && stats.isDirectory()){
+              fulfill(stats.isDirectory());
+            }
+            else {
+              fulfill(false);
+            }
+          });
+        });
+
+        var writeFile = new Promise(function (fulfill, reject) {
+          fs.writeFile(dir, this.datasets[id], function (err, data){
+            if (err){
+              console.log('hi we have an error!');
+            }
+          });
+        });
+
+        var generateDirectory = new Promise(function (fulfill, reject){
+          checkDirectory
+          /*
+          // TODO: implement directory creation in-case not provided.
+          .then(function makeDirectory(success:boolean){
+            if (!success){
+              fs.mkdir(dir, function(err) {
+                if (err){
+                  reject(err);
+                }
+                fulfill(true);
+              });
+          }
+          })
+          */
+          .then(function() {
+            fs.writeFile(filePath, this.datasets[id], function (err, data){
+              if (err){
+                console.log('hi we have an error!');
+              }
+            });
+          })
+          .catch(function (err: string) {
+            Log.error('Error when saving files: ' + err);
+          })
+        });
+
+        /*
+        fs.writeFile(‘id.json’, ‘data’, function err(err) {
+	throw new Error(‘file writing was unsuccessful for new json file: ‘ + err)
+});
+*/
         // TODO: actually write to disk in the ./data directory
     }
-}
+  }
