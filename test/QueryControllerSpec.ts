@@ -40,7 +40,10 @@ describe("QueryController", function () {
         let query: QueryRequest = {
           "GET": ["courses_avg", "courses_instructor"],
           "WHERE": {
-            "IS": {"courses_instructor": "Bond, James" }
+            "AND" : {
+              "IS": {"courses_instructor": "Bond, James" },
+              "GT": {"courses_avg": 100}
+            }
           },
           "ORDER": "courses_avg",
           "AS": "table"
@@ -58,7 +61,7 @@ describe("QueryController", function () {
             "efgh5678": {
               "results": [
                 { "Avg": 34, "Professor": "E.T." },
-                { "AvgAvg": 87, "Professor": "Bond, James" },
+                { "Avg": 87, "Professor": "Bond, James" },
                 { "Avg": 12, "Professor": "Gollum" }
               ]
             }

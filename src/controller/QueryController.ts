@@ -3,6 +3,7 @@
  */
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
+import {IObject} from "./IObject";
 import {IMComparison} from "./IEBNF";
 import {ISComparison} from "./IEBNF";
 import {ILogicComparison} from "./IEBNF";
@@ -17,7 +18,7 @@ export interface QueryRequest {
 
 export interface QueryResponse {
   render: string;
-  result: any[];
+  result: IObject[];
 }
 
 export default class QueryController {
@@ -38,15 +39,15 @@ export default class QueryController {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
       // FILTER
       // get first dataset for now
-      let dataset: any = this.getStringIndexValueByNumber(this.datasets, 0);
+      let dataset: IObject = this.getStringIndexKVByNumber(this.datasets, 0)["value"];
       let courseKeys: string[] = Object.keys(dataset);
 
       console.log("dataset: " + dataset);
       console.log("courseKeys: " + courseKeys);
 
-      let allMatches: any[] = [];
+      let allMatches: IObject[] = [];
       courseKeys.forEach((courseKey) => {
-        let matches: any[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]["results"]);
+        let matches: IObject[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]["results"]);
         // combine matches in other courses
         allMatches = allMatches.concat(matches);
       });
@@ -57,14 +58,14 @@ export default class QueryController {
       return { render: 'TABLE', result: allMatches };
     }
 
-    public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: any): Object[] {
+    public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: IObject[]): IObject[] {
       // for each result in each course, add to results array if it matches
       // query conditions
       // translatekey as needed
       // courseDataSet accessed with Hardcoded Key "results"
       console.log("filtering course: " + courseKey);
-      let matches: any[] = [];
-      courseDataSet.forEach((courseData: any) => {
+      let matches: IObject[] = [];
+      courseDataSet.forEach((courseData: IObject) => {
         let result: boolean = this.queryResult(queryfilter, courseKey, courseData);
         console.log("course match result: " + result);
         if (result) {
@@ -76,28 +77,36 @@ export default class QueryController {
       return matches;
     }
 
-    public queryResult(queryfilter: any, courseKey: string, courseData: any): boolean {
+    public queryResult(queryfilter: IObject, courseKey: string, courseData: IObject): boolean {
       // apply query on a result in a Course
       // return true if it matches the query
-      console.log("filtering a  course result: " + JSON.stringify(courseData));
-      let result: boolean = false;
+      //console.log("filtering a  course result: " + JSON.stringify(courseData));
+        console.log("queryfilter: " + JSON.stringify(queryfilter));
+      let result: boolean;
       let queryKeys: string[] = Object.keys(queryfilter);
       queryKeys.forEach((queryKey) => {
+        let keyValue: IObject;
+        let newQueryFilter1: IObject;
+        let newQueryFilter2: IObject;
         switch(queryKey) {
           case "AND":
           console.log("AND case");
-          result = this.queryResult(this.getStringIndexValueByNumber(queryfilter["AND"], 0),
-          courseKey, courseData)
-          && this.queryResult(this.getStringIndexValueByNumber(queryfilter["AND"], 1),
-          courseKey, courseData);
+          keyValue = this.getStringIndexKVByNumber(queryfilter["AND"], 0);
+          newQueryFilter1 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
+          keyValue = this.getStringIndexKVByNumber(queryfilter["AND"], 1);
+          newQueryFilter2 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
+          result = this.queryResult(newQueryFilter1, courseKey, courseData)
+          && this.queryResult(newQueryFilter2, courseKey, courseData);
           break;
 
           case "OR":
           console.log("OR case");
-          result = this.queryResult(this.getStringIndexValueByNumber(queryfilter["OR"], 0),
-          courseKey, courseData)
-          || this.queryResult(this.getStringIndexValueByNumber(queryfilter["OR"], 1),
-          courseKey, courseData);
+          keyValue = this.getStringIndexKVByNumber(queryfilter["OR"], 0);
+          newQueryFilter1 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
+          keyValue = this.getStringIndexKVByNumber(queryfilter["OR"], 1);
+          newQueryFilter2 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
+          result = this.queryResult(newQueryFilter1, courseKey, courseData)
+          || this.queryResult(newQueryFilter2, courseKey, courseData);
           break;
 
           case "NOT":
@@ -131,14 +140,12 @@ export default class QueryController {
           break;
         }
       });
-
-      console.log("Return result: " + result);
       return result;
     }
 
-    public numberCompare(col: IMComparison, operation: string, courseData: any): boolean {
+    public numberCompare(col: IMComparison, operation: string, courseData: IObject): boolean {
       let colName: string = Object.keys(col)[0];
-      let queryColValue: number = this.getStringIndexValueByNumber(col, 0);
+      let queryColValue: number = this.getStringIndexKVByNumber(col, 0)["value"];
       let courseColValue: number = courseData[this.translateKey(colName)];
       switch(operation) {
 
@@ -159,9 +166,9 @@ export default class QueryController {
       }
     }
 
-    public stringCompare(col: ISComparison, operation: string, courseData: any): boolean {
+    public stringCompare(col: ISComparison, operation: string, courseData: IObject): boolean {
       let colName: string = Object.keys(col)[0];
-      let queryColValue: string = this.getStringIndexValueByNumber(col, 0);
+      let queryColValue: string = this.getStringIndexKVByNumber(col, 0)["value"];
       let courseColValue: string = courseData[this.translateKey(colName)];
       switch(operation) {
 
@@ -174,29 +181,43 @@ export default class QueryController {
       }
     }
 
-    public orderDataset(filteredData: {}): Object[] {
+    public orderDataset(filteredData: {}): IObject[] {
       // implement sort method and pass in method to be able to compare letters
       // TODO
       let matches: Object[] = []
       return matches;
     }
 
-    public buildDataset(orderedDataSet: {}): Object[] {
+    public buildDataset(orderedDataSet: {}): IObject[] {
       //create new objects based on given columns and return format.
       // TODO
       let matches: Object[] = []
       return matches;
     }
 
-    public getStringIndexValueByNumber(object: any, index: number) {
+    public getStringIndexKVByNumber(object: IObject, index: number): IObject {
       let keys: string[] = Object.keys(object);
       if (keys && keys.length > index){
-        return object[keys[index]];
+        return {
+          key: keys[index],
+          value: object[keys[index]]
+        };
       } else {
-        return "";
+        console.log("index greater than number of keys!", "object: " + JSON.stringify(object), "index: " + index);
+        return {key: "", value: ""};
       }
     }
 
+    public buildObject(keys: string[], values: IObject[]){
+      //length of keys must be equal to the length of values
+      let newObject: IObject = {};
+      for(let i = 0; i < keys.length; i++){
+        if (values[i]) {
+          newObject[keys[i]] = values[i];
+        }
+      }
+      return newObject;
+    }
     /**
      * Translates the keys in the query to the corresponding keys in the dataset
      * parses department and course id given the key of the current iteration in dataset
