@@ -38,76 +38,120 @@ export default class QueryController {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
       // FILTER
       // get first dataset for now
-      let dataset: any = this.datasets[0]
+      let dataset: any = this.getStringIndexValueByNumber(this.datasets, 0);
       let courseKeys: string[] = Object.keys(dataset);
+
+      console.log("dataset: " + dataset);
+      console.log("courseKeys: " + courseKeys);
+
       let allMatches: any[] = [];
-      for(let courseKey in courseKeys) {
-       let matches: any[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]);
-       // combine matches in other courses
-       allMatches.concat(matches);
-      }
+      courseKeys.forEach((courseKey) => {
+        let matches: any[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]["results"]);
+        // combine matches in other courses
+        allMatches = allMatches.concat(matches);
+      });
       // ORDER
       // BUILD
-      return { render: 'TABLE', result: [] };
+
+      console.log("allMatches: " + allMatches);
+      return { render: 'TABLE', result: allMatches };
     }
 
     public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: any): Object[] {
       // for each result in each course, add to results array if it matches
       // query conditions
       // translatekey as needed
+      // courseDataSet accessed with Hardcoded Key "results"
+      console.log("filtering course: " + courseKey);
       let matches: any[] = [];
-      for(let courseData in courseDataSet) {
-        this.queryResult(queryfilter, courseKey, courseData);
-      }
+      courseDataSet.forEach((courseData: any) => {
+        let result: boolean = this.queryResult(queryfilter, courseKey, courseData);
+        console.log("course match result: " + result);
+        if (result) {
+          // add coursedata (ie. a result in course object) to matches collection
+          matches.push(courseData);
+          console.log("pushed course match: " + matches);
+        }
+      });
       return matches;
     }
 
     public queryResult(queryfilter: any, courseKey: string, courseData: any): boolean {
       // apply query on a result in a Course
       // return true if it matches the query
+      console.log("filtering a  course result: " + JSON.stringify(courseData));
+      let result: boolean = false;
       let queryKeys: string[] = Object.keys(queryfilter);
-      for(let queryKey in queryKeys) {
+      queryKeys.forEach((queryKey) => {
         switch(queryKey) {
           case "AND":
-          return this.queryResult(queryfilter["AND"][0], courseKey, courseData)
-          && this.queryResult(queryfilter["AND"][1], courseKey, courseData);
+          console.log("AND case");
+          result = this.queryResult(this.getStringIndexValueByNumber(queryfilter["AND"], 0),
+          courseKey, courseData)
+          && this.queryResult(this.getStringIndexValueByNumber(queryfilter["AND"], 1),
+          courseKey, courseData);
+          break;
 
           case "OR":
-          return this.queryResult(queryfilter["OR"][0], courseKey, courseData)
-          || this.queryResult(queryfilter["OR"][1], courseKey, courseData);
+          console.log("OR case");
+          result = this.queryResult(this.getStringIndexValueByNumber(queryfilter["OR"], 0),
+          courseKey, courseData)
+          || this.queryResult(this.getStringIndexValueByNumber(queryfilter["OR"], 1),
+          courseKey, courseData);
+          break;
 
           case "NOT":
-          return !this.queryResult(queryfilter["NOT"], courseKey, courseData)
+          console.log("NOT case");
+          result = !this.queryResult(queryfilter["NOT"], courseKey, courseData);
+          break;
 
           case "LT":
-          return this.numberCompare(queryfilter["LT"], "LT", courseData);
+          console.log("LT case");
+          result = this.numberCompare(queryfilter["LT"], "LT", courseData);
+          break;
 
           case "GT":
-          return this.numberCompare(queryfilter["GT"], "GT", courseData);
+          console.log("GT case");
+          result = this.numberCompare(queryfilter["GT"], "GT", courseData);
+          break;
 
           case "EQ":
-          return this.numberCompare(queryfilter["GT"], "GT", courseData);
+          console.log("EQ case");
+          result = this.numberCompare(queryfilter["GT"], "GT", courseData);
+          break;
 
           case "IS":
-          return this.stringCompare(queryfilter["IS"], "IS", courseData);
+          console.log("IS case");
+          result = this.stringCompare(queryfilter["IS"], "IS", courseData);
+          break;
+
+          default:
+          console.log("Default case");
+          result = false;
+          break;
         }
-      }
-      return false;
+      });
+
+      console.log("Return result: " + result);
+      return result;
     }
 
     public numberCompare(col: IMComparison, operation: string, courseData: any): boolean {
       let colName: string = Object.keys(col)[0];
-      let queryColValue: number = col[0];
+      let queryColValue: number = this.getStringIndexValueByNumber(col, 0);
       let courseColValue: number = courseData[this.translateKey(colName)];
       switch(operation) {
 
         case "LT":
+        console.log(courseColValue + " is less than " + queryColValue + "?");
         return courseColValue < queryColValue;
 
         case "GT":
+        console.log(courseColValue + " is greater than " + queryColValue + "?");
         return courseColValue > queryColValue;
 
         case "EQ":
+        console.log(courseColValue + " is equal to" + queryColValue + "?");
         return courseColValue == queryColValue;
 
         default:
@@ -117,11 +161,12 @@ export default class QueryController {
 
     public stringCompare(col: ISComparison, operation: string, courseData: any): boolean {
       let colName: string = Object.keys(col)[0];
-      let queryColValue: string = col[0];
+      let queryColValue: string = this.getStringIndexValueByNumber(col, 0);
       let courseColValue: string = courseData[this.translateKey(colName)];
       switch(operation) {
 
         case "IS":
+        console.log(courseColValue + " is " + queryColValue + "?");
         return courseColValue == queryColValue;
 
         default:
@@ -143,6 +188,14 @@ export default class QueryController {
       return matches;
     }
 
+    public getStringIndexValueByNumber(object: any, index: number) {
+      let keys: string[] = Object.keys(object);
+      if (keys && keys.length > index){
+        return object[keys[index]];
+      } else {
+        return "";
+      }
+    }
 
     /**
      * Translates the keys in the query to the corresponding keys in the dataset

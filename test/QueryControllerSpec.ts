@@ -35,11 +35,38 @@ describe("QueryController", function () {
         expect(isValid).to.equal(false);
     });
 
-    it("Should be able to query, although the answer will be empty", function () {
-        // NOTE: this is not actually a valid query for D1, nor is the result correct.
-        let query: QueryRequest = {GET: 'food', WHERE: {IS: 'apple'}, ORDER: 'food', AS: 'table'};
-        let dataset: Datasets = {};
+    it("Should be able to filter dataset", function () {
+        Log.test("queryfilter test");
+        let query: QueryRequest = {
+          "GET": ["courses_avg", "courses_instructor"],
+          "WHERE": {
+            "IS": {"courses_instructor": "Bond, James" }
+          },
+          "ORDER": "courses_avg",
+          "AS": "table"
+        };
+
+        let dataset: Datasets = {
+          "asdf": {
+            "abcd1234": {
+              "results": [
+                { "Avg": 70, "Professor": "Elmo" },
+                { "Avg": 110, "Professor": "Bond, James" },
+                { "Avg": 21, "Professor": "Vader, Darth" }
+              ]
+            },
+            "efgh5678": {
+              "results": [
+                { "Avg": 34, "Professor": "E.T." },
+                { "AvgAvg": 87, "Professor": "Bond, James" },
+                { "Avg": 12, "Professor": "Gollum" }
+              ]
+            }
+          }
+        };
+
         let controller = new QueryController(dataset);
+        Log.test("Controller: " + controller);
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
         expect(ret).not.to.be.equal(null);
