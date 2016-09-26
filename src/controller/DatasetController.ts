@@ -44,9 +44,10 @@ export default class DatasetController {
           fs.readFile(path, (err, data) => {
             if (err) {
               reject(null);
-              this.datasets[id] = data;
-              return this.datasets[id];
             }
+            this.datasets[id] = data;
+            fulfill(this.datasets[id]);
+
           });
         });
       });
