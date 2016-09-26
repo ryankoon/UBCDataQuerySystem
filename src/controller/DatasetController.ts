@@ -45,15 +45,49 @@ export default class DatasetController {
             }
             this.datasets[id] = data;
             fulfill(this.datasets[id]);
-
           });
         });
       });
     }
-
+    /**
+    @function: if datasets is empty, load all dataset files in ./data from disk
+    */
     public getDatasets(): Datasets {
-        // TODO: if datasets is empty, load all dataset files in ./data from disk
-        return this.datasets;
+        //setup loadData promise function.
+        var loadDataFromDisk = new Promise(function (fulfill, reject) {
+        let promiseArr:Promise<any>[] = [];
+
+        fs.readdir('./data', function (err, files) {
+          files.forEach(function (file, index) {
+            // remove .json from file.
+            let fileId:string = file.slice(0, -5);
+            let path:string = './data/' + file;
+            let filePromise = new Promise( (fulfill, reject) => {
+              fs.readFile(path, (err, data) => {
+                if (err) {
+                  reject(err);
+                }
+                this.datasets[fileId] = data;
+              });
+            });
+            // need to get ID from file.
+            // need to get data from file.
+            promiseArr.push(filePromise);
+
+          });
+          Promise.all(promiseArr)
+          .then(() => {
+            fulfill(true);
+          });
+        });
+      });
+        if (Object.keys(this.datasets).length === 0) {
+          loadDataFromDisk
+          .then(function () {
+            return this.datasets;
+          });
+        }
+      return this.datasets;
     }
     /**
      * Process the dataset; save it to disk when complete.
