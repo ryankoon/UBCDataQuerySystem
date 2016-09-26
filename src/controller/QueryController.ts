@@ -1,9 +1,12 @@
 /**
  * Created by rtholmes on 2016-06-19.
  */
-
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
+import {IMComparison} from "./IEBNF";
+import {ISComparison} from "./IEBNF";
+import {ILogicComparison} from "./IEBNF";
+import {IFilter} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string|string[];
