@@ -42,7 +42,6 @@ describe("DatasetController", function () {
         let controller = new DatasetController();
         controller.getDataset('setA')
         .then(function (data : any) {
-          console.log('hi i am data for the new test: ' + data);
           expect(data.setA).to.equal('value');
         });
       });
