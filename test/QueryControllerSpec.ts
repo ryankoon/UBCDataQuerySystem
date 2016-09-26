@@ -41,8 +41,14 @@ describe("QueryController", function () {
           "GET": ["courses_avg", "courses_instructor"],
           "WHERE": {
             "AND" : {
-              "IS": {"courses_instructor": "Bond, James" },
-              "GT": {"courses_avg": 100}
+              "NOT" : {
+                "IS": {"courses_instructor": "Bond, James" },
+                "GT": {"courses_avg": 80}
+              },
+              "OR" : {
+                "GT": {"courses_avg": 30},
+                "IS": {"courses_instructor": "Vader, Darth"}
+              }
             }
           },
           "ORDER": "courses_avg",
@@ -60,8 +66,8 @@ describe("QueryController", function () {
             },
             "efgh5678": {
               "results": [
-                { "Avg": 34, "Professor": "E.T." },
-                { "Avg": 87, "Professor": "Bond, James" },
+                { "Avg": 87, "Professor": "E.T." },
+                { "Avg": 37, "Professor": "Bond, James" },
                 { "Avg": 12, "Professor": "Gollum" }
               ]
             }
@@ -74,6 +80,7 @@ describe("QueryController", function () {
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
         expect(ret).not.to.be.equal(null);
         // should check that the value is meaningful
+        // will be meaningful once entire query feature is complete
     });
 
     it("Should properly translate query keys to the keys used in dataset", function () {

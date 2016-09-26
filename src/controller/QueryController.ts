@@ -54,7 +54,7 @@ export default class QueryController {
       // ORDER
       // BUILD
 
-      console.log("allMatches: " + allMatches);
+      console.log("allMatches: " + JSON.stringify(allMatches));
       return { render: 'TABLE', result: allMatches };
     }
 
