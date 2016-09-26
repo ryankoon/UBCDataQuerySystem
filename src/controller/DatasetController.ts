@@ -31,12 +31,11 @@ export default class DatasetController {
     public getDataset(id: string): any {
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
-        let parsedId:string = id.slice(0, -5);
         fs.readdir('./data', (err, files) => {
           if (err){
             reject(null);
           }
-          if (files.indexOf(parsedId) === -1){
+          if (files.indexOf(id) === -1){
             fulfill(null);
           }
           let path:string = './data/' + id;
