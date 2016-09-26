@@ -45,4 +45,37 @@ describe("QueryController", function () {
         expect(ret).not.to.be.equal(null);
         // should check that the value is meaningful
     });
+
+    it("Should properly translate query keys to the keys used in dataset", function () {
+      // NOTE: this directly tagets translatekey function in QueryController
+      let controller = new QueryController({});
+      let result:string;
+      result = controller.translateKey('courses_dept', 'ABCD1234');
+      expect(result).to.be.equal('ABCD');
+      result = controller.translateKey('courses_id', 'ABCD1234');
+      expect(result).to.be.equal('1234');
+      result = controller.translateKey('courses_dept', '1234ABCD');
+      expect(result).to.be.equal('unknownDept');
+      result = controller.translateKey('courses_id', '1234ABCD');
+      expect(result).to.be.equal('unknownId');
+      result = controller.translateKey('courses_dept');
+      expect(result).to.be.equal('unknownDept');
+      result = controller.translateKey('courses_id');
+      expect(result).to.be.equal('unknownId');
+      result = controller.translateKey('courses_avg');
+      expect(result).to.be.equal('Avg');
+      result = controller.translateKey('courses_instructor');
+      expect(result).to.be.equal('Professor');
+      result = controller.translateKey('courses_title');
+      expect(result).to.be.equal('Title');
+      result = controller.translateKey('courses_pass');
+      expect(result).to.be.equal('Pass');
+      result = controller.translateKey('courses_fail');
+      expect(result).to.be.equal('Fail');
+      result = controller.translateKey('courses_audit');
+      expect(result).to.be.equal('Audit');
+      result = controller.translateKey('MacOrWindows');
+      expect(result).to.be.equal('unknownKey');
+    });
+
 });
