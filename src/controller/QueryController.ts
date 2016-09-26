@@ -16,6 +16,8 @@ export interface QueryRequest {
 }
 
 export interface QueryResponse {
+  render: string;
+  result: any[];
 }
 
 export default class QueryController {
@@ -33,13 +35,114 @@ export default class QueryController {
     }
 
     public query(query: QueryRequest): QueryResponse {
-        Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-        var queryMessage : string;
-        queryMessage = JSON.stringify(query);
-        // TODO: implement this
-        Log.trace('here is query message ' + queryMessage);
-        return {status: 'received', ts: new Date().getTime()};
+      Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
+      // FILTER
+      // get first dataset for now
+      let dataset: any = this.datasets[0]
+      let courseKeys: string[] = Object.keys(dataset);
+      let allMatches: any[] = [];
+      for(let courseKey in courseKeys) {
+       let matches: any[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]);
+       // combine matches in other courses
+       allMatches.concat(matches);
+      }
+      // ORDER
+      // BUILD
+      return { render: 'TABLE', result: [] };
     }
+
+    public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: any): Object[] {
+      // for each result in each course, add to results array if it matches
+      // query conditions
+      // translatekey as needed
+      let matches: any[] = [];
+      for(let courseData in courseDataSet) {
+        this.queryResult(queryfilter, courseKey, courseData);
+      }
+      return matches;
+    }
+
+    public queryResult(queryfilter: any, courseKey: string, courseData: any): boolean {
+      // apply query on a result in a Course
+      // return true if it matches the query
+      let queryKeys: string[] = Object.keys(queryfilter);
+      for(let queryKey in queryKeys) {
+        switch(queryKey) {
+          case "AND":
+          return this.queryResult(queryfilter["AND"][0], courseKey, courseData)
+          && this.queryResult(queryfilter["AND"][1], courseKey, courseData);
+
+          case "OR":
+          return this.queryResult(queryfilter["OR"][0], courseKey, courseData)
+          || this.queryResult(queryfilter["OR"][1], courseKey, courseData);
+
+          case "NOT":
+          return !this.queryResult(queryfilter["NOT"], courseKey, courseData)
+
+          case "LT":
+          return this.numberCompare(queryfilter["LT"], "LT", courseData);
+
+          case "GT":
+          return this.numberCompare(queryfilter["GT"], "GT", courseData);
+
+          case "EQ":
+          return this.numberCompare(queryfilter["GT"], "GT", courseData);
+
+          case "IS":
+          return this.stringCompare(queryfilter["IS"], "IS", courseData);
+        }
+      }
+      return false;
+    }
+
+    public numberCompare(col: IMComparison, operation: string, courseData: any): boolean {
+      let colName: string = Object.keys(col)[0];
+      let queryColValue: number = col[0];
+      let courseColValue: number = courseData[this.translateKey(colName)];
+      switch(operation) {
+
+        case "LT":
+        return courseColValue < queryColValue;
+
+        case "GT":
+        return courseColValue > queryColValue;
+
+        case "EQ":
+        return courseColValue == queryColValue;
+
+        default:
+        return false;
+      }
+    }
+
+    public stringCompare(col: ISComparison, operation: string, courseData: any): boolean {
+      let colName: string = Object.keys(col)[0];
+      let queryColValue: string = col[0];
+      let courseColValue: string = courseData[this.translateKey(colName)];
+      switch(operation) {
+
+        case "IS":
+        return courseColValue == queryColValue;
+
+        default:
+        return false;
+      }
+    }
+
+    public orderDataset(filteredData: {}): Object[] {
+      // implement sort method and pass in method to be able to compare letters
+      // TODO
+      let matches: Object[] = []
+      return matches;
+    }
+
+    public buildDataset(orderedDataSet: {}): Object[] {
+      //create new objects based on given columns and return format.
+      // TODO
+      let matches: Object[] = []
+      return matches;
+    }
+
 
     /**
      * Translates the keys in the query to the corresponding keys in the dataset
