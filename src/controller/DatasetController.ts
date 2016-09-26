@@ -33,7 +33,7 @@ export default class DatasetController {
         Log.trace('Entering getDataset ...');
         fs.readdir('./data', (err, files) => {
           if (err){
-            reject(null);
+            reject(err);
           }
           if (files.indexOf(id) === -1){
             fulfill(null);
@@ -41,11 +41,10 @@ export default class DatasetController {
           let path:string = './data/' + id;
           fs.readFile(path, (err, data) => {
             if (err) {
-              reject(null);
+              reject(err);
             }
             this.datasets[id] = data;
             fulfill(this.datasets[id]);
-
           });
         });
       });
