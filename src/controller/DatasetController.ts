@@ -30,14 +30,30 @@ export default class DatasetController {
      * @returns {{}}
      */
     public getDataset(id: string): any {
-        // TODO: this should check if the dataset is on disk in ./data if it is not already in memory.
-
-        return this.datasets[id];
+      return new Promise( (fulfill, reject) => {
+        Log.trace('Entering getDataset ...');
+        let parsedId:string = id.slice(0, -5);
+        fs.readdir('./data', (err, files) => {
+          if (err){
+            reject(null);
+          }
+          if (files.indexOf(parsedId) === -1){
+            fulfill(null);
+          }
+          let path:string = './data/' + id;
+          fs.readFile(path, (err, data) => {
+            if (err) {
+              reject(null);
+              this.datasets[id] = data;
+              return this.datasets[id];
+            }
+          });
+        });
+      });
     }
 
     public getDatasets(): Datasets {
         // TODO: if datasets is empty, load all dataset files in ./data from disk
-
         return this.datasets;
     }
     /**
@@ -125,7 +141,6 @@ export default class DatasetController {
         Log.trace('DatasetController saving zip files to disk ...');
         this.datasets[id] = processedDataset;
         let jsonData:string = JSON.stringify(this.datasets[id]);
-    //    console.log(jsonData);
         let pathToData:string = './data';
         let filePath:string;
       let checkDirExists = function () {

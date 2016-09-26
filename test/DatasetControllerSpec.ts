@@ -37,4 +37,22 @@ describe("DatasetController", function () {
             expect(stat.isFile()).to.equal(true);
         });
       });
+      it('Should load the proper dataSet into memory', function () {
+        Log.test('Getting dataset. ');
+        let controller = new DatasetController();
+        controller.getDataset('setA')
+        .then(function (data : any) {
+          console.log('hi i am data for the new test: ' + data);
+          expect(data.setA).to.equal('value');
+        });
+      });
+      it('Should load null into memory', function () {
+        Log.test('Getting null dataset');
+        let controller = new DatasetController();
+        controller.getDataset('salmon armpit')
+        .then(function (data : any) {
+          expect(data.src).to.equal(null);
+        });
+
+      });
 });
