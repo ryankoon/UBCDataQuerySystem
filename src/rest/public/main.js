@@ -16,10 +16,8 @@ $(function () {
 
     $("#datasetRm").click(function () {
         var id = $("#datasetId").val();
-        $.ajax("/dataset/" + id, {
-            type: "DELETE"
-            }).fail(function (e) {
-            spawnHttpErrorModal('HI I AM ERROR' + e)
+        $.ajax("/dataset/" + id, {type: "DELETE"}).fail(function (e) {
+            spawnHttpErrorModal(err)
         });
     });
 
