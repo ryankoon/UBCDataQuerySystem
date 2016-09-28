@@ -15,6 +15,29 @@ export default class RouteHandler {
 
     private static datasetController = new DatasetController();
 
+    public static deleteDataset(req: restify.Request, res:restify.Response, next: restify.Next) {
+        Log.trace('RouteHandler::deleteDataSet(..) - params: ' + JSON.stringify(req.params));
+        var id: string = req.params.id;
+        try {
+
+            let path: string = "./data/";
+            let filePath: string = path + id + ".json";
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    res.send(404, "EW AN ERROR: " + err);
+                }
+                else {
+                    RouteHandler.datasetController.deleteDataset(id);
+                    res.json(200, {Message: 'The operation was successful.'});
+                }
+            });
+        }
+        catch (err) {
+            res.send(404, "EW A CAUGHT ERROR: " + err);
+
+        }
+    }
+
     public static getHomepage(req: restify.Request, res: restify.Response, next: restify.Next) {
         Log.trace('RoutHandler::getHomepage(..)');
         fs.readFile('./src/rest/views/index.html', 'utf8', function (err: Error, file: Buffer) {
