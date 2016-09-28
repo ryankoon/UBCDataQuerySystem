@@ -11,15 +11,9 @@ import fs = require('fs');
 
 describe("DatasetController", function () {
 
-    beforeEach(function () {
-    });
-
-    afterEach(function () {
-    });
-
     it("Should be able to receive a Dataset and save it", function () {
         Log.test('Creating dataset');
-        let content = {key: 'value'};
+        let content = {'key': 'value'};
         let zip = new JSZip();
         zip.file('content.obj', JSON.stringify(content));
         const opts = {
