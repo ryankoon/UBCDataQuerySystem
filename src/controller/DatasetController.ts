@@ -49,10 +49,45 @@ export default class DatasetController {
         });
       });
     }
-
+    /**
+    @function: if datasets is empty, load all dataset files in ./data from disk
+    */
     public getDatasets(): Datasets {
-        // TODO: if datasets is empty, load all dataset files in ./data from disk
-        return this.datasets;
+        //setup loadData promise function.
+        var loadDataFromDisk = new Promise(function (fulfill, reject) {
+        let promiseArr:Promise<any>[] = [];
+
+        fs.readdir('./data', function (err, files) {
+          files.forEach(function (file, index) {
+            // remove .json from file.
+            let fileId:string = file.slice(0, -5);
+            let path:string = './data/' + file;
+            let filePromise = new Promise( (fulfill, reject) => {
+              fs.readFile(path, (err, data) => {
+                if (err) {
+                  reject(err);
+                }
+                this.datasets[fileId] = data;
+              });
+            });
+            // need to get ID from file.
+            // need to get data from file.
+            promiseArr.push(filePromise);
+
+          });
+          Promise.all(promiseArr)
+          .then(() => {
+            fulfill(true);
+          });
+        });
+      });
+        if (Object.keys(this.datasets).length === 0) {
+          loadDataFromDisk
+          .then(function () {
+            return this.datasets;
+          });
+        }
+      return this.datasets;
     }
     /**
      * Process the dataset; save it to disk when complete.
@@ -65,17 +100,15 @@ export default class DatasetController {
       var that = this;
       return new Promise(function (fulfill, reject) {
         try {
-        let processedDataset : {[key:string]:string}  = {};
           let myZip = new JSZip();
           myZip.loadAsync(data, {base64: true})
           .then(function processZipFile(zip: JSZip) {
+              console.log('here is zip' + zip );
+              let processedDataset : {[key:string]:string}  = {};
               Log.trace('DatasetController::process(..) - unzipped');
               let zipObject  = zip.files;
-              var rootFolder:string = Object.keys(zipObject)[0];
-              delete zipObject[rootFolder];
-
-              // keeps track of all promises for each file as it is being stored
-              // in the dictionary
+              let rootFolder:string = Object.keys(zipObject)[0];
+              delete zipObject[rootFolder]
               let filePromises: Promise<any>[] = [];
 
               for (let filePath in zipObject){
@@ -93,21 +126,28 @@ export default class DatasetController {
                 parsedFileName = splitPath.join("");
 
                 let filePromise: Promise<any> = new Promise((fulfill, reject) => {
-                  let pfn = parsedFileName;
-                  zipObject[filePath].async('text')
+                    let file = parsedFileName;
+                    zipObject[filePath].async('string')
                   .then(function storeDataFromFilesInDictionary(data) {
-                    processedDataset[pfn] = data;
+                      try {
+                        processedDataset[file] = JSON.parse(data);
+                          fulfill();
+                      }
+                      catch(err) {
+                          Log.error('Error for the parsing of JSON in Process: ' + err);
+                          reject(false);
+                      }
                     // file can now be accessed in dictionary
-                    fulfill();
                   })
                   .catch(function errorFromFailingToStoreInDict(err) {
                     Log.error('Error! : ' + err);
-                    reject();
+                    reject(false);
                   });
                 });
 
                 filePromises.push(filePromise);
               }
+              // i dont think this has to wait.... does it?
 
               // wait until all files have been processed and stored in dictionary
               Promise.all(filePromises)
@@ -118,12 +158,12 @@ export default class DatasetController {
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
-              reject(err);
+              reject(false);
             });
           }
         catch (err) {
             Log.trace('DatasetController::process(..) - ERROR: ' + err);
-            reject(err);
+            reject(false);
         }
       });
     }
