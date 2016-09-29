@@ -61,7 +61,8 @@ export default class DatasetController {
      * @param id
      * @returns {{}}
      */
-    public getDataset(id: string): any {
+    public getDataset(id: string): Promise<any> {
+      console.log("GetDataset datasets: " + JSON.stringify(this.datasets));
         var that = this;
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
@@ -94,7 +95,7 @@ export default class DatasetController {
      */
     private leadingDotCheck(list : Array<any>): Array<any>{
         let newList = list;
-        let leadingDotCheck : RegExp = new RegExp(/^[.]/, 'g');
+        let leadingDotCheck : RegExp = new RegExp('/^[.]/', 'g');
         newList.forEach( (item, index) => {
             if (leadingDotCheck.test(item)){
                 newList.splice(index, 1);

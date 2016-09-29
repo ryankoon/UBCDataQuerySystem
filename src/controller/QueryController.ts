@@ -22,10 +22,14 @@ export interface QueryResponse {
 }
 
 export default class QueryController {
-    private datasets: Datasets = null;
+    private dataset: IObject = null;
 
-    constructor(datasets: Datasets) {
-        this.datasets = datasets;
+    constructor(dataset?: IObject) {
+        this.dataset = dataset;
+    }
+
+    public setDataset(dataset: IObject) {
+      this.dataset = dataset;
     }
 
     public isValid(query: QueryRequest): boolean | string {
@@ -103,28 +107,19 @@ export default class QueryController {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
       let isValidQuery: boolean | string = this.isValid(query);
       if (isValidQuery === true) {
-        //get dataset based on first item in GET array.
-        let dataset: IObject;
-        let firstGETKey: string = query.GET[0];
-        let datasetId: string = this.getDatasetId(firstGETKey);
-
-        if (datasetId != '') {
-          //TODO call getDataset from DatasetController
-          dataset = this.getStringIndexKVByNumber(this.datasets, 0)["value"];
-        }
 
         // 1. FILTER
-        let courses: string[] = Object.keys(dataset);
+        let courses: string[] = Object.keys(this.dataset);
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
 
-        console.log("dataset: " + dataset);
+        console.log("dataset: " + JSON.stringify(this.dataset));
         console.log("courseKeys: " + courses);
 
         courses.forEach((course) => {
           // combine results of all courses
           let courseResults: IObject;
-          courseResults = dataset[course]["results"];
+          courseResults = this.dataset[course]["result"];
           if (courseResults) {
               allCourseResults = allCourseResults.concat(courseResults);
           }
