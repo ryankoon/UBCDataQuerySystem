@@ -12,7 +12,7 @@ import fs = require('fs');
 
 describe("DatasetController", function () {
 
-    it("Should be able to receive a Dataset and save it", function () {
+    it("Should be able to receive a Dataset and save it", function (done) {
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
@@ -35,13 +35,14 @@ describe("DatasetController", function () {
             expect(result).to.equal(true);
             var stat = fs.statSync('./data/setA.json');
             expect(stat.isFile()).to.equal(true);
+            done();
         });
       });
 
-    it("Should be able to receive a Dataset, save it and delete from memory", function () {
+    it("Should be able to receive a Dataset, save it and delete from memory", function (done) {
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
-        let content1 = {'Batmanvs': 'Superman'};
+        let content1 = {'Robinhood': 'Superman'};
         let content2 = {'job' : 'AtSomeCompanyIHope'};
         let zip = new JSZip();
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
@@ -66,7 +67,7 @@ describe("DatasetController", function () {
             })
             .then(function (data : any) {
                 Log.test('Successfully got setA');
-                expect(data['item1ThatShouldExist']).to.deep.equal({'Batmanvs': 'Superman'});
+                expect(data['item1ThatShouldExist']).to.deep.equal({'Robinhood': 'Superman'});
                 expect(data['item2ThatShouldExist']).to.deep.equal({'job' : 'AtSomeCompanyIHope'});
             }).catch(function (err){
                 assert.fail('Should not catch anything here: ' + err);
@@ -91,6 +92,19 @@ describe("DatasetController", function () {
             })
             .catch(function () {
                 assert.fail('getDataSet should not fail, and instead should set memory');
+            })
+            .then(function assertGetDataSets(data){
+                let controller = new DatasetController();
+                return controller.getDatasets();
+            })
+            .then(function (out){
+                expect(typeof out['setA']).to.equal('object');
+                expect(typeof out['setB']).to.equal('object');
+                done();
+            })
+            .catch(function () {
+               assert.fail('getDataSets should not fail and should instead return memory');
+                done();
             });
     });
 });
