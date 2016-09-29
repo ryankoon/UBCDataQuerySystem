@@ -4,7 +4,7 @@ export interface IMComparison {
 }
 
 export interface ISComparison {
-  // assuming that we will ignore any asterisk before and/or after string value
+  // value may need to be of type any for wildcard
   [colName: string]: string;
 }
 
@@ -13,8 +13,8 @@ export interface ILogicComparison {
 }
 
 export interface IFilter {
-  AND?: IFilter;
-  OR?: IFilter;
+  AND?: IFilter[];
+  OR?: IFilter[];
   NOT?: IFilter;
   LT?: IMComparison;
   GT?: IMComparison;
