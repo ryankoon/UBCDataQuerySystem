@@ -66,10 +66,15 @@ export default class Server {
                 // curl localhost:4321/dataset/test --upload-file FNAME.zip
                 that.rest.put('/dataset/:id', RouteHandler.putDataset);
 
+                // Deletes a datset.
+                that.rest.del('/dataset/:id', RouteHandler.deleteDataset);
+
+
                 // Receives queries. Although these queries never change the server (and thus could be GETs)
                 // they are formed by sending JSON bodies, which is not standard for normal GET requests.
                 // curl -is -X POST -d '{ "key": "value" }' http://localhost:4321/query
                 that.rest.post('/query', restify.bodyParser(), RouteHandler.postQuery);
+
 
                 that.rest.listen(that.port, function () {
                     Log.info('Server::start() - restify listening: ' + that.rest.url);

@@ -89,6 +89,19 @@ export default class DatasetController {
         }
       return this.datasets;
     }
+
+    /**
+     * Delete the targeted dataset from memory.
+     *
+     * Returns: Boolean.
+     */
+    public deleteDataset(id: string) : void {
+        console.log(' I am deleting id here');
+        delete this.datasets[id];
+        console.log('delete got read');
+        console.log('attempting to access deleted obj' + this.datasets[id]);
+    }
+
     /**
      * Process the dataset; save it to disk when complete.
      *
@@ -101,9 +114,8 @@ export default class DatasetController {
       return new Promise(function (fulfill, reject) {
         try {
           let myZip = new JSZip();
-          myZip.loadAsync(data, {base64: true})
+          myZip.loadAsync(data, {base64: true})  // TODO: look at myZip.loadAsync, perhaps it has a config I can use.
           .then(function processZipFile(zip: JSZip) {
-              console.log('here is zip' + zip );
               let processedDataset : {[key:string]:string}  = {};
               Log.trace('DatasetController::process(..) - unzipped');
               let zipObject  = zip.files;

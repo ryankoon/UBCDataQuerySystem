@@ -36,7 +36,7 @@ describe("DatasetController", function () {
         let controller = new DatasetController();
         controller.getDataset('setA')
         .then(function (data : any) {
-          expect(data.setA).to.equal('value');
+          expect(data).to.equal('value');
         });
       });
       it('Should load null into memory', function () {
@@ -44,8 +44,16 @@ describe("DatasetController", function () {
         let controller = new DatasetController();
         controller.getDataset('salmon armpit')
         .then(function (data : any) {
-          expect(data.src).to.equal(null);
+          expect(data).to.equal(null);
         });
-
+      });
+      it("Should successfully delete from memory", function () {
+         let controller = new DatasetController();
+          controller.getDataset('setA')
+              .then (function (data:any){
+                  expect(data).to.equal('value');
+                  controller.deleteDataset('setA');
+                  expect(data).to.equal('undefined');
+              })
       });
 });
