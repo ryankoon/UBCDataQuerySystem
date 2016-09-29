@@ -17,19 +17,18 @@ describe("QueryController", function () {
     });
 
     it("Should be able to validate a valid query", function () {
-        // NOTE: this is not actually a valid query for D1
         let query: QueryRequest = {
-          "GET": ["courses_dept", "courses_id", "courses_avg"],
+          "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
           "WHERE": {
               "OR": [
                   {"AND": [
-                          {"GT": {"courses_avg": 70}},
-                          {"IS": {"courses_dept": "adhe"}}
+                          {"GT": {"asdf_avg": 70}},
+                          {"IS": {"asdf_dept": "adhe"}}
                       ]},
-                      {"EQ": {"courses_avg": 90}}
+                      {"EQ": {"asdf_avg": 90}}
               ]
           },
-          "ORDER": "courses_avg",
+          "ORDER": "asdf_avg",
           "AS": "TABLE"
         };
         let dataset: Datasets = {};
@@ -51,21 +50,21 @@ describe("QueryController", function () {
     it("Should be able to filter dataset", function () {
         Log.test("queryfilter test");
         let query: QueryRequest = {
-          "GET": ["courses_avg", "courses_instructor"],
+          "GET": ["asdf_avg", "asdf_instructor"],
           "WHERE": {
             "AND" : [{
               "NOT" : {
-                "IS": {"courses_instructor": "Bond, James"}
+                "IS": {"asdf_instructor": "Bond, James"}
               }
             },
             {
               "OR" : [
-              {"GT": {"courses_avg": 30}},
-              {"IS": {"courses_instructor": "Vader, Darth"}}
+              {"GT": {"asdf_avg": 30}},
+              {"IS": {"asdf_instructor": "Vader, Darth"}}
               ]
             }]
           },
-          "ORDER": "courses_instructor",
+          "ORDER": "asdf_instructor",
           "AS": "TABLE"
         };
 
@@ -158,6 +157,62 @@ describe("QueryController", function () {
       console.log("numerical results: " + JSON.stringify(orderedResults));
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
+    });
+
+    it("Should be able to query a dataset", function () {
+        let query: QueryRequest = {
+          "GET": ["asdf_instructor"],
+          "WHERE": {
+            "AND" : [{
+              "NOT" : {
+                "IS": {"asdf_instructor": "Bond, James"}
+              }
+            },
+            {
+              "OR" : [
+              {"GT": {"asdf_avg": 30}},
+              {"IS": {"asdf_instructor": "Vader, Darth"}}
+              ]
+            }]
+          },
+          "ORDER": "asdf_instructor",
+          "AS": "TABLE"
+        };
+
+        let dataset: Datasets = {
+          "asdf": {
+            "abcd1234": {
+              "results": [
+                { "Avg": 70, "Professor": "Elmo" },
+                { "Avg": 110, "Professor": "Bond, James" },
+                { "Avg": 21, "Professor": "Vader, Darth" }
+              ]
+            },
+            "efgh5678": {
+              "results": [
+                { "Avg": 87, "Professor": "ET" },
+                { "Avg": 37, "Professor": "Bond, James" },
+                { "Avg": 12, "Professor": "Gollum" }
+              ]
+            }
+          }
+        };
+
+        let expectedResult: any = { render: 'TABLE',
+          result: [
+            { "Professor": "Elmo" },
+            { "Professor": "ET" },
+            { "Professor": "Vader, Darth" }
+          ]
+
+        }
+
+        let controller = new QueryController(dataset);
+        let ret = controller.query(query);
+        Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
+        expect(ret).to.be.deep.equal(expectedResult);
+        // should check that the value is meaningful
+        // will be meaningful once entire query feature is complete
     });
 
 });
