@@ -65,7 +65,7 @@ describe("QueryController", function () {
               ]
             }]
           },
-          "ORDER": "courses_avg",
+          "ORDER": "courses_instructor",
           "AS": "TABLE"
         };
 
@@ -80,7 +80,7 @@ describe("QueryController", function () {
             },
             "efgh5678": {
               "results": [
-                { "Avg": 87, "Professor": "E.T." },
+                { "Avg": 87, "Professor": "ET" },
                 { "Avg": 37, "Professor": "Bond, James" },
                 { "Avg": 12, "Professor": "Gollum" }
               ]
@@ -133,6 +133,31 @@ describe("QueryController", function () {
         expect(result).to.be.equal('');
         result = controller.getDatasetId("lemon_DS_apple");
         expect(result).to.be.equal('');
+    });
+
+    it("Should properly sort queries based on given querykey and courseResults", function() {
+      let results = [{ "Avg": 70, "Professor": "Elmo" },
+                     { "Avg": 110, "Professor": "Bond, James" },
+                     { "Avg": 21, "Professor": "Vader, Darth" }];
+
+      let orderedResultsAlphabetically = [{ "Avg": 110, "Professor": "Bond, James" },
+                                          { "Avg": 70, "Professor": "Elmo" },
+                                          { "Avg": 21, "Professor": "Vader, Darth" }];
+
+      let orderedResultsNumerically = [  { "Avg": 21, "Professor": "Vader, Darth" },
+                                         { "Avg": 70, "Professor": "Elmo" },
+                                         { "Avg": 110, "Professor": "Bond, James" }];
+
+      let controller = new QueryController();
+      let orderedResults: any[];
+      orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
+      console.log("alphabetical results: " + JSON.stringify(orderedResults));
+      expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
+
+      orderedResults = controller.orderResults(results, controller.translateKey("avg"));
+      console.log("numerical results: " + JSON.stringify(orderedResults));
+      expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
+
     });
 
 });
