@@ -91,13 +91,25 @@ export default class RouteHandler {
         Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
         try {
             let query: QueryRequest = req.params;
-            let datasets: Datasets = RouteHandler.datasetController.getDatasets();
-            let controller = new QueryController(datasets);
+            //let datasets: Datasets = RouteHandler.datasetController.getDatasets();
+            let controller = new QueryController();
             let isValid = controller.isValid(query);
 
             if (isValid === true) {
+              let firstGETKey: string = query.GET[0];
+              let datasetId: string = controller.getDatasetId(firstGETKey);
+              console.log("postQuery getting dataset with datasetId: " + datasetId);
+              let dataset: any = RouteHandler.datasetController.getDataset(datasetId)
+              .then((dataset: any) => {
+                if (dataset) {
+                console.log("postQuery got dataset: " + JSON.stringify(dataset));
+                controller.setDataset(dataset);
                 let result = controller.query(query);
                 res.json(200, result);
+              } else {
+                res.json(424, {missing: [datasetId]});
+              }
+              });
             } else {
                 res.json(400, {status: 'invalid query'});
             }

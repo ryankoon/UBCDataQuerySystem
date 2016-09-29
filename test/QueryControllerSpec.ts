@@ -51,41 +51,41 @@ describe("QueryController", function () {
     it("Should be able to filter dataset", function () {
         Log.test("queryfilter test");
         let query: QueryRequest = {
-          "GET": ["courses_avg", "courses_instructor"],
+          "GET": ["asdf_avg", "asdf_instructor"],
           "WHERE": {
             "AND" : [{
               "NOT" : {
-                "IS": {"courses_instructor": "Bond, James"}
+                "IS": {"asdf_instructor": "Bond, James"}
               }
             },
             {
               "OR" : [
-              {"GT": {"courses_avg": 30}},
-              {"IS": {"courses_instructor": "Vader, Darth"}}
+              {"GT": {"asdf_avg": 30}},
+              {"IS": {"asdf_instructor": "Vader, Darth"}}
               ]
             }]
           },
-          "ORDER": "courses_avg",
+          "ORDER": "asdf_avg",
           "AS": "TABLE"
         };
 
-        let dataset: Datasets = {
-          "asdf": {
+        let dataset: {} = {
             "abcd1234": {
-              "results": [
+              "result": [
                 { "Avg": 70, "Professor": "Elmo" },
                 { "Avg": 110, "Professor": "Bond, James" },
                 { "Avg": 21, "Professor": "Vader, Darth" }
-              ]
+              ],
+              "rank": 10
             },
             "efgh5678": {
-              "results": [
+              "result": [
                 { "Avg": 87, "Professor": "E.T." },
                 { "Avg": 37, "Professor": "Bond, James" },
                 { "Avg": 12, "Professor": "Gollum" }
-              ]
+              ],
+              "rank": 8
             }
-          }
         };
 
         let controller = new QueryController(dataset);

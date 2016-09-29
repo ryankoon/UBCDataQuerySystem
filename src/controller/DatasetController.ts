@@ -28,7 +28,8 @@ export default class DatasetController {
      * @param id
      * @returns {{}}
      */
-    public getDataset(id: string): any {
+    public getDataset(id: string): Promise<any> {
+      console.log("GetDataset datasets: " + JSON.stringify(this.datasets));
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
         fs.readdir('./data', (err, files) => {
