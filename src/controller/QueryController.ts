@@ -127,8 +127,12 @@ export default class QueryController {
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
 
+        // 2. ORDER (from A-Z, from 0, 1, 2,...)
+        let orderQueryKey: string = this.getQueryKey(query.ORDER);
+        //translate queryKey
+        orderQueryKey = this.translateKey(orderQueryKey);
+        let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
-        // 2. ORDER
         // 3. BUILD
         console.log("# of Matches: " + filteredResults.length);
         console.log("allMatches: " + JSON.stringify(filteredResults));
@@ -167,7 +171,7 @@ export default class QueryController {
       // apply query on a result in a Course
       // return true if it matches the query
       //console.log("filtering a  course result: " + JSON.stringify(courseData));
-      console.log("queryfilter: " + JSON.stringify(queryFilter));
+      //console.log("queryfilter: " + JSON.stringify(queryFilter));
       let result: boolean;
       let queryKeys: string[] = Object.keys(queryFilter);
 
@@ -177,7 +181,7 @@ export default class QueryController {
         let newQueryFilter2: IObject;
         switch(queryKey) {
           case "AND":
-          console.log("AND case");
+          //console.log("AND case");
           let ANDResult: boolean = true;
           queryFilter.AND.forEach((filter) => {
             ANDResult = ANDResult && this.queryACourseResult(filter, courseResult);
@@ -186,7 +190,7 @@ export default class QueryController {
           break;
 
           case "OR":
-          console.log("OR case");
+          //console.log("OR case");
           let ORResult: boolean = false;
           queryFilter.OR.forEach((filter) => {
             ORResult = ORResult || this.queryACourseResult(filter, courseResult);
@@ -195,32 +199,32 @@ export default class QueryController {
           break;
 
           case "NOT":
-          console.log("NOT case");
+          //console.log("NOT case");
           result = !this.queryACourseResult(queryFilter.NOT, courseResult);
           break;
 
           case "LT":
-          console.log("LT case");
+          //console.log("LT case");
           result = this.numberCompare(queryFilter.LT, "LT", courseResult);
           break;
 
           case "GT":
-          console.log("GT case");
+          //console.log("GT case");
           result = this.numberCompare(queryFilter.GT, "GT", courseResult);
           break;
 
           case "EQ":
-          console.log("EQ case");
+          //console.log("EQ case");
           result = this.numberCompare(queryFilter.EQ, "EQ", courseResult);
           break;
 
           case "IS":
-          console.log("IS case");
+          //console.log("IS case");
           result = this.stringCompare(queryFilter.IS, "IS", courseResult);
           break;
 
           default:
-          console.log("Default case");
+          //console.log("Default case");
           result = false;
           break;
         }
@@ -272,11 +276,32 @@ export default class QueryController {
       }
     }
 
-    public orderDataset(filteredData: {}): IObject[] {
+    public orderResults(filteredResults: IObject[], order: string): IObject[] {
       // implement sort method and pass in method to be able to compare letters
-      // TODO
-      let matches: Object[] = []
-      return matches;
+      let orderedResults: IObject[] = filteredResults;
+      //check if querykey exists
+      if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order] !== 'undefined') {
+        // sort filtered results
+        let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
+          console.log("sorting unsorted results: " + JSON.stringify(unsortedResults));
+          return unsortedResults.sort((a: IObject, b: IObject) => {
+            let aValue = this.lettersNumbersOnlyLowercase(a[queryKey]);
+            let bValue = this.lettersNumbersOnlyLowercase(b[queryKey]);
+          if(aValue < bValue){
+            console.log(aValue + " is less than " + bValue);
+              return -1;
+          } else if(aValue > bValue){
+              console.log(aValue + " is greater than " + bValue);
+              return 1;
+          }
+            console.log(aValue + " is equal to " + bValue);
+          return 0;
+          });
+        });
+
+        orderedResults = sortByQueryKey(order, orderedResults);
+      }
+      return orderedResults;
     }
 
     public buildDataset(orderedDataSet: {}): IObject[] {
@@ -286,6 +311,13 @@ export default class QueryController {
       return matches;
     }
 
+    public lettersNumbersOnlyLowercase(input: any): any {
+      let result: any = input;
+      if (typeof(input) === 'string') {
+        result = input.toLowerCase().replace(/[^a-zA-Z0-9]+/g, "");
+      }
+      return result;
+    }
     public getStringIndexKVByNumber(object: IObject, index: number): IObject {
       let keys: string[] = Object.keys(object);
       if (keys && keys.length > index){
