@@ -50,10 +50,12 @@ export default class RouteHandler {
         });
     }
 
-    public static  putDataset(req: restify.Request, res: restify.Response, next: restify.Next) {
+    public static putDataset(req: restify.Request, res: restify.Response, next: restify.Next) {
         Log.trace('RouteHandler::postDataset(..) - params: ' + JSON.stringify(req.params));
         try {
             var id: string = req.params.id;
+
+            // TODO: Need to check ID to ensure res.json is 200 or 204.
 
             // stream bytes from request into buffer and convert to base64
             // adapted from: https://github.com/restify/node-restify/issues/880#issuecomment-133485821

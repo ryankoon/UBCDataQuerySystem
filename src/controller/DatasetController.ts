@@ -102,6 +102,13 @@ export default class DatasetController {
         console.log('attempting to access deleted obj' + this.datasets[id]);
     }
 
+    // !!! how do we know the ID is new?
+    // new is 204
+    // old is 201 (prev cached or on the disk).
+    // This will determine our Code.
+    // I think if the zip ISNT base 64 encoded, we should throw an error.
+
+
     /**
      * Process the dataset; save it to disk when complete.
      *
@@ -118,6 +125,10 @@ export default class DatasetController {
           .then(function processZipFile(zip: JSZip) {
               let processedDataset : {[key:string]:string}  = {};
               Log.trace('DatasetController::process(..) - unzipped');
+              var fileKeys = Object.keys(zip.files);
+              if (fileKeys.length <= 1) {
+                  reject('Error this zip has no content in it');
+              }
               let zipObject  = zip.files;
               let rootFolder:string = Object.keys(zipObject)[0];
               delete zipObject[rootFolder]
@@ -142,12 +153,12 @@ export default class DatasetController {
                     zipObject[filePath].async('string')
                   .then(function storeDataFromFilesInDictionary(data) {
                       try {
-                        processedDataset[file] = JSON.parse(data);
+                          processedDataset[file] = JSON.parse(data); // we parse it into json... will succed
                           fulfill();
                       }
                       catch(err) {
                           Log.error('Error for the parsing of JSON in Process: ' + err);
-                          reject(false);
+                          reject(err);
                       }
                     // file can now be accessed in dictionary
                   })
