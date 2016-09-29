@@ -29,22 +29,33 @@ export default class DatasetController {
      * @returns {{}}
      */
     public getDataset(id: string): any {
+        var that = this;
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
         fs.readdir('./data', (err, files) => {
           if (err){
             reject(err);
           }
-          if (files.indexOf(id) === -1){
+          if (files.indexOf(id + '.json') === -1){
             fulfill(null);
           }
-          let path:string = './data/' + id;
-          fs.readFile(path, (err, data) => {
+          let path:string = './data/' + id + ".json";
+            fs.readFile(path, (err, data) => {
             if (err) {
-              reject(err);
+                console.log('HI I GOT REJECTED: ' + err);
+                reject(err);
             }
-            this.datasets[id] = data;
-            fulfill(this.datasets[id]);
+              try {
+                  // we have a buffer here..sad story
+                  // Uint8Array[67]
+                  let out = JSON.parse(data.toString('utf8'));
+                  that.datasets[id] = out
+                  fulfill(that.datasets[id]);
+              }
+              catch(err){
+                  console.log('errrored out in get');
+                  reject('Error : ' + err);
+              }
           });
         });
       });
@@ -54,6 +65,7 @@ export default class DatasetController {
     */
     public getDatasets(): Datasets {
         //setup loadData promise function.
+        var that = this;
         var loadDataFromDisk = new Promise(function (fulfill, reject) {
         let promiseArr:Promise<any>[] = [];
 
@@ -67,7 +79,7 @@ export default class DatasetController {
                 if (err) {
                   reject(err);
                 }
-                this.datasets[fileId] = data;
+                that.datasets[fileId] = data;
               });
             });
             // need to get ID from file.
@@ -228,7 +240,7 @@ export default class DatasetController {
       }
 
       directoryCreation();
-      fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+      fs.writeFile('./data/' + id + '.json', jsonData,(err) => {
         if (err){ Log.trace('Writefile error! ' + err);}
       });
     }
