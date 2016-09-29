@@ -86,7 +86,7 @@ describe("QueryController", function () {
     it("Should properly translate query keys to the keys used in dataset", function () {
       // NOTE: this directly tagets translatekey function in QueryController
       let controller = new QueryController({});
-      let result:string;
+      let result: string;
       result = controller.translateKey('courses_dept', 'ABCD1234');
       expect(result).to.be.equal('ABCD');
       result = controller.translateKey('courses_id', 'ABCD1234');
@@ -113,6 +113,20 @@ describe("QueryController", function () {
       expect(result).to.be.equal('Audit');
       result = controller.translateKey('MacOrWindows');
       expect(result).to.be.equal('unknownKey');
+    });
+
+    it("Should properly split keys into datasetId and column names", function() {
+        let controller = new QueryController({});
+        let result: string;
+
+        result = controller.getDatasetId("lemonDS_apple");
+        expect(result).to.be.equal("lemonDS");
+        result = controller.getQueryKey("lemonDS_apple");
+        expect(result).to.be.equal("apple");
+        result = controller.getQueryKey("lemonDSapple");
+        expect(result).to.be.equal('');
+        result = controller.getDatasetId("lemon_DS_apple");
+        expect(result).to.be.equal('');
     });
 
 });

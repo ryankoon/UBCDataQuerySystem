@@ -35,11 +35,61 @@ export default class QueryController {
         return false;
     }
 
+    /**
+     * Splits the key (refer to EBNF for definition of key) into two parts:
+     * 1. DatasetId   2.QueryKey (e.g. Professor)
+     * 'courses_id' will be split into 'courses' and 'id'
+     *
+     * @param key
+     */
+    public splitKey(key: string): string[] {
+      let parts: string[] = [];
+      if (key) {
+      parts = key.split('_');
+      }
+      return parts;
+    }
+
+    public getDatasetId(key: string) {
+      let datasetId: string = '';
+      let keyParts: string[] = this.splitKey(key);
+      // make sure key is not null
+      if (keyParts.length === 2) {
+        datasetId = keyParts[0];
+      }
+      return datasetId;
+    }
+
+    // remove the first part of key to get the column name
+    // e.g. courses_avg -> avg
+    public getQueryKey(key: string) {
+      let queryKey: string = '';
+      let keyParts: string[] = this.splitKey(key);
+      // make sure key is not null
+      if (keyParts.length === 2) {
+        queryKey = keyParts[1];
+      }
+      return queryKey;
+    }
+
     public query(query: QueryRequest): QueryResponse {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
+      //get dataset based on first item in GET array.
+      let dataset: IObject;
+      // make sure there is at least one key in GET
+      if (query.GET && query.GET.length > 0) {
+        let firstGETKey: string = query.GET[0];
+        let datasetId: string = this.getDatasetId(firstGETKey);
+        if (datasetId != '') {
+          //TODO call getDataset from DatasetController
+          dataset = this.getStringIndexKVByNumber(this.datasets, 0)["value"];
+        }
+
+      } else {
+        throw new Error("No columns have been defined in GET!");
+      }
+
       // FILTER
-      // get first dataset for now
-      let dataset: IObject = this.getStringIndexKVByNumber(this.datasets, 0)["value"];
       let courseKeys: string[] = Object.keys(dataset);
 
       console.log("dataset: " + dataset);
@@ -57,6 +107,7 @@ export default class QueryController {
       console.log("allMatches: " + JSON.stringify(allMatches));
       return { render: 'TABLE', result: allMatches };
     }
+
 
     public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: IObject[]): IObject[] {
       // for each result in each course, add to results array if it matches
