@@ -24,7 +24,7 @@ export interface QueryResponse {
 export default class QueryController {
     private datasets: Datasets = null;
 
-    constructor(datasets?: Datasets) {
+    constructor(datasets: Datasets) {
         this.datasets = datasets;
     }
 

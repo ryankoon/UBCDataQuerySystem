@@ -148,7 +148,7 @@ describe("QueryController", function () {
                                          { "Avg": 70, "Professor": "Elmo" },
                                          { "Avg": 110, "Professor": "Bond, James" }];
 
-      let controller = new QueryController();
+      let controller = new QueryController({});
       let orderedResults: any[];
       orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
       console.log("alphabetical results: " + JSON.stringify(orderedResults));
