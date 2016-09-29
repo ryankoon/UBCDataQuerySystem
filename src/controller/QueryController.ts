@@ -11,7 +11,7 @@ import {IFilter} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string|string[];
-    WHERE: {};
+    WHERE: IFilter;
     ORDER: string;
     AS: string;
 }
@@ -28,11 +28,38 @@ export default class QueryController {
         this.datasets = datasets;
     }
 
-    public isValid(query: QueryRequest): boolean {
-        if (typeof query !== 'undefined' && query !== null && Object.keys(query).length > 0) {
-            return true;
+    public isValid(query: QueryRequest): boolean | string {
+        if (typeof query === 'undefined') {
+          return 'Query is undefined!';
+        } else if (query === null) {
+          return 'Query is null!';
+        } else if (Object.keys(query).length === 0) {
+          return 'Query is empty!';
+        } else if (query.GET && query.GET.length === 0) {
+          return 'Query GET does not have any keys!'
+        } else if (query.ORDER && query.ORDER.length === 1) {
+          // are the keys in ORDER also in GET?
+          let result: boolean = true;
+          if (query.GET.length === 1) {
+            result = query.GET[0] === query.ORDER;
+          } else {
+            let queryGETArray: string[] = <string[]> query.GET;
+            queryGETArray.forEach((getKey: string) => {
+              result = result && getKey === query.ORDER;
+            });
+          }
+            if (result === false) {
+              // stop finding on first key that cannot be found in GET
+              // behaviour similar to arrayFirst
+                return 'A key in ORDER does not exist in GET!';
+            }
+        } else if (!query.AS) {
+          return "Query AS has not been defined!";
+        } else if (query.AS && query.AS !== 'TABLE') {
+          return "Query AS must be 'TABLE'!"
         }
-        return false;
+
+        return true;
     }
 
     /**
@@ -74,67 +101,81 @@ export default class QueryController {
 
     public query(query: QueryRequest): QueryResponse {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-      //get dataset based on first item in GET array.
-      let dataset: IObject;
-      // make sure there is at least one key in GET
-      if (query.GET && query.GET.length > 0) {
+      let isValidQuery: boolean | string = this.isValid(query);
+      if (isValidQuery === true) {
+        //get dataset based on first item in GET array.
+        let dataset: IObject;
         let firstGETKey: string = query.GET[0];
         let datasetId: string = this.getDatasetId(firstGETKey);
+
         if (datasetId != '') {
           //TODO call getDataset from DatasetController
           dataset = this.getStringIndexKVByNumber(this.datasets, 0)["value"];
         }
 
-      } else {
-        throw new Error("No columns have been defined in GET!");
+        // 1. FILTER
+        let courses: string[] = Object.keys(dataset);
+        let allCourseResults: IObject[] = [];
+        let filteredResults: IObject[];
+
+        console.log("dataset: " + dataset);
+        console.log("courseKeys: " + courses);
+
+        courses.forEach((course) => {
+          // combine results of all courses
+          let courseResults: IObject;
+          courseResults = dataset[course]["results"];
+          if (courseResults) {
+              allCourseResults = allCourseResults.concat(courseResults);
+          }
+        });
+
+        filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
+
+
+        // 2. ORDER
+        // 3. BUILD
+        console.log("# of Matches: " + filteredResults.length);
+        console.log("allMatches: " + JSON.stringify(filteredResults));
+        return { render: 'TABLE', result: filteredResults};
+
+      }  else {
+        throw new Error(<string> isValidQuery);
       }
-
-      // FILTER
-      let courseKeys: string[] = Object.keys(dataset);
-
-      console.log("dataset: " + dataset);
-      console.log("courseKeys: " + courseKeys);
-
-      let allMatches: IObject[] = [];
-      courseKeys.forEach((courseKey) => {
-        let matches: IObject[] = this.filterCourseResults(query.WHERE, courseKey, dataset[courseKey]["results"]);
-        // combine matches in other courses
-        allMatches = allMatches.concat(matches);
-      });
-      // ORDER
-      // BUILD
-
-      console.log("allMatches: " + JSON.stringify(allMatches));
-      return { render: 'TABLE', result: allMatches };
     }
 
-
-    public filterCourseResults(queryfilter: IFilter, courseKey: string, courseDataSet: IObject[]): IObject[] {
-      // for each result in each course, add to results array if it matches
+    public filterCourseResults(queryFilter: IFilter, allCourseResults: IObject[]): IObject[] {
+      // for each courseResult, add to results array if it matches
       // query conditions
       // translatekey as needed
-      // courseDataSet accessed with Hardcoded Key "results"
-      console.log("filtering course: " + courseKey);
-      let matches: IObject[] = [];
-      courseDataSet.forEach((courseData: IObject) => {
-        let result: boolean = this.queryResult(queryfilter, courseKey, courseData);
-        console.log("course match result: " + result);
-        if (result) {
-          // add coursedata (ie. a result in course object) to matches collection
-          matches.push(courseData);
-          console.log("pushed course match: " + matches);
+      let queryFilterMatches: IObject[] = [];
+
+      allCourseResults.forEach((courseResult: IObject) => {
+        let queryResult: boolean = this.queryACourseResult(queryFilter, courseResult);
+        console.log("course result satisfies query?: " + queryResult);
+
+        if (queryResult !== null) {
+          if(queryResult) {
+          // add courseResult to matches collection
+          queryFilterMatches.push(courseResult);
+          console.log("pushed courseResult: " + queryFilterMatches);
+          }
+        } else {
+          throw new Error('No match result returned from queryResult on courseResult!')
         }
       });
-      return matches;
+
+      return queryFilterMatches;
     }
 
-    public queryResult(queryfilter: IObject, courseKey: string, courseData: IObject): boolean {
+    public queryACourseResult(queryFilter: IFilter, courseResult: IObject): boolean {
       // apply query on a result in a Course
       // return true if it matches the query
       //console.log("filtering a  course result: " + JSON.stringify(courseData));
-        console.log("queryfilter: " + JSON.stringify(queryfilter));
+      console.log("queryfilter: " + JSON.stringify(queryFilter));
       let result: boolean;
-      let queryKeys: string[] = Object.keys(queryfilter);
+      let queryKeys: string[] = Object.keys(queryFilter);
+
       queryKeys.forEach((queryKey) => {
         let keyValue: IObject;
         let newQueryFilter1: IObject;
@@ -142,47 +183,45 @@ export default class QueryController {
         switch(queryKey) {
           case "AND":
           console.log("AND case");
-          keyValue = this.getStringIndexKVByNumber(queryfilter["AND"], 0);
-          newQueryFilter1 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
-          keyValue = this.getStringIndexKVByNumber(queryfilter["AND"], 1);
-          newQueryFilter2 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
-          result = this.queryResult(newQueryFilter1, courseKey, courseData)
-          && this.queryResult(newQueryFilter2, courseKey, courseData);
+          let ANDResult: boolean = true;
+          queryFilter.AND.forEach((filter) => {
+            ANDResult = ANDResult && this.queryACourseResult(filter, courseResult);
+          });
+          result = ANDResult;
           break;
 
           case "OR":
           console.log("OR case");
-          keyValue = this.getStringIndexKVByNumber(queryfilter["OR"], 0);
-          newQueryFilter1 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
-          keyValue = this.getStringIndexKVByNumber(queryfilter["OR"], 1);
-          newQueryFilter2 = this.buildObject([keyValue["key"]], [keyValue["value"]]);
-          result = this.queryResult(newQueryFilter1, courseKey, courseData)
-          || this.queryResult(newQueryFilter2, courseKey, courseData);
+          let ORResult: boolean = false;
+          queryFilter.OR.forEach((filter) => {
+            ORResult = ORResult || this.queryACourseResult(filter, courseResult);
+          });
+          result = ORResult;
           break;
 
           case "NOT":
           console.log("NOT case");
-          result = !this.queryResult(queryfilter["NOT"], courseKey, courseData);
+          result = !this.queryACourseResult(queryFilter.NOT, courseResult);
           break;
 
           case "LT":
           console.log("LT case");
-          result = this.numberCompare(queryfilter["LT"], "LT", courseData);
+          result = this.numberCompare(queryFilter.LT, "LT", courseResult);
           break;
 
           case "GT":
           console.log("GT case");
-          result = this.numberCompare(queryfilter["GT"], "GT", courseData);
+          result = this.numberCompare(queryFilter.GT, "GT", courseResult);
           break;
 
           case "EQ":
           console.log("EQ case");
-          result = this.numberCompare(queryfilter["GT"], "GT", courseData);
+          result = this.numberCompare(queryFilter.EQ, "EQ", courseResult);
           break;
 
           case "IS":
           console.log("IS case");
-          result = this.stringCompare(queryfilter["IS"], "IS", courseData);
+          result = this.stringCompare(queryFilter.IS, "IS", courseResult);
           break;
 
           default:
@@ -194,38 +233,44 @@ export default class QueryController {
       return result;
     }
 
-    public numberCompare(col: IMComparison, operation: string, courseData: IObject): boolean {
-      let colName: string = Object.keys(col)[0];
-      let queryColValue: number = this.getStringIndexKVByNumber(col, 0)["value"];
-      let courseColValue: number = courseData[this.translateKey(colName)];
+    public numberCompare(queryKeyWithDatasetIDAndValue: IMComparison, operation: string, courseResult: IObject): boolean {
+      let queryKeyWithDatasetID: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["key"];
+
+      let queryKey: string = this.getQueryKey(queryKeyWithDatasetID);
+      let queryKeyValue: number = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
+      // translate querykey to corresponding datasetkey
+      let dataKeyValue: number = courseResult[this.translateKey(queryKey)];
       switch(operation) {
 
         case "LT":
-        console.log(courseColValue + " is less than " + queryColValue + "?");
-        return courseColValue < queryColValue;
+        console.log(dataKeyValue + " is less than " + queryKeyValue + "?");
+        return dataKeyValue < queryKeyValue;
 
         case "GT":
-        console.log(courseColValue + " is greater than " + queryColValue + "?");
-        return courseColValue > queryColValue;
+        console.log(dataKeyValue + " is greater than " + queryKeyValue + "?");
+        return dataKeyValue > queryKeyValue;
 
         case "EQ":
-        console.log(courseColValue + " is equal to" + queryColValue + "?");
-        return courseColValue == queryColValue;
+        console.log(dataKeyValue + " is equal to" + queryKeyValue + "?");
+        return dataKeyValue == queryKeyValue;
 
         default:
         return false;
       }
     }
 
-    public stringCompare(col: ISComparison, operation: string, courseData: IObject): boolean {
-      let colName: string = Object.keys(col)[0];
-      let queryColValue: string = this.getStringIndexKVByNumber(col, 0)["value"];
-      let courseColValue: string = courseData[this.translateKey(colName)];
+    public stringCompare(queryKeyWithDatasetIDAndValue: ISComparison, operation: string, courseResult: IObject): boolean {
+      let queryKeyWithDatasetID: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["key"];
+
+      let queryKey: string = this.getQueryKey(queryKeyWithDatasetID);
+      let queryKeyValue: number = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
+      // translate querykey to corresponding datasetkey
+      let dataKeyValue: number = courseResult[this.translateKey(queryKey)];
       switch(operation) {
 
         case "IS":
-        console.log(courseColValue + " is " + queryColValue + "?");
-        return courseColValue == queryColValue;
+        console.log(dataKeyValue + " is " + queryKeyValue + "?");
+        return dataKeyValue === queryKeyValue;
 
         default:
         return false;
@@ -276,54 +321,39 @@ export default class QueryController {
      * @param queryKey
      * @param objectKey?
      */
-    public translateKey(queryKey: string, objectKey?: string): string {
-      let dept: string;
-      let id: string;
+    public translateKey(queryKey: string): string {
       let result: string;
 
-      if (objectKey) {
-        // may be better to move this out to utility class
-        let keyParts: string[] = objectKey.match(/([A-Za-z]+)([0-9]+)/);
-        // make sure objectKey is valid in the format:
-        // <dept><courseId>
-        if (keyParts && keyParts.length == 3) {
-          dept = keyParts[1];
-          id = keyParts[2];
-        }
-        console.log("dept: " + dept);
-        console.log("id: " + id);
-      }
-
       switch(queryKey) {
-        case 'courses_dept':
-          result = (dept)? dept : 'unknownDept';
+        case 'dept':
+          result = 'Subject';
           break;
 
-        case 'courses_id':
-          result = (id)? id: "unknownId";
+        case 'id':
+          result = 'Course';
           break;
 
-        case 'courses_avg':
+        case 'avg':
           result = 'Avg';
           break;
 
-        case 'courses_instructor':
+        case 'instructor':
           result = 'Professor';
           break;
 
-        case 'courses_title':
+        case 'title':
           result = 'Title';
           break;
 
-        case 'courses_pass':
+        case 'pass':
           result = 'Pass';
           break;
 
-        case 'courses_fail':
+        case 'fail':
           result = 'Fail';
           break;
 
-        case 'courses_audit':
+        case 'audit':
           result = 'Audit';
           break;
 

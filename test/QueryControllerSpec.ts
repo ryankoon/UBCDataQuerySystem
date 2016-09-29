@@ -18,7 +18,20 @@ describe("QueryController", function () {
 
     it("Should be able to validate a valid query", function () {
         // NOTE: this is not actually a valid query for D1
-        let query: QueryRequest = {GET: 'food', WHERE: {IS: 'apple'}, ORDER: 'food', AS: 'table'};
+        let query: QueryRequest = {
+          "GET": ["courses_dept", "courses_id", "courses_avg"],
+          "WHERE": {
+              "OR": [
+                  {"AND": [
+                          {"GT": {"courses_avg": 70}},
+                          {"IS": {"courses_dept": "adhe"}}
+                      ]},
+                      {"EQ": {"courses_avg": 90}}
+              ]
+          },
+          "ORDER": "courses_avg",
+          "AS": "TABLE"
+        };
         let dataset: Datasets = {};
         let controller = new QueryController(dataset);
         let isValid = controller.isValid(query);
@@ -32,7 +45,7 @@ describe("QueryController", function () {
         let controller = new QueryController(dataset);
         let isValid = controller.isValid(query);
 
-        expect(isValid).to.equal(false);
+        expect(isValid).to.be.a('string');
     });
 
     it("Should be able to filter dataset", function () {
@@ -40,19 +53,20 @@ describe("QueryController", function () {
         let query: QueryRequest = {
           "GET": ["courses_avg", "courses_instructor"],
           "WHERE": {
-            "AND" : {
+            "AND" : [{
               "NOT" : {
-                "IS": {"courses_instructor": "Bond, James" },
-                "GT": {"courses_avg": 80}
-              },
-              "OR" : {
-                "GT": {"courses_avg": 30},
-                "IS": {"courses_instructor": "Vader, Darth"}
+                "IS": {"courses_instructor": "Bond, James"}
               }
-            }
+            },
+            {
+              "OR" : [
+              {"GT": {"courses_avg": 30}},
+              {"IS": {"courses_instructor": "Vader, Darth"}}
+              ]
+            }]
           },
           "ORDER": "courses_avg",
-          "AS": "table"
+          "AS": "TABLE"
         };
 
         let dataset: Datasets = {
@@ -87,29 +101,21 @@ describe("QueryController", function () {
       // NOTE: this directly tagets translatekey function in QueryController
       let controller = new QueryController({});
       let result: string;
-      result = controller.translateKey('courses_dept', 'ABCD1234');
-      expect(result).to.be.equal('ABCD');
-      result = controller.translateKey('courses_id', 'ABCD1234');
-      expect(result).to.be.equal('1234');
-      result = controller.translateKey('courses_dept', '1234ABCD');
-      expect(result).to.be.equal('unknownDept');
-      result = controller.translateKey('courses_id', '1234ABCD');
-      expect(result).to.be.equal('unknownId');
-      result = controller.translateKey('courses_dept');
-      expect(result).to.be.equal('unknownDept');
-      result = controller.translateKey('courses_id');
-      expect(result).to.be.equal('unknownId');
-      result = controller.translateKey('courses_avg');
+      result = controller.translateKey('dept');
+      expect(result).to.be.equal('Subject');
+      result = controller.translateKey('id');
+      expect(result).to.be.equal('Course');
+      result = controller.translateKey('avg');
       expect(result).to.be.equal('Avg');
-      result = controller.translateKey('courses_instructor');
+      result = controller.translateKey('instructor');
       expect(result).to.be.equal('Professor');
-      result = controller.translateKey('courses_title');
+      result = controller.translateKey('title');
       expect(result).to.be.equal('Title');
-      result = controller.translateKey('courses_pass');
+      result = controller.translateKey('pass');
       expect(result).to.be.equal('Pass');
-      result = controller.translateKey('courses_fail');
+      result = controller.translateKey('fail');
       expect(result).to.be.equal('Fail');
-      result = controller.translateKey('courses_audit');
+      result = controller.translateKey('audit');
       expect(result).to.be.equal('Audit');
       result = controller.translateKey('MacOrWindows');
       expect(result).to.be.equal('unknownKey');
