@@ -20,6 +20,39 @@ export default class DatasetController {
     constructor() {
         Log.trace('DatasetController::init()');
     }
+
+    /*
+    Does the directory eist on disk?
+    Yes? Then load the data into memory.
+    No? Then return null.
+
+     */
+
+    private loadDataIntoMemory(id : string) : any{
+        var that = this;
+        return new Promise(function (fulfill, reject){
+            let path:string = './data/' + id + ".json";
+            fs.readFile(path, (err, data) => {
+                if (err) {
+                    console.log('HI I GOT REJECTED: ' + err);
+                    reject(err);
+                }
+                try {
+                    // we have a buffer here..sad story
+                    // Uint8Array[67]
+                    let out = JSON.parse(data.toString('utf8'));
+                    that.datasets[id] = out
+                    fulfill(that.datasets[id]);
+                }
+                catch(err){
+                    console.log('errrored out in get');
+                    reject('Error : ' + err);
+                }
+            });
+        });
+    }
+
+
     /**
      * Returns the referenced dataset. If the dataset is not in memory, it should be
      * loaded from disk and put in memory. If it is not in disk, then it should return
@@ -29,65 +62,81 @@ export default class DatasetController {
      * @returns {{}}
      */
     public getDataset(id: string): any {
+        var that = this;
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
         fs.readdir('./data', (err, files) => {
           if (err){
             reject(err);
           }
-          if (files.indexOf(id) === -1){
+          if (files.indexOf(id + '.json') === -1){
             fulfill(null);
           }
-          let path:string = './data/' + id;
-          fs.readFile(path, (err, data) => {
-            if (err) {
-              reject(err);
-            }
-            this.datasets[id] = data;
-            fulfill(this.datasets[id]);
-          });
+           that.loadDataIntoMemory(id)
+               .then(function (data:any) {
+                   fulfill(data);
+               })
+               .catch(function (err:any){
+                   reject(err);
+               });
         });
       });
     }
+    /*
+    @function parses out the last '.ext'.
+     */
+    private removeExtension(nameWithExtension: string) : string {
+        let fileName:string = nameWithExtension.substr(0, nameWithExtension.lastIndexOf('.'));
+        return fileName;
+    }
+    /*
+    @function removes files that lead with dot resulting from fs usage.
+     */
+    private leadingDotCheck(list : Array<any>): Array<any>{
+        let newList = list;
+        let leadingDotCheck : RegExp = new RegExp(/^[.]/, 'g');
+        newList.forEach( (item, index) => {
+            if (leadingDotCheck.test(item)){
+                newList.splice(index, 1);
+            }
+        });
+        return newList;
+    }
     /**
     @function: if datasets is empty, load all dataset files in ./data from disk
+     Used to have a DataSets return value... but i dont think that's correct...
     */
-    public getDatasets(): Datasets {
+    public getDatasets(): Promise<Datasets> {
         //setup loadData promise function.
-        var loadDataFromDisk = new Promise(function (fulfill, reject) {
-        let promiseArr:Promise<any>[] = [];
+        return new Promise((fulfill, reject) => {
+            var that = this;
+            let keysArray = Object.keys(that.datasets);
+            if (keysArray.length === 0) {
+                fs.readdir('./data', (err, files) => {
+                    if (err) {
+                        Log.error('oh noes an err: ' + err);
+                        reject(err);
+                    }
+                    let promiseArray = new Array();
+                    files = that.leadingDotCheck(files);
+                    files.forEach((key, index) => {
+                        let fileIdName:string = that.removeExtension(key);
+                        promiseArray.push(that.loadDataIntoMemory(fileIdName));
+                    });
+                    Promise.all(promiseArray)
+                        .then(() => {
+                            fulfill(this.datasets);
+                        })
+                        .catch((err) => {
+                            Log.error('Uhoh promise array failed to resolve');
+                            reject(err);
+                        });
+                });
 
-        fs.readdir('./data', function (err, files) {
-          files.forEach(function (file, index) {
-            // remove .json from file.
-            let fileId:string = file.slice(0, -5);
-            let path:string = './data/' + file;
-            let filePromise = new Promise( (fulfill, reject) => {
-              fs.readFile(path, (err, data) => {
-                if (err) {
-                  reject(err);
-                }
-                this.datasets[fileId] = data;
-              });
-            });
-            // need to get ID from file.
-            // need to get data from file.
-            promiseArr.push(filePromise);
-
-          });
-          Promise.all(promiseArr)
-          .then(() => {
-            fulfill(true);
-          });
+            } else {
+                fulfill(that.datasets);
+            }
         });
-      });
-        if (Object.keys(this.datasets).length === 0) {
-          loadDataFromDisk
-          .then(function () {
-            return this.datasets;
-          });
-        }
-      return this.datasets;
     }
 
     /**
@@ -96,10 +145,7 @@ export default class DatasetController {
      * Returns: Boolean.
      */
     public deleteDataset(id: string) : void {
-        console.log(' I am deleting id here');
         delete this.datasets[id];
-        console.log('delete got read');
-        console.log('attempting to access deleted obj' + this.datasets[id]);
     }
 
     // !!! how do we know the ID is new?
@@ -228,7 +274,7 @@ export default class DatasetController {
       }
 
       directoryCreation();
-      fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+      fs.writeFile('./data/' + id + '.json', jsonData,(err) => {
         if (err){ Log.trace('Writefile error! ' + err);}
       });
     }
