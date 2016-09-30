@@ -21,90 +21,128 @@ describe("DatasetController", function () {
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
         zip.file('item1ThatShouldExist', JSON.stringify(content1));
         zip.file('item2ThatShouldExist', JSON.stringify(content2));
+        var controller = new DatasetController();;
+
 
         const opts = {
             compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
         };
         return zip.generateAsync(opts).then(function (data) {
             Log.test('Dataset created');
-            let controller = new DatasetController();
-            return controller.process('setA', data);
+            return controller.process('setA', data)
         })
         .then(function (result) {
             Log.test('Dataset processed; result: ' + result);
-            expect(result).to.equal(true);
-            var stat = fs.statSync('./data/setA.json');
-            expect(stat.isFile()).to.equal(true);
-            done();
+            expect(result).to.equal(204);
+        }).then(function () {
+                return zip.generateAsync(opts).then(function (data) {
+                    Log.test('Dataset created');
+                    return controller.process('setA', data);
+                });
+        }).then(function (result) {
+            expect(result).to.equal(201);
+                done();
         });
-      });
 
-    it("Should be able to receive a Dataset, save it and delete from memory", function (done) {
+    });
+    it('should not return the proper dataset', function () {
+        let controller = new DatasetController();
+        controller.getDataset('setMalfoy')
+        .then(function(data:any) {
+           expect(data).to.deep.equal(null);
+        });
+    });
+
+    it('Should be able to getdatasets from memory', function (done) {
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
-        let content1 = {'Robinhood': 'Superman'};
+        let content1 = {'Batmanvs': 'Superman'};
         let content2 = {'job' : 'AtSomeCompanyIHope'};
         let zip = new JSZip();
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
         zip.file('item1ThatShouldExist', JSON.stringify(content1));
         zip.file('item2ThatShouldExist', JSON.stringify(content2));
+        var controller = new DatasetController();;
+
 
         const opts = {
             compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
         };
         return zip.generateAsync(opts).then(function (data) {
             Log.test('Dataset created');
-            let controller = new DatasetController();
-            return controller.process('setB', data);
+            return controller.process('setB', data)
         })
             .then(function (result) {
                 Log.test('Dataset processed; result: ' + result);
-                expect(result).to.equal(true);
-                var stat = fs.statSync('./data/setB.json');
-                expect(stat.isFile()).to.equal(true);
-                let controller = new DatasetController();
-                return controller.getDataset('setB');
-            })
-            .then(function (data : any) {
-                Log.test('Successfully got setA');
-                expect(data['item1ThatShouldExist']).to.deep.equal({'Robinhood': 'Superman'});
-                expect(data['item2ThatShouldExist']).to.deep.equal({'job' : 'AtSomeCompanyIHope'});
-            }).catch(function (err){
-                assert.fail('Should not catch anything here: ' + err);
-            })
-            .then(function newInstanceofDataSetController(data){
-                let controller = new DatasetController();
-                return controller.getDataset('setMalfoy');
-            })
-            .then(function (data:any){
-                expect(data).to.deep.equal(null);
-            })
-            .catch(function () {
-                assert.fail('Fail if get returns setMalfoy');
-            })
-            .then(function deleteMemoryThenGet() {
-                let controller = new DatasetController();
-                controller.deleteDataset('setA');
-                return controller.getDataset('setA');
-            })
-            .then(function checkMemory(data) {
-                expect(data['item1ThatShouldExist']).to.deep.equal({'Batmanvs': 'Superman'});
-            })
-            .catch(function () {
-                assert.fail('getDataSet should not fail, and instead should set memory');
-            })
-            .then(function assertGetDataSets(data){
-                let controller = new DatasetController();
+                expect(result).to.equal(204);
+            }).then(function () {
+                return zip.generateAsync(opts).then(function (data) {
+                    Log.test('Dataset created');
+                    return controller.process('setC', data);
+                })
+            }).then(function() {
                 return controller.getDatasets();
-            })
-            .then(function (out){
-                expect(typeof out['setA']).to.equal('object');
-                expect(typeof out['setB']).to.equal('object');
+            }).then(function (out){
+                expect(out['setB']).to.be.instanceOf(Object);
+                expect(out['setC']).to.be.instanceOf(Object);
                 done();
-            })
-            .catch(function () {
-               assert.fail('getDataSets should not fail and should instead return memory');
-                done();
+            }).catch(function (err){
+               Log.error(err);
             });
+    });
+    it('Should be able to getdataset (singular)', function (done) {
+        Log.test('Creating dataset');
+        let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
+        let content1 = {'Batmanvs': 'Superman'};
+        let content2 = {'job' : 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
+        zip.file('item1ThatShouldExist', JSON.stringify(content1));
+        zip.file('item2ThatShouldExist', JSON.stringify(content2));
+        var controller = new DatasetController();;
+
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            Log.test('Dataset created');
+            return controller.process('setD', data)
+        }).then(function() {
+                return controller.getDataset('setD');
+            }).then(function (out){
+                expect(out['item1ThatShouldExist']).to.be.instanceOf(Object);
+                expect(out['item2ThatShouldExist']).to.be.instanceOf(Object);
+                done();
+            }).catch(function (err){
+                Log.error(err);
+            });
+    });
+    it('Should be able to getdataset (singular)', function (done) {
+        Log.test('Creating dataset');
+        let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
+        let content1 = {'Batmanvs': 'Superman'};
+        let content2 = {'job' : 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
+        zip.file('item1ThatShouldExist', JSON.stringify(content1));
+        zip.file('item2ThatShouldExist', JSON.stringify(content2));
+        var controller = new DatasetController();;
+
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            Log.test('Dataset created');
+            return controller.process('setD', data)
+        }).then(function() {
+            return controller.getDataset('malfoy');
+        }).then(function (out){
+            expect(out).is(null);
+            done();
+        }).catch(function (err){
+            Log.error(err);
+        });
     });
 });
