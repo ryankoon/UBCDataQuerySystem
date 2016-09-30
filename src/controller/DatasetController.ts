@@ -70,13 +70,15 @@ export default class DatasetController {
           if (files.indexOf(id + '.json') === -1){
             fulfill(null);
           }
-           that.loadDataIntoMemory(id)
-               .then(function (data:any) {
-                   fulfill(data);
-               })
-               .catch(function (err:any){
-                   reject(err);
-               });
+          else {
+              that.loadDataIntoMemory(id)
+                  .then(function (data: any) {
+                      fulfill(data);
+                  })
+                  .catch(function (err: any) {
+                      reject(err);
+                  });
+          }
         });
       });
     }

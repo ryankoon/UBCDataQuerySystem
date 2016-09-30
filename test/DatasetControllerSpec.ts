@@ -118,7 +118,7 @@ describe("DatasetController", function () {
                 Log.error(err);
             });
     });
-    it('Should be able to getdataset (singular)', function (done) {
+    it('should get null from non-existant dataset', function (done) {
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
@@ -127,7 +127,7 @@ describe("DatasetController", function () {
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
         zip.file('item1ThatShouldExist', JSON.stringify(content1));
         zip.file('item2ThatShouldExist', JSON.stringify(content2));
-        var controller = new DatasetController();;
+        var controller = new DatasetController();
 
 
         const opts = {
@@ -139,7 +139,7 @@ describe("DatasetController", function () {
         }).then(function() {
             return controller.getDataset('malfoy');
         }).then(function (out){
-            expect(out).is(null);
+            expect(out).to.be.null;
             done();
         }).catch(function (err){
             Log.error(err);
