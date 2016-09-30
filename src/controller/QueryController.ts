@@ -113,8 +113,6 @@ export default class QueryController {
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
 
-        console.log("dataset: " + JSON.stringify(this.dataset));
-        console.log("courseKeys: " + courses);
 
         courses.forEach((course) => {
           // combine results of all courses
@@ -134,8 +132,6 @@ export default class QueryController {
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
         // 3. BUILD
-        console.log("# of Matches: " + filteredResults.length);
-        console.log("allMatches: " + JSON.stringify(filteredResults));
         return { render: 'TABLE', result: filteredResults};
 
       }  else {
@@ -151,13 +147,11 @@ export default class QueryController {
 
       allCourseResults.forEach((courseResult: IObject) => {
         let queryResult: boolean = this.queryACourseResult(queryFilter, courseResult);
-        console.log("course result satisfies query?: " + queryResult);
 
         if (queryResult !== null) {
           if(queryResult) {
           // add courseResult to matches collection
           queryFilterMatches.push(courseResult);
-          console.log("pushed courseResult: " + queryFilterMatches);
           }
         } else {
           throw new Error('No match result returned from queryResult on courseResult!')
@@ -170,8 +164,7 @@ export default class QueryController {
     public queryACourseResult(queryFilter: IFilter, courseResult: IObject): boolean {
       // apply query on a result in a Course
       // return true if it matches the query
-      //console.log("filtering a  course result: " + JSON.stringify(courseData));
-      //console.log("queryfilter: " + JSON.stringify(queryFilter));
+
       let result: boolean;
       let queryKeys: string[] = Object.keys(queryFilter);
 
@@ -181,7 +174,6 @@ export default class QueryController {
         let newQueryFilter2: IObject;
         switch(queryKey) {
           case "AND":
-          //console.log("AND case");
           let ANDResult: boolean = true;
           queryFilter.AND.forEach((filter) => {
             ANDResult = ANDResult && this.queryACourseResult(filter, courseResult);
@@ -190,7 +182,6 @@ export default class QueryController {
           break;
 
           case "OR":
-          //console.log("OR case");
           let ORResult: boolean = false;
           queryFilter.OR.forEach((filter) => {
             ORResult = ORResult || this.queryACourseResult(filter, courseResult);
@@ -242,15 +233,12 @@ export default class QueryController {
       switch(operation) {
 
         case "LT":
-        console.log(dataKeyValue + " is less than " + queryKeyValue + "?");
         return dataKeyValue < queryKeyValue;
 
         case "GT":
-        console.log(dataKeyValue + " is greater than " + queryKeyValue + "?");
         return dataKeyValue > queryKeyValue;
 
         case "EQ":
-        console.log(dataKeyValue + " is equal to" + queryKeyValue + "?");
         return dataKeyValue == queryKeyValue;
 
         default:
@@ -268,7 +256,6 @@ export default class QueryController {
       switch(operation) {
 
         case "IS":
-        console.log(dataKeyValue + " is " + queryKeyValue + "?");
         return dataKeyValue === queryKeyValue;
 
         default:
@@ -283,18 +270,14 @@ export default class QueryController {
       if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order] !== 'undefined') {
         // sort filtered results
         let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
-          console.log("sorting unsorted results: " + JSON.stringify(unsortedResults));
           return unsortedResults.sort((a: IObject, b: IObject) => {
             let aValue = this.lettersNumbersOnlyLowercase(a[queryKey]);
             let bValue = this.lettersNumbersOnlyLowercase(b[queryKey]);
           if(aValue < bValue){
-            console.log(aValue + " is less than " + bValue);
               return -1;
           } else if(aValue > bValue){
-              console.log(aValue + " is greater than " + bValue);
               return 1;
           }
-            console.log(aValue + " is equal to " + bValue);
           return 0;
           });
         });
@@ -326,7 +309,6 @@ export default class QueryController {
           value: object[keys[index]]
         };
       } else {
-        console.log("index greater than number of keys!", "object: " + JSON.stringify(object), "index: " + index);
         return {key: "", value: ""};
       }
     }

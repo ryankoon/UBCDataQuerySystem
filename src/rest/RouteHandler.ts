@@ -50,13 +50,11 @@ export default class RouteHandler {
         });
     }
 
+
     public static putDataset(req: restify.Request, res: restify.Response, next: restify.Next) {
         Log.trace('RouteHandler::postDataset(..) - params: ' + JSON.stringify(req.params));
         try {
             var id: string = req.params.id;
-
-            // TODO: Need to check ID to ensure res.json is 200 or 204.
-
             // stream bytes from request into buffer and convert to base64
             // adapted from: https://github.com/restify/node-restify/issues/880#issuecomment-133485821
             let buffer: any = [];
@@ -71,12 +69,21 @@ export default class RouteHandler {
                 Log.trace('RouteHandler::postDataset(..) on end; total length: ' + req.body.length);
 
                 let controller = RouteHandler.datasetController;
-                controller.process(id, req.body).then(function (result) {
+
+
+                controller.process(id, req.body)
+                    .then(function (result) {
                     Log.trace('RouteHandler::postDataset(..) - processed');
-                    res.json(200, {success: result});
+                    fs.stat('./data/' + id + '.json', (err, stats) => {
+                        if (err){
+                            console.error('Hi i am a fs.stat error : ' + err);
+                        }
+                        res.json(result, {Message: 'Success!'});
+                    });
                 }).catch(function (err: Error) {
                     Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
-                    res.json(400, {err: err.message});
+                    // format must be : {error :' message '}
+                    res.json(400, {error: err.message});
                 });
             });
 
