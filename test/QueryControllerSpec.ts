@@ -166,9 +166,9 @@ describe("QueryController", function () {
 
         let expectedResult: any = { render: 'TABLE',
           result: [
-            { "Professor": "Elmo" },
-            { "Professor": "E.T." },
-            { "Professor": "Vader, Darth" }
+            { "asdf_instructor": "Elmo" },
+            { "asdf_instructor": "E.T." },
+            { "asdf_instructor": "Vader, Darth" }
           ]
 
         }
