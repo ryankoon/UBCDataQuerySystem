@@ -39,10 +39,10 @@ export default class QueryController {
           return 'Query is null!';
         } else if (Object.keys(query).length === 0) {
           return 'Query is empty!';
-        } else if (query.GET && query.GET.length === 0) {
+        } else if (!query.GET || query.GET.length === 0) {
           return 'Query GET does not have any keys!'
         } else if (query.ORDER && query.ORDER.length === 1) {
-          // 'order key needs to be among the get keys'
+          // order key needs to be among the get keys
           let result: boolean = true;
           if (query.GET.length === 1) {
             result = query.GET[0] === query.ORDER;
@@ -57,10 +57,27 @@ export default class QueryController {
               // behaviour similar to arrayFirst
                 return 'A key in ORDER does not exist in GET!';
             }
+        } else if (!query.WHERE) {
+            return "Query WHERE has not been defined!";
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
           return "Query AS must be 'TABLE'!"
+        }
+
+        let whereKeys: string[] = Object.keys(query.WHERE);
+        if (!whereKeys || whereKeys.length === 0){
+            return "Query WHERE does not contain a comparison or negation key!"
+        }
+
+        let invalidFilterKey: boolean = true;
+        whereKeys.forEach((key: string) => {
+            if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
+                invalidFilterKey = false;
+            }
+        });
+        if (invalidFilterKey) {
+            return "Query WHERE contains an invalid filter key!";
         }
 
         return true;
