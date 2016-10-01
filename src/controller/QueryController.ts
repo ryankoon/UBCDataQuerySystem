@@ -129,7 +129,6 @@ export default class QueryController {
         let courses: string[] = Object.keys(this.dataset);
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
-        console.log("courses", courses);
 
         courses.forEach((course) => {
           // combine results of all courses
@@ -142,7 +141,7 @@ export default class QueryController {
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
         console.log("# of Matches: " + filteredResults.length);
-        console.log("allMatches: " + JSON.stringify(filteredResults));
+        //console.log("allMatches: " + JSON.stringify(filteredResults));
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
         let orderQueryKey: string = this.getQueryKey(query.ORDER);
@@ -150,11 +149,11 @@ export default class QueryController {
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
-        console.log("orderedResults: " + JSON.stringify(orderedResults));
+        // console.log("orderedResults: " + JSON.stringify(orderedResults));
 
         // 3. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query)
-        console.log("finalResults: " + JSON.stringify(finalResults));
+        // console.log("finalResults: " + JSON.stringify(finalResults));
 
         return {render: query.AS, result: finalResults};
       }  else {
@@ -213,32 +212,26 @@ export default class QueryController {
           break;
 
           case "NOT":
-          //console.log("NOT case");
           result = !this.queryACourseResult(queryFilter.NOT, courseResult);
           break;
 
           case "LT":
-          //console.log("LT case");
           result = this.numberCompare(queryFilter.LT, "LT", courseResult);
           break;
 
           case "GT":
-          //console.log("GT case");
           result = this.numberCompare(queryFilter.GT, "GT", courseResult);
           break;
 
           case "EQ":
-          //console.log("EQ case");
           result = this.numberCompare(queryFilter.EQ, "EQ", courseResult);
           break;
 
           case "IS":
-          //console.log("IS case");
           result = this.stringCompare(queryFilter.IS, "IS", courseResult);
           break;
 
           default:
-          //console.log("Default case");
           result = false;
           break;
         }
@@ -315,16 +308,21 @@ export default class QueryController {
       //create new objects based on given columns and return format.
       let getQueryKeys: string | string[] = query.GET;
         let translatedQueryKeys: string[] = [];
+        let datasetId: string;
       //check if there is more than one querykey in GET
       if (getQueryKeys.constructor === Array) {
+          //typecast to string array
         let getQueryKeysStringArray: string[] = <string[]> query.GET;
+          datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
         getQueryKeysStringArray.forEach((key: string) => {
           // strip out datasetID
           key = this.getQueryKey(key);
           translatedQueryKeys.push(this.translateKey(key));
         });
       } else if (typeof(getQueryKeys) === 'string') {
+          //typecast to string
         let getQueryKeysString: string = <string> query.GET;
+          datasetId = this.getDatasetId(getQueryKeysString);
         // strip out datasetID
         getQueryKeysString = this.getQueryKey(getQueryKeysString);
         translatedQueryKeys.push(this.translateKey(getQueryKeysString));
@@ -335,7 +333,8 @@ export default class QueryController {
           let resultObject: IObject = {};
           translatedQueryKeys.forEach((querykey: string) => {
             // copy over keys and values defined in GET
-            resultObject[querykey] = result[querykey];
+              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to querykey)
+            resultObject[datasetId + "_" + this.reverseKeyTranslation(querykey)] = result[querykey];
           });
 
           finalResults.push(resultObject);
@@ -423,5 +422,49 @@ export default class QueryController {
       }
 
       return result;
+    }
+
+    public reverseKeyTranslation(queryKey: string): string {
+        let result: string;
+
+        switch(queryKey) {
+            case 'Subject':
+                result = 'dept';
+                break;
+
+            case 'Course':
+                result = 'id';
+                break;
+
+            case 'Avg':
+                result = 'avg';
+                break;
+
+            case 'Professor':
+                result = 'instructor';
+                break;
+
+            case 'Title':
+                result = 'title';
+                break;
+
+            case 'Pass':
+                result = 'pass';
+                break;
+
+            case 'Fail':
+                result = 'fail';
+                break;
+
+            case 'Audit':
+                result = 'audit';
+                break;
+
+            default:
+                result = 'unknownKey'
+                break
+        }
+
+        return result;
     }
 }
