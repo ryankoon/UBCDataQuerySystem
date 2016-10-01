@@ -42,7 +42,7 @@ export default class QueryController {
         } else if (query.GET && query.GET.length === 0) {
           return 'Query GET does not have any keys!'
         } else if (query.ORDER && query.ORDER.length === 1) {
-          // are the keys in ORDER also in GET?
+          // 'order key needs to be among the get keys'
           let result: boolean = true;
           if (query.GET.length === 1) {
             result = query.GET[0] === query.ORDER;
@@ -112,7 +112,7 @@ export default class QueryController {
         let courses: string[] = Object.keys(this.dataset);
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
-
+        console.log("courses", courses);
 
         courses.forEach((course) => {
           // combine results of all courses
@@ -124,16 +124,22 @@ export default class QueryController {
         });
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
+        console.log("# of Matches: " + filteredResults.length);
+        console.log("allMatches: " + JSON.stringify(filteredResults));
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
         let orderQueryKey: string = this.getQueryKey(query.ORDER);
+
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
+        console.log("orderedResults: " + JSON.stringify(orderedResults));
 
         // 3. BUILD
-        return { render: 'TABLE', result: filteredResults};
+        let finalResults: IObject[] = this.buildResults(orderedResults, query)
+        console.log("finalResults: " + JSON.stringify(finalResults));
 
+        return {render: query.AS, result: finalResults};
       }  else {
         throw new Error(<string> isValidQuery);
       }
@@ -287,11 +293,39 @@ export default class QueryController {
       return orderedResults;
     }
 
-    public buildDataset(orderedDataSet: {}): IObject[] {
+    public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
+      let finalResults: IObject[] = [];
       //create new objects based on given columns and return format.
-      // TODO
-      let matches: Object[] = []
-      return matches;
+      let getQueryKeys: string | string[] = query.GET;
+        let translatedQueryKeys: string[] = [];
+      //check if there is more than one querykey in GET
+      if (getQueryKeys.constructor === Array) {
+        let getQueryKeysStringArray: string[] = <string[]> query.GET;
+        getQueryKeysStringArray.forEach((key: string) => {
+          // strip out datasetID
+          key = this.getQueryKey(key);
+          translatedQueryKeys.push(this.translateKey(key));
+        });
+      } else if (typeof(getQueryKeys) === 'string') {
+        let getQueryKeysString: string = <string> query.GET;
+        // strip out datasetID
+        getQueryKeysString = this.getQueryKey(getQueryKeysString);
+        translatedQueryKeys.push(this.translateKey(getQueryKeysString));
+      }
+
+      if (query.AS === 'TABLE') {
+        orderedResults.forEach((result: IObject) => {
+          let resultObject: IObject = {};
+          translatedQueryKeys.forEach((querykey: string) => {
+            // copy over keys and values defined in GET
+            resultObject[querykey] = result[querykey];
+          });
+
+          finalResults.push(resultObject);
+        });
+      }
+
+      return finalResults;
     }
 
     public lettersNumbersOnlyLowercase(input: any): any {
