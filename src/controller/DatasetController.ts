@@ -20,6 +20,37 @@ export default class DatasetController {
     constructor() {
         Log.trace('DatasetController::init()');
     }
+
+    /*
+    Does the directory eist on disk?
+    Yes? Then load the data into memory.
+    No? Then return null.
+
+     */
+
+    private loadDataIntoMemory(id : string) : any{
+        var that = this;
+        return new Promise(function (fulfill, reject){
+            let path:string = './data/' + id + ".json";
+            fs.readFile(path, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                try {
+                    // we have a buffer here..sad story
+                    // Uint8Array[67]
+                    let out = JSON.parse(data.toString('utf8'));
+                    that.datasets[id] = out;
+                    fulfill(that.datasets[id]);
+                }
+                catch(err){
+                    reject('Error : ' + err);
+                }
+            });
+        });
+    }
+
+
     /**
      * Returns the referenced dataset. If the dataset is not in memory, it should be
      * loaded from disk and put in memory. If it is not in disk, then it should return
@@ -28,66 +59,86 @@ export default class DatasetController {
      * @param id
      * @returns {{}}
      */
-    public getDataset(id: string): any {
+    public getDataset(id: string): Promise<any> {
+        var that = this;
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
         fs.readdir('./data', (err, files) => {
           if (err){
             reject(err);
           }
-          if (files.indexOf(id) === -1){
+          if (files.indexOf(id + '.json') === -1){
             fulfill(null);
           }
-          let path:string = './data/' + id;
-          fs.readFile(path, (err, data) => {
-            if (err) {
-              reject(err);
-            }
-            this.datasets[id] = data;
-            fulfill(this.datasets[id]);
-          });
+          else {
+              that.loadDataIntoMemory(id)
+                  .then(function (data: any) {
+                      fulfill(data);
+                  })
+                  .catch(function (err: any) {
+                      reject(err);
+                  });
+          }
         });
       });
     }
+    /*
+    @function parses out the last '.ext'.
+     */
+    private removeExtension(nameWithExtension: string) : string {
+        let fileName:string = nameWithExtension.substr(0, nameWithExtension.lastIndexOf('.'));
+        return fileName;
+    }
+    /*
+    @function removes files that lead with dot resulting from fs usage.
+     */
+    private leadingDotCheck(list : Array<any>): Array<any>{
+        let newList = list;
+        let leadingDotCheck : RegExp = new RegExp('/^[.]/', 'g');
+        newList.forEach( (item, index) => {
+            if (leadingDotCheck.test(item)){
+                newList.splice(index, 1);
+            }
+        });
+        return newList;
+    }
     /**
     @function: if datasets is empty, load all dataset files in ./data from disk
+     Used to have a DataSets return value... but i dont think that's correct...
     */
-    public getDatasets(): Datasets {
+    public getDatasets(): Promise<Datasets> {
         //setup loadData promise function.
-        var loadDataFromDisk = new Promise(function (fulfill, reject) {
-        let promiseArr:Promise<any>[] = [];
+        return new Promise((fulfill, reject) => {
+            var that = this;
+            let keysArray = Object.keys(that.datasets);
+            if (keysArray.length === 0) {
+                fs.readdir('./data', (err, files) => {
+                    if (err) {
+                        Log.error('oh noes an err: ' + err);
+                        reject(err);
+                    }
+                    var promiseArray = new Array();
+                    files = that.leadingDotCheck(files);
+                    files.forEach((key, index) => {
+                        let fileIdName:string = that.removeExtension(key);
+                        if (fileIdName.length > 0) {
+                            promiseArray.push(that.loadDataIntoMemory(fileIdName));
+                        }
+                    });
+                    Promise.all(promiseArray)
+                        .then(() => {
+                            fulfill(that.datasets);
+                        })
+                        .catch((err) => {
+                            Log.error('Uhoh promise array failed to resolve: ' + err);
+                            reject(err);
+                        });
+                });
 
-        fs.readdir('./data', function (err, files) {
-          files.forEach(function (file, index) {
-            // remove .json from file.
-            let fileId:string = file.slice(0, -5);
-            let path:string = './data/' + file;
-            let filePromise = new Promise( (fulfill, reject) => {
-              fs.readFile(path, (err, data) => {
-                if (err) {
-                  reject(err);
-                }
-                this.datasets[fileId] = data;
-              });
-            });
-            // need to get ID from file.
-            // need to get data from file.
-            promiseArr.push(filePromise);
-
-          });
-          Promise.all(promiseArr)
-          .then(() => {
-            fulfill(true);
-          });
+            } else {
+                fulfill(that.datasets);
+            }
         });
-      });
-        if (Object.keys(this.datasets).length === 0) {
-          loadDataFromDisk
-          .then(function () {
-            return this.datasets;
-          });
-        }
-      return this.datasets;
     }
 
     /**
@@ -96,10 +147,7 @@ export default class DatasetController {
      * Returns: Boolean.
      */
     public deleteDataset(id: string) : void {
-        console.log(' I am deleting id here');
         delete this.datasets[id];
-        console.log('delete got read');
-        console.log('attempting to access deleted obj' + this.datasets[id]);
     }
 
     // !!! how do we know the ID is new?
@@ -121,7 +169,7 @@ export default class DatasetController {
       return new Promise(function (fulfill, reject) {
         try {
           let myZip = new JSZip();
-          myZip.loadAsync(data, {base64: true})  // TODO: look at myZip.loadAsync, perhaps it has a config I can use.
+          myZip.loadAsync(data, {base64: true})
           .then(function processZipFile(zip: JSZip) {
               let processedDataset : {[key:string]:string}  = {};
               Log.trace('DatasetController::process(..) - unzipped');
@@ -148,13 +196,13 @@ export default class DatasetController {
 
                 parsedFileName = splitPath.join("");
 
-                let filePromise: Promise<any> = new Promise((fulfill, reject) => {
+                let filePromise: Promise<any> = new Promise((yes, reject) => {
                     let file = parsedFileName;
                     zipObject[filePath].async('string')
                   .then(function storeDataFromFilesInDictionary(data) {
                       try {
                           processedDataset[file] = JSON.parse(data); // we parse it into json... will succed
-                          fulfill();
+                          yes();
                       }
                       catch(err) {
                           Log.error('Error for the parsing of JSON in Process: ' + err);
@@ -175,18 +223,19 @@ export default class DatasetController {
               // wait until all files have been processed and stored in dictionary
               Promise.all(filePromises)
               .then(() => {
-                that.save(id, processedDataset);
-                fulfill(true);
-              });
+                return that.save(id, processedDataset)
+              }).then((data) => {
+                  fulfill(data);
+              })
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
-              reject(false);
+              reject(err);
             });
           }
         catch (err) {
             Log.trace('DatasetController::process(..) - ERROR: ' + err);
-            reject(false);
+            reject(err);
         }
       });
     }
@@ -198,13 +247,35 @@ export default class DatasetController {
      * @param id
      * @param processedDataset
      */
-    private save(id: string, processedDataset: any) {
+    private save(id: string, processedDataset: any) : Promise<any> {
+        let that = this;
         Log.trace('DatasetController saving zip files to disk ...');
-        this.datasets[id] = processedDataset;
-        let jsonData:string = JSON.stringify(this.datasets[id]);
-        let pathToData:string = './data';
-        let filePath:string;
+        return new Promise(function (fulfill, reject) {
+         //   try {
+                let pathToData: string = './data/' + id + ".json";
+                let filePath: string;
+                // that.createDirectory();
+               //    fs.stat(pathToData, (err) => {
 
+            let jsonData = JSON.stringify(processedDataset);
+            fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+                if (err) {
+                    Log.trace('Writefile error! ' + err);
+                    reject(err);
+                }
+                if (Object.keys(that.datasets).indexOf(id) === -1) {
+                    that.datasets[id] = processedDataset;
+                    fulfill(204);
+                }
+                else{
+                    that.datasets[id] = processedDataset;
+                    fulfill(201);
+                }
+
+            });
+            });
+    }
+     /*
       let checkDirExists = function () {
         try {
           return fs.statSync(pathToData).isDirectory();
@@ -228,8 +299,9 @@ export default class DatasetController {
       }
 
       directoryCreation();
-      fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+      fs.writeFile('./data/' + id + '.json', jsonData,(err) => {
         if (err){ Log.trace('Writefile error! ' + err);}
       });
     }
+    */
   }

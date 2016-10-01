@@ -68,24 +68,7 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: Datasets = {
-          "asdf": {
-            "abcd1234": {
-              "results": [
-                { "Avg": 70, "Professor": "Elmo" },
-                { "Avg": 110, "Professor": "Bond, James" },
-                { "Avg": 21, "Professor": "Vader, Darth" }
-              ]
-            },
-            "efgh5678": {
-              "results": [
-                { "Avg": 87, "Professor": "ET" },
-                { "Avg": 37, "Professor": "Bond, James" },
-                { "Avg": 12, "Professor": "Gollum" }
-              ]
-            }
-          }
-        };
+        let dataset: {} = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
 
         let controller = new QueryController(dataset);
         Log.test("Controller: " + controller);
@@ -147,7 +130,7 @@ describe("QueryController", function () {
                                          { "Avg": 70, "Professor": "Elmo" },
                                          { "Avg": 110, "Professor": "Bond, James" }];
 
-      let controller = new QueryController();
+      let controller = new QueryController({});
       let orderedResults: any[];
       orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
       console.log("alphabetical results: " + JSON.stringify(orderedResults));
@@ -179,29 +162,12 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: Datasets = {
-          "asdf": {
-            "abcd1234": {
-              "results": [
-                { "Avg": 70, "Professor": "Elmo" },
-                { "Avg": 110, "Professor": "Bond, James" },
-                { "Avg": 21, "Professor": "Vader, Darth" }
-              ]
-            },
-            "efgh5678": {
-              "results": [
-                { "Avg": 87, "Professor": "ET" },
-                { "Avg": 37, "Professor": "Bond, James" },
-                { "Avg": 12, "Professor": "Gollum" }
-              ]
-            }
-          }
-        };
+        let dataset: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
 
         let expectedResult: any = { render: 'TABLE',
           result: [
             { "Professor": "Elmo" },
-            { "Professor": "ET" },
+            { "Professor": "E.T." },
             { "Professor": "Vader, Darth" }
           ]
 
