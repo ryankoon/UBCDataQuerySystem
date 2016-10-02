@@ -217,4 +217,38 @@ describe("QueryController", function () {
         expect(ret).to.equal(false);
     });
 
+    it("Should be able to perform wildcard matching", function() {
+        let controller = new QueryController({});
+        let wildcardstr: string;
+        let comparestr: string;
+        let ret: boolean;
+
+        wildcardstr = "*cp";
+        comparestr = "ascp";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+        wildcardstr = "*cp";
+        comparestr = "cpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(false);
+
+        wildcardstr = "cp*";
+        comparestr = "cpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+        wildcardstr = "cp*";
+        comparestr = "acpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(false);
+
+        wildcardstr = "*cp*";
+        comparestr = "acpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+
+    });
+
 });

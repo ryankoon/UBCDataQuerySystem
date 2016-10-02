@@ -12,7 +12,7 @@ import {IFilter} from "./IEBNF";
 export interface QueryRequest {
     GET: string|string[];
     WHERE: IFilter;
-    ORDER: string;
+    ORDER?: string;
     AS: string;
 }
 
@@ -275,6 +275,13 @@ export default class QueryController {
 
         case "IS":
 
+            // check for empty strings
+            if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+                return false;
+            } else if (queryKeyValue.length === 0 && dataKeyValue.length === 0) {
+                return true;
+            }
+
             // use wildcard matching if query contains asterisk
             if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
                 return this.wildcardMatching(queryKeyValue, dataKeyValue);
@@ -304,7 +311,7 @@ export default class QueryController {
     public wildcardMatching(queryWithWildcard: string, compareToString: string) {
         // replace all asterisks with '.*'
         // '.*' means: match any character 0+ times
-        return new RegExp(queryWithWildcard.split("*").join(".*")).test(compareToString);
+        return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
     public orderResults(filteredResults: IObject[], order: string): IObject[] {
