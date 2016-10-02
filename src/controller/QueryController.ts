@@ -12,7 +12,7 @@ import {IFilter} from "./IEBNF";
 export interface QueryRequest {
     GET: string|string[];
     WHERE: IFilter;
-    ORDER: string;
+    ORDER?: string;
     AS: string;
 }
 
@@ -140,8 +140,6 @@ export default class QueryController {
         });
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
-        console.log("# of Matches: " + filteredResults.length);
-        //console.log("allMatches: " + JSON.stringify(filteredResults));
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
         let orderQueryKey: string = this.getQueryKey(query.ORDER);
@@ -149,11 +147,9 @@ export default class QueryController {
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
-        // console.log("orderedResults: " + JSON.stringify(orderedResults));
 
         // 3. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query)
-        // console.log("finalResults: " + JSON.stringify(finalResults));
 
         return {render: query.AS, result: finalResults};
       }  else {
@@ -266,17 +262,48 @@ export default class QueryController {
       let queryKeyWithDatasetID: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["key"];
 
       let queryKey: string = this.getQueryKey(queryKeyWithDatasetID);
-      let queryKeyValue: number = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
+      let queryKeyValue: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
       // translate querykey to corresponding datasetkey
-      let dataKeyValue: number = courseResult[this.translateKey(queryKey)];
+      let dataKeyValue: string = courseResult[this.translateKey(queryKey)];
       switch(operation) {
 
         case "IS":
-        return dataKeyValue === queryKeyValue;
+
+            // check for empty strings
+            if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+                return false;
+            } else if (queryKeyValue.length === 0 && dataKeyValue.length === 0) {
+                return true;
+            }
+
+            // use wildcard matching if query contains asterisk
+            if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
+                return this.wildcardMatching(queryKeyValue, dataKeyValue);
+            } else if (queryKeyValue.indexOf("*") === -1) {
+                return dataKeyValue === queryKeyValue;
+            } else {
+                return false;
+            }
 
         default:
         return false;
       }
+    }
+
+    public validStringComparison(str: string): boolean {
+        // checks if string has an asterisk at the beginning and/or at the end or has no asterisk
+        let stringWithoutWildcard = str.split("*").join("");
+        let regExpStr: string = "^(\\*)?(" + stringWithoutWildcard + ")(\\*)?$";
+
+        return new RegExp(regExpStr).test(str);
+    }
+
+    //converts asterisks/wildcard characters to regexp string
+    // returns true if compareToString satisfy regexp
+    public wildcardMatching(queryWithWildcard: string, compareToString: string) {
+        // replace all asterisks with '.*'
+        // '.*' means: match any character 0+ times
+        return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
     public orderResults(filteredResults: IObject[], order: string): IObject[] {

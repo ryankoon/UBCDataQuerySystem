@@ -133,11 +133,9 @@ describe("QueryController", function () {
       let controller = new QueryController({});
       let orderedResults: any[];
       orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
-      console.log("alphabetical results: " + JSON.stringify(orderedResults));
       expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
 
       orderedResults = controller.orderResults(results, controller.translateKey("avg"));
-      console.log("numerical results: " + JSON.stringify(orderedResults));
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
     });
@@ -179,6 +177,76 @@ describe("QueryController", function () {
         expect(ret).to.be.deep.equal(expectedResult);
         // should check that the value is meaningful
         // will be meaningful once entire query feature is complete
+    });
+
+    it("Should be able to validate a query for string comparison", function() {
+        let controller = new QueryController({});
+        let str: string;
+        let ret: boolean;
+        str = "cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "*cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "*cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "**cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "a*cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "*cpsc**";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "*cpsc*a";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "a*cpsc*a";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "**cpsc**";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+    });
+
+    it("Should be able to perform wildcard matching", function() {
+        let controller = new QueryController({});
+        let wildcardstr: string;
+        let comparestr: string;
+        let ret: boolean;
+
+        wildcardstr = "*cp";
+        comparestr = "ascp";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+        wildcardstr = "*cp";
+        comparestr = "cpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(false);
+
+        wildcardstr = "cp*";
+        comparestr = "cpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+        wildcardstr = "cp*";
+        comparestr = "acpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(false);
+
+        wildcardstr = "*cp*";
+        comparestr = "acpsc";
+        ret = controller.wildcardMatching(wildcardstr, comparestr);
+        expect(ret).to.equal(true);
+
+
     });
 
 });
