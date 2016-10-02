@@ -232,6 +232,7 @@ export default class QueryController {
           break;
 
           default:
+              console.log("Invalid Filter Key");
           result = false;
           break;
         }
@@ -258,6 +259,7 @@ export default class QueryController {
         return dataKeyValue == queryKeyValue;
 
         default:
+            console.log("Invalid NumberCompare Key");
         return false;
       }
     }
@@ -266,17 +268,43 @@ export default class QueryController {
       let queryKeyWithDatasetID: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["key"];
 
       let queryKey: string = this.getQueryKey(queryKeyWithDatasetID);
-      let queryKeyValue: number = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
+      let queryKeyValue: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
       // translate querykey to corresponding datasetkey
-      let dataKeyValue: number = courseResult[this.translateKey(queryKey)];
+      let dataKeyValue: string = courseResult[this.translateKey(queryKey)];
       switch(operation) {
 
         case "IS":
-        return dataKeyValue === queryKeyValue;
+
+            // use wildcard matching if query contains asterisk
+            if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
+                return this.wildcardMatching(queryKeyValue, dataKeyValue);
+            } else if (queryKeyValue.indexOf("*") === -1) {
+                return dataKeyValue === queryKeyValue;
+            } else {
+                Log.trace("Invalid string comparison");
+                return false;
+            }
 
         default:
+            console.log("Invalid StringCompare Key");
         return false;
       }
+    }
+
+    public validStringComparison(str: string): boolean {
+        // checks if string has an asterisk at the beginning and/or at the end or has no asterisk
+        let stringWithoutWildcard = str.split("*").join("");
+        let regExpStr: string = "^(\\*)?(" + stringWithoutWildcard + ")(\\*)?$";
+
+        return new RegExp(regExpStr).test(str);
+    }
+
+    //converts asterisks/wildcard characters to regexp string
+    // returns true if compareToString satisfy regexp
+    public wildcardMatching(queryWithWildcard: string, compareToString: string) {
+        // replace all asterisks with '.*'
+        // '.*' means: match any character 0+ times
+        return new RegExp(queryWithWildcard.split("*").join(".*")).test(compareToString);
     }
 
     public orderResults(filteredResults: IObject[], order: string): IObject[] {

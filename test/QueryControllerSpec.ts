@@ -181,4 +181,40 @@ describe("QueryController", function () {
         // will be meaningful once entire query feature is complete
     });
 
+    it("Should be able to validate a query for string comparison", function() {
+        let controller = new QueryController({});
+        let str: string;
+        let ret: boolean;
+        str = "cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "*cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "*cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(true);
+        str = "**cpsc*";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "a*cpsc";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "*cpsc**";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "*cpsc*a";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "a*cpsc*a";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+        str = "**cpsc**";
+        ret = controller.validStringComparison(str);
+        expect(ret).to.equal(false);
+    });
+
 });
