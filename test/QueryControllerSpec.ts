@@ -133,11 +133,9 @@ describe("QueryController", function () {
       let controller = new QueryController({});
       let orderedResults: any[];
       orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
-      console.log("alphabetical results: " + JSON.stringify(orderedResults));
       expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
 
       orderedResults = controller.orderResults(results, controller.translateKey("avg"));
-      console.log("numerical results: " + JSON.stringify(orderedResults));
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
     });

@@ -140,8 +140,6 @@ export default class QueryController {
         });
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
-        console.log("# of Matches: " + filteredResults.length);
-        //console.log("allMatches: " + JSON.stringify(filteredResults));
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
         let orderQueryKey: string = this.getQueryKey(query.ORDER);
@@ -149,11 +147,9 @@ export default class QueryController {
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
-        // console.log("orderedResults: " + JSON.stringify(orderedResults));
 
         // 3. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query)
-        // console.log("finalResults: " + JSON.stringify(finalResults));
 
         return {render: query.AS, result: finalResults};
       }  else {
@@ -232,7 +228,6 @@ export default class QueryController {
           break;
 
           default:
-              console.log("Invalid Filter Key");
           result = false;
           break;
         }
@@ -259,7 +254,6 @@ export default class QueryController {
         return dataKeyValue == queryKeyValue;
 
         default:
-            console.log("Invalid NumberCompare Key");
         return false;
       }
     }
@@ -288,12 +282,10 @@ export default class QueryController {
             } else if (queryKeyValue.indexOf("*") === -1) {
                 return dataKeyValue === queryKeyValue;
             } else {
-                Log.trace("Invalid string comparison");
                 return false;
             }
 
         default:
-            console.log("Invalid StringCompare Key");
         return false;
       }
     }
