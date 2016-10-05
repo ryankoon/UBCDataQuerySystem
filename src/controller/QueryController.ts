@@ -12,7 +12,7 @@ import {IFilter} from "./IEBNF";
 export interface QueryRequest {
     GET: string|string[];
     WHERE: IFilter;
-    ORDER: string;
+    ORDER?: string;
     AS: string;
 }
 
@@ -39,10 +39,10 @@ export default class QueryController {
           return 'Query is null!';
         } else if (Object.keys(query).length === 0) {
           return 'Query is empty!';
-        } else if (query.GET && query.GET.length === 0) {
+        } else if (!query.GET || query.GET.length === 0) {
           return 'Query GET does not have any keys!'
         } else if (query.ORDER && query.ORDER.length === 1) {
-          // are the keys in ORDER also in GET?
+          // order key needs to be among the get keys
           let result: boolean = true;
           if (query.GET.length === 1) {
             result = query.GET[0] === query.ORDER;
@@ -57,10 +57,27 @@ export default class QueryController {
               // behaviour similar to arrayFirst
                 return 'A key in ORDER does not exist in GET!';
             }
+        } else if (!query.WHERE) {
+            return "Query WHERE has not been defined!";
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
           return "Query AS must be 'TABLE'!"
+        }
+
+        let whereKeys: string[] = Object.keys(query.WHERE);
+        if (!whereKeys || whereKeys.length === 0){
+            return "Query WHERE does not contain a comparison or negation key!"
+        }
+
+        let invalidFilterKey: boolean = true;
+        whereKeys.forEach((key: string) => {
+            if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
+                invalidFilterKey = false;
+            }
+        });
+        if (invalidFilterKey) {
+            return "Query WHERE contains an invalid filter key!";
         }
 
         return true;
@@ -113,7 +130,6 @@ export default class QueryController {
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
 
-
         courses.forEach((course) => {
           // combine results of all courses
           let courseResults: IObject;
@@ -127,13 +143,15 @@ export default class QueryController {
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
         let orderQueryKey: string = this.getQueryKey(query.ORDER);
+
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
         // 3. BUILD
-        return { render: 'TABLE', result: filteredResults};
+        let finalResults: IObject[] = this.buildResults(orderedResults, query)
 
+        return {render: query.AS, result: finalResults};
       }  else {
         throw new Error(<string> isValidQuery);
       }
@@ -190,32 +208,26 @@ export default class QueryController {
           break;
 
           case "NOT":
-          //console.log("NOT case");
           result = !this.queryACourseResult(queryFilter.NOT, courseResult);
           break;
 
           case "LT":
-          //console.log("LT case");
           result = this.numberCompare(queryFilter.LT, "LT", courseResult);
           break;
 
           case "GT":
-          //console.log("GT case");
           result = this.numberCompare(queryFilter.GT, "GT", courseResult);
           break;
 
           case "EQ":
-          //console.log("EQ case");
           result = this.numberCompare(queryFilter.EQ, "EQ", courseResult);
           break;
 
           case "IS":
-          //console.log("IS case");
           result = this.stringCompare(queryFilter.IS, "IS", courseResult);
           break;
 
           default:
-          //console.log("Default case");
           result = false;
           break;
         }
@@ -250,17 +262,48 @@ export default class QueryController {
       let queryKeyWithDatasetID: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["key"];
 
       let queryKey: string = this.getQueryKey(queryKeyWithDatasetID);
-      let queryKeyValue: number = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
+      let queryKeyValue: string = this.getStringIndexKVByNumber(queryKeyWithDatasetIDAndValue, 0)["value"];
       // translate querykey to corresponding datasetkey
-      let dataKeyValue: number = courseResult[this.translateKey(queryKey)];
+      let dataKeyValue: string = courseResult[this.translateKey(queryKey)];
       switch(operation) {
 
         case "IS":
-        return dataKeyValue === queryKeyValue;
+
+            // check for empty strings
+            if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+                return false;
+            } else if (queryKeyValue.length === 0 && dataKeyValue.length === 0) {
+                return true;
+            }
+
+            // use wildcard matching if query contains asterisk
+            if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
+                return this.wildcardMatching(queryKeyValue, dataKeyValue);
+            } else if (queryKeyValue.indexOf("*") === -1) {
+                return dataKeyValue === queryKeyValue;
+            } else {
+                return false;
+            }
 
         default:
         return false;
       }
+    }
+
+    public validStringComparison(str: string): boolean {
+        // checks if string has an asterisk at the beginning and/or at the end or has no asterisk
+        let stringWithoutWildcard = str.split("*").join("");
+        let regExpStr: string = "^(\\*)?(" + stringWithoutWildcard + ")(\\*)?$";
+
+        return new RegExp(regExpStr).test(str);
+    }
+
+    //converts asterisks/wildcard characters to regexp string
+    // returns true if compareToString satisfy regexp
+    public wildcardMatching(queryWithWildcard: string, compareToString: string) {
+        // replace all asterisks with '.*'
+        // '.*' means: match any character 0+ times
+        return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
     public orderResults(filteredResults: IObject[], order: string): IObject[] {
@@ -287,11 +330,45 @@ export default class QueryController {
       return orderedResults;
     }
 
-    public buildDataset(orderedDataSet: {}): IObject[] {
+    public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
+      let finalResults: IObject[] = [];
       //create new objects based on given columns and return format.
-      // TODO
-      let matches: Object[] = []
-      return matches;
+      let getQueryKeys: string | string[] = query.GET;
+        let translatedQueryKeys: string[] = [];
+        let datasetId: string;
+      //check if there is more than one querykey in GET
+      if (getQueryKeys.constructor === Array) {
+          //typecast to string array
+        let getQueryKeysStringArray: string[] = <string[]> query.GET;
+          datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
+        getQueryKeysStringArray.forEach((key: string) => {
+          // strip out datasetID
+          key = this.getQueryKey(key);
+          translatedQueryKeys.push(this.translateKey(key));
+        });
+      } else if (typeof(getQueryKeys) === 'string') {
+          //typecast to string
+        let getQueryKeysString: string = <string> query.GET;
+          datasetId = this.getDatasetId(getQueryKeysString);
+        // strip out datasetID
+        getQueryKeysString = this.getQueryKey(getQueryKeysString);
+        translatedQueryKeys.push(this.translateKey(getQueryKeysString));
+      }
+
+      if (query.AS === 'TABLE') {
+        orderedResults.forEach((result: IObject) => {
+          let resultObject: IObject = {};
+          translatedQueryKeys.forEach((querykey: string) => {
+            // copy over keys and values defined in GET
+              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to querykey)
+            resultObject[datasetId + "_" + this.reverseKeyTranslation(querykey)] = result[querykey];
+          });
+
+          finalResults.push(resultObject);
+        });
+      }
+
+      return finalResults;
     }
 
     public lettersNumbersOnlyLowercase(input: any): any {
@@ -372,5 +449,49 @@ export default class QueryController {
       }
 
       return result;
+    }
+
+    public reverseKeyTranslation(queryKey: string): string {
+        let result: string;
+
+        switch(queryKey) {
+            case 'Subject':
+                result = 'dept';
+                break;
+
+            case 'Course':
+                result = 'id';
+                break;
+
+            case 'Avg':
+                result = 'avg';
+                break;
+
+            case 'Professor':
+                result = 'instructor';
+                break;
+
+            case 'Title':
+                result = 'title';
+                break;
+
+            case 'Pass':
+                result = 'pass';
+                break;
+
+            case 'Fail':
+                result = 'fail';
+                break;
+
+            case 'Audit':
+                result = 'audit';
+                break;
+
+            default:
+                result = 'unknownKey'
+                break
+        }
+
+        return result;
     }
 }

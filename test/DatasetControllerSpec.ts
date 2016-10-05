@@ -119,7 +119,11 @@ describe("DatasetController", function () {
                 Log.error(err);
             });
     });
+<<<<<<< HEAD
     it('getDataset should return null', function (done) {
+=======
+    it('should get null from non-existant dataset', function (done) {
+>>>>>>> 6ff14282d560ea95ff9b3dde2877c83dd11bf330
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
@@ -128,7 +132,7 @@ describe("DatasetController", function () {
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
         zip.file('item1ThatShouldExist', JSON.stringify(content1));
         zip.file('item2ThatShouldExist', JSON.stringify(content2));
-        var controller = new DatasetController();;
+        var controller = new DatasetController();
 
 
         const opts = {
