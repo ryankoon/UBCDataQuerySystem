@@ -5,6 +5,7 @@
 import Log from "../Util";
 import JSZip = require('jszip');
 import fs = require('fs');
+import path = require('path');
 
 /**
  * In memory representation of all datasets.
@@ -31,8 +32,11 @@ export default class DatasetController {
     private loadDataIntoMemory(id : string) : any{
         var that = this;
         return new Promise(function (fulfill, reject){
-            let path:string = './data/' + id + ".json";
-            fs.readFile(path, (err, data) => {
+            // changed from this to dirname path
+            // let path:string = './data/' + id + ".json";
+            //let path:string = __dirname + "/../../data/" + id + '.json';
+            let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
+            fs.readFile(pathname, (err, data) => {
                 if (err) {
                     reject(err);
                 }
@@ -63,7 +67,11 @@ export default class DatasetController {
         var that = this;
       return new Promise( (fulfill, reject) => {
         Log.trace('Entering getDataset ...');
-        fs.readdir('./data', (err, files) => {
+        //let path:string = __dirname + '/../../data';
+          let pathName:string = path.resolve(__dirname, '..', '..', 'data');
+          // changed from ./data
+          console.log('getDataSetsPathname: ' + pathName);
+        fs.readdir(pathName, (err, files) => {
           if (err){
             reject(err);
           }
@@ -112,7 +120,11 @@ export default class DatasetController {
             var that = this;
             let keysArray = Object.keys(that.datasets);
             if (keysArray.length === 0) {
-                fs.readdir('./data', (err, files) => {
+                //let path:string = __dirname + '/../../data';
+                let pathName:string = path.resolve(__dirname, '..', '..', 'data');
+                // changed from ./data
+                console.log('getDataSetsPathname: ' + pathName);
+                fs.readdir(pathName, (err, files) => {
                     if (err) {
                         Log.error('oh noes an err: ' + err);
                         reject(err);
@@ -251,14 +263,20 @@ export default class DatasetController {
         let that = this;
         Log.trace('DatasetController saving zip files to disk ...');
         return new Promise(function (fulfill, reject) {
-         //   try {
-                let pathToData: string = './data/' + id + ".json";
-                let filePath: string;
+            let jsonData:string;
+            try {
+               // let pathToData: string = './data/' + id + ".json";
                 // that.createDirectory();
-               //    fs.stat(pathToData, (err) => {
-
-            let jsonData = JSON.stringify(processedDataset);
-            fs.writeFile('./data/' + id + '.json', jsonData, (err) => {
+                //    fs.stat(pathToData, (err) => {
+                jsonData = JSON.stringify(processedDataset);
+            }
+            catch(err){
+                Log.error('Warning stringify error : ' + err);
+            }
+            // issue maybe is that this is an external service looking for data.
+            // issue is that this is the wrong path.
+            let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
+            fs.writeFile(pathname, jsonData, (err) => {
                 if (err) {
                     Log.trace('Writefile error! ' + err);
                     reject(err);
@@ -273,7 +291,7 @@ export default class DatasetController {
                 }
 
             });
-            });
+        });
     }
      /*
       let checkDirExists = function () {
