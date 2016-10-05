@@ -8,6 +8,7 @@ import Log from "../src/Util";
 import JSZip = require('jszip');
 import {expect} from 'chai';
 import {assert} from 'chai';
+import {should} from 'chai';
 import fs = require('fs');
 
 describe("DatasetController", function () {
@@ -118,7 +119,11 @@ describe("DatasetController", function () {
                 Log.error(err);
             });
     });
+<<<<<<< HEAD
+    it('getDataset should return null', function (done) {
+=======
     it('should get null from non-existant dataset', function (done) {
+>>>>>>> 6ff14282d560ea95ff9b3dde2877c83dd11bf330
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
@@ -139,7 +144,7 @@ describe("DatasetController", function () {
         }).then(function() {
             return controller.getDataset('malfoy');
         }).then(function (out){
-            expect(out).to.be.null;
+            expect(out).to.equal(null);
             done();
         }).catch(function (err){
             Log.error(err);
