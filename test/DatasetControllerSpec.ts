@@ -117,11 +117,7 @@ describe("DatasetController", function () {
                 Log.error(err);
             });
     });
-<<<<<<< HEAD
-    it('getDataset should return null', function (done) {
-=======
     it('should get null from non-existant dataset', function (done) {
->>>>>>> 6ff14282d560ea95ff9b3dde2877c83dd11bf330
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
