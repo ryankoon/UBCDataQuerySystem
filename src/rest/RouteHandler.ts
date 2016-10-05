@@ -16,7 +16,7 @@ export default class RouteHandler {
     private static datasetController = new DatasetController();
 
     public static deleteDataset(req: restify.Request, res:restify.Response, next: restify.Next) {
-        Log.trace('RouteHandler::deleteDataSet(..) - params: ' + JSON.stringify(req.params));
+    //    Log.trace('RouteHandler::deleteDataSet(..) - params: ' + JSON.stringify(req.params));
         var id: string = req.params.id;
         try {
             let path: string = "./data/";
@@ -59,21 +59,21 @@ export default class RouteHandler {
             // adapted from: https://github.com/restify/node-restify/issues/880#issuecomment-133485821
             let buffer: any = [];
             req.on('data', function onRequestData(chunk: any) {
-                Log.trace('RouteHandler::postDataset(..) on data; chunk length: ' + chunk.length);
+               // Log.trace('RouteHandler::postDataset(..) on data; chunk length: ' + chunk.length);
                 buffer.push(chunk);
             });
 
             req.once('end', function () {
                 let concated = Buffer.concat(buffer);
                 req.body = concated.toString('base64');
-                Log.trace('RouteHandler::postDataset(..) on end; total length: ' + req.body.length);
+              //  Log.trace('RouteHandler::postDataset(..) on end; total length: ' + req.body.length);
 
                 let controller = RouteHandler.datasetController;
 
 
                 controller.process(id, req.body)
                     .then(function (result) {
-                    Log.trace('RouteHandler::postDataset(..) - processed');
+             //       Log.trace('RouteHandler::postDataset(..) - processed');
                     fs.stat('./data/' + id + '.json', (err, stats) => {
                         if (err){
                             console.error('Hi i am a fs.stat error : ' + err);
@@ -81,7 +81,7 @@ export default class RouteHandler {
                         res.json(result, {Message: 'Success!'});
                     });
                 }).catch(function (err: Error) {
-                    Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
+              //      Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
                     // format must be : {error :' message '}
                     res.json(400, {error: err.message});
                 });
@@ -95,7 +95,7 @@ export default class RouteHandler {
     }
 
     public static postQuery(req: restify.Request, res: restify.Response, next: restify.Next) {
-        Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
+     //   Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
         try {
             let query: QueryRequest = req.params;
             //let datasets: Datasets = RouteHandler.datasetController.getDatasets();
