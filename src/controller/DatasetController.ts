@@ -217,8 +217,8 @@ export default class DatasetController {
                           yes();
                       }
                       catch(err) {
-                          Log.error('Error for the parsing of JSON in Process: ' + err);
-                          reject(err);
+                          Log.error(err.message = 'Error for the parsing of JSON in Process: ' + err.message);
+                          reject(err.message = 'Error for the parsing of JSON in Process: ' + err.message);
                       }
                     // file can now be accessed in dictionary
                   })
@@ -238,7 +238,9 @@ export default class DatasetController {
                 return that.save(id, processedDataset)
               }).then((data) => {
                   fulfill(data);
-              })
+              }).catch((err) => {
+                  reject(err);
+              });
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
