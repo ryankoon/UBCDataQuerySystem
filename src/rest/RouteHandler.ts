@@ -29,10 +29,12 @@ export default class RouteHandler {
                     RouteHandler.datasetController.deleteDataset(id);
                     res.json(204, {Message: 'The operation was successful.'});
                 }
+                return next();
             });
         }
         catch (err) {
             res.send(400, 'ERROR: ' + err);
+            return next();
         }
     }
 
@@ -81,19 +83,21 @@ export default class RouteHandler {
                         } else {
                             res.json(result, {Message: 'Success!'});
                         }
+                        return next();
                     });
                 }).catch(function (err: Error) {
               //      Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
                     // format must be : {error :' message '}
                     res.json(400, {error: err.message});
+                    return next();
                 });
             });
 
         } catch (err) {
             Log.error('RouteHandler::postDataset(..) - ERROR: ' + err.message);
             res.send(400, {err: err.message});
+            return next();
         }
-        return next();
     }
 
     public static postQuery(req: restify.Request, res: restify.Response, next: restify.Next) {
@@ -125,6 +129,7 @@ export default class RouteHandler {
         } catch (err) {
             Log.error('RouteHandler::postQuery(..) - ERROR: ' + err);
             res.send(403);
+            return next();
         }
     }
 }
