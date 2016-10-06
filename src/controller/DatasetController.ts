@@ -91,6 +91,35 @@ export default class DatasetController {
       });
     }
     /*
+    *@function Should automatically create the data directory if it already doesn't exist. (sigh).
+    * @param none
+    * @returns Promise<any>
+     */
+    private createDataDirectory() : Promise<boolean> {
+        return new Promise(function (fulfill,reject) {
+            let pathName: string = path.resolve(__dirname, "..", "..", "data");
+            fs.stat(pathName, (err, stats) => {
+                // if the pathname doesnt exist, stats will be undefined and an error will be passed.
+                // annoyingly enough we can't determine more.
+                if (err) {
+                    fs.mkdir(pathName, (err) => {
+                        if (err) {
+                            reject(false);
+                            Log.error('Error creating the data directory: ' + err);
+                        }
+                        fulfill(true);
+                    })
+                }
+                else if (stats.isDirectory() || stats.isFile()){
+                    fulfill(true);
+                }
+                else{
+                    reject(false);
+                }
+            });
+        });
+    }
+    /*
     @function parses out the last '.ext'.
      */
     private removeExtension(nameWithExtension: string) : string {
@@ -123,7 +152,6 @@ export default class DatasetController {
                 //let path:string = __dirname + '/../../data';
                 let pathName:string = path.resolve(__dirname, '..', '..', 'data');
                 // changed from ./data
-                console.log('getDataSetsPathname: ' + pathName);
                 fs.readdir(pathName, (err, files) => {
                     if (err) {
                         Log.error('oh noes an err: ' + err);
@@ -235,13 +263,16 @@ export default class DatasetController {
 
               // wait until all files have been processed and stored in dictionary
               Promise.all(filePromises)
-              .then(() => {
-                return that.save(id, processedDataset);
-              }).then((data) => {
-                  fulfill(data);
-              }).catch((err) => {
-                  reject(err);
-              });
+                  .then(() =>{
+                      return that.createDataDirectory();
+                  })
+                  .then(() => {
+                    return that.save(id, processedDataset);
+                  }).then((data) => {
+                      fulfill(data);
+                  }).catch((err) => {
+                      reject(err);
+                  });
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);

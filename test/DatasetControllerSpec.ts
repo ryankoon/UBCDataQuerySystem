@@ -10,7 +10,6 @@ import {expect} from 'chai';
 import fs = require('fs');
 
 describe("DatasetController", function () {
-
     it("Should be able to receive a Dataset and save it", function (done) {
         Log.test('Creating dataset');
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
