@@ -217,8 +217,9 @@ export default class DatasetController {
                           yes();
                       }
                       catch(err) {
-                          Log.error(err.message = 'Error for the parsing of JSON in Process: ' + err.message);
-                          reject(err.message = 'Error for the parsing of JSON in Process: ' + err.message);
+                          Log.error('Error for the parsing of JSON in Process: ' + err.message);
+                          err.message = 'Error for the parsing of JSON in Process: ' + err.message;
+                          reject(err);
                       }
                     // file can now be accessed in dictionary
                   })
