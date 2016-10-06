@@ -213,11 +213,12 @@ export default class DatasetController {
                     zipObject[filePath].async('string')
                   .then(function storeDataFromFilesInDictionary(data) {
                       try {
-                          processedDataset[file] = JSON.parse(data); // we parse it into json... will succed
+                          processedDataset[file] = JSON.parse(data); // we parse it into json... will succeed
                           yes();
                       }
                       catch(err) {
-                          Log.error('Error for the parsing of JSON in Process: ' + err);
+                          Log.error('Error for the parsing of JSON in Process: ' + err.message);
+                          err.message = 'Error for the parsing of JSON in Process: ' + err.message;
                           reject(err);
                       }
                     // file can now be accessed in dictionary
@@ -235,10 +236,12 @@ export default class DatasetController {
               // wait until all files have been processed and stored in dictionary
               Promise.all(filePromises)
               .then(() => {
-                return that.save(id, processedDataset)
+                return that.save(id, processedDataset);
               }).then((data) => {
                   fulfill(data);
-              })
+              }).catch((err) => {
+                  reject(err);
+              });
             })
             .catch(function (err) {
               Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
@@ -271,7 +274,8 @@ export default class DatasetController {
                 jsonData = JSON.stringify(processedDataset);
             }
             catch(err){
-                Log.error('Warning stringify error : ' + err);
+                err.message = 'DatasetController save - stringify error : ' + err.message;
+                reject(err);
             }
             // issue maybe is that this is an external service looking for data.
             // issue is that this is the wrong path.
