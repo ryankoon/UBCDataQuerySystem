@@ -251,7 +251,7 @@ export default class QueryController {
         return dataKeyValue > queryKeyValue;
 
         case "EQ":
-        return dataKeyValue == queryKeyValue;
+        return dataKeyValue === queryKeyValue;
 
         default:
         return false;
@@ -269,17 +269,19 @@ export default class QueryController {
 
         case "IS":
 
-            // check for empty strings
-            if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+            if (!queryKeyValue || !dataKeyValue) {
                 return false;
-            } else if (queryKeyValue.length === 0 && dataKeyValue.length === 0) {
+            }
+            // check for empty strings
+            else if ((queryKeyValue && dataKeyValue && queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+                return false;
+            } else if (queryKeyValue && dataKeyValue && queryKeyValue === "" && dataKeyValue === "") {
                 return true;
             }
-
             // use wildcard matching if query contains asterisk
-            if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
+            else if (queryKeyValue && queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
                 return this.wildcardMatching(queryKeyValue, dataKeyValue);
-            } else if (queryKeyValue.indexOf("*") === -1) {
+            } else if (queryKeyValue && queryKeyValue.indexOf("*") === -1) {
                 return dataKeyValue === queryKeyValue;
             } else {
                 return false;
@@ -445,7 +447,7 @@ export default class QueryController {
 
         default:
           result = 'unknownKey'
-          break
+          break;
       }
 
       return result;
