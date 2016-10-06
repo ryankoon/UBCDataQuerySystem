@@ -76,7 +76,8 @@ export default class RouteHandler {
              //       Log.trace('RouteHandler::postDataset(..) - processed');
                     fs.stat('./data/' + id + '.json', (err, stats) => {
                         if (err){
-                            console.error('Hi i am a fs.stat error : ' + err);
+                            err.message = 'Hi i am a fs.stat error : ' + err.message;
+                            res.json(400, {error: err});
                         }
                         res.json(result, {Message: 'Success!'});
                     });
