@@ -273,15 +273,15 @@ export default class QueryController {
                 return false;
             }
             // check for empty strings
-            else if ((queryKeyValue && dataKeyValue && queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
+            else if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
                 return false;
-            } else if (queryKeyValue && dataKeyValue && queryKeyValue === "" && dataKeyValue === "") {
+            } else if (queryKeyValue === "" && dataKeyValue === "") {
                 return true;
             }
             // use wildcard matching if query contains asterisk
-            else if (queryKeyValue && queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
+            else if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
                 return this.wildcardMatching(queryKeyValue, dataKeyValue);
-            } else if (queryKeyValue && queryKeyValue.indexOf("*") === -1) {
+            } else if (queryKeyValue.indexOf("*") === -1) {
                 return dataKeyValue === queryKeyValue;
             } else {
                 return false;
