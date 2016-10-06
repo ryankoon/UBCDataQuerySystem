@@ -120,6 +120,19 @@ export default class DatasetController {
         });
     }
     /*
+    @function Checks disk for id
+    @param string
+    @returns boolean
+     */
+    private isDataOnDisk(id:string, pathname:string) : boolean {
+        let obj = fs.statSync(pathname);
+        if (!obj) { return false;}
+        if (obj.isFile()) { return true;}
+        else{
+            return false;
+        }
+    }
+    /*
     @function parses out the last '.ext'.
      */
     private removeExtension(nameWithExtension: string) : string {
@@ -202,9 +215,9 @@ export default class DatasetController {
      *
      * @param id
      * @param data base64 representation of a zip file
-     * @returns {Promise<boolean>} returns true if successful; false if the dataset was invalid (for whatever reason)
+     * @returns {Promise<Number>} returns true if successful; false if the dataset was invalid (for whatever reason)
      */
-    public process(id: string, data: any): Promise<boolean> {
+    public process(id: string, data: any): Promise<Number> {
       var that = this;
       return new Promise(function (fulfill, reject) {
         try {
@@ -247,7 +260,7 @@ export default class DatasetController {
                       catch(err) {
                           Log.error('Error for the parsing of JSON in Process: ' + err.message);
                           err.message = 'Error for the parsing of JSON in Process: ' + err.message;
-                          reject(err);
+                          reject(400);
                       }
                     // file can now be accessed in dictionary
                   })
@@ -268,10 +281,12 @@ export default class DatasetController {
                   })
                   .then(() => {
                     return that.save(id, processedDataset);
-                  }).then((data) => {
+                  }).then((data : Number) => {
                       fulfill(data);
                   }).catch((err) => {
-                      reject(err);
+                      Log.error('Error resolving filepromises... ' + err);
+                      reject(400);
+
                   });
             })
             .catch(function (err) {
@@ -299,24 +314,23 @@ export default class DatasetController {
         return new Promise(function (fulfill, reject) {
             let jsonData:string;
             try {
-               // let pathToData: string = './data/' + id + ".json";
-                // that.createDirectory();
-                //    fs.stat(pathToData, (err) => {
                 jsonData = JSON.stringify(processedDataset);
             }
             catch(err){
                 err.message = 'DatasetController save - stringify error : ' + err.message;
                 reject(err);
             }
-            // issue maybe is that this is an external service looking for data.
-            // issue is that this is the wrong path.
             let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
             fs.writeFile(pathname, jsonData, (err) => {
                 if (err) {
                     Log.trace('Writefile error! ' + err);
                     reject(err);
                 }
-                if (Object.keys(that.datasets).indexOf(id) === -1) {
+                // if in memory, OR, not on DISK, return 204
+                // if not in memory OR not on disk, return 201
+                let dataPath:string = path.resolve(__dirname, '..', '..','data',id + '.json');
+
+                if (Object.keys(that.datasets).indexOf(id) === -1 || !that.isDataOnDisk(id, dataPath)) {
                     that.datasets[id] = processedDataset;
                     fulfill(204);
                 }
@@ -328,33 +342,4 @@ export default class DatasetController {
             });
         });
     }
-     /*
-      let checkDirExists = function () {
-        try {
-          return fs.statSync(pathToData).isDirectory();
-        } catch (e) {
-          if (e.code === 'ENOENT') {
-            console.log("ENOENT - directory does not exist")
-           return false;
-          } else {
-            Log.trace('StatSync error! ' + e);
-            //  throw e;
-            return false;
-          }
-        }
-      }
-
-      let directoryCreation = function () {
-        if (!checkDirExists()) {
-            Log.trace('Directory for data is being created ...');
-            fs.mkdirSync(pathToData);
-        }
-      }
-
-      directoryCreation();
-      fs.writeFile('./data/' + id + '.json', jsonData,(err) => {
-        if (err){ Log.trace('Writefile error! ' + err);}
-      });
-    }
-    */
   }

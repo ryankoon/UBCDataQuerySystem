@@ -3,7 +3,7 @@
  */
 import restify = require('restify');
 import fs = require('fs');
-
+import path = require('path');
 import DatasetController from '../controller/DatasetController';
 import {Datasets} from '../controller/DatasetController';
 import QueryController from '../controller/QueryController';
@@ -19,8 +19,7 @@ export default class RouteHandler {
     //    Log.trace('RouteHandler::deleteDataSet(..) - params: ' + JSON.stringify(req.params));
         var id: string = req.params.id;
         try {
-            let path: string = "./data/";
-            let filePath: string = path + id + ".json";
+            let filePath: string = path.resolve(__dirname, '..', '..', 'data', id + '.json');
             fs.unlink(filePath, (err) => {
                 if (err) {
                     res.json(404, "The operation was unsuccessful because the delete was for a resource that was not previously PUT. ");
@@ -61,36 +60,29 @@ export default class RouteHandler {
             // adapted from: https://github.com/restify/node-restify/issues/880#issuecomment-133485821
             let buffer: any = [];
             req.on('data', function onRequestData(chunk: any) {
-               // Log.trace('RouteHandler::postDataset(..) on data; chunk length: ' + chunk.length);
+                Log.trace('RouteHandler::postDataset(..) on data; chunk length: ' + chunk.length);
                 buffer.push(chunk);
             });
 
             req.once('end', function () {
                 let concated = Buffer.concat(buffer);
                 req.body = concated.toString('base64');
-              //  Log.trace('RouteHandler::postDataset(..) on end; total length: ' + req.body.length);
-
+                Log.trace('RouteHandler::postDataset(..) on end; total length: ' + req.body.length);
                 let controller = RouteHandler.datasetController;
-
-
                 controller.process(id, req.body)
                     .then(function (result) {
-             //       Log.trace('RouteHandler::postDataset(..) - processed');
-                    fs.stat('./data/' + id + '.json', (err, stats) => {
-                        if (err){
-                            err.message = 'Hi i am a fs.stat error : ' + err.message;
-                            res.json(400, {error: err});
-                        } else {
+                        if (result && (result === 204 || result === 201)) {
                             res.json(result, {Message: 'Success!'});
                         }
+                        else {
+                            res.json(result, {result: 'Error putting into dataset'});
+                        }
+                    }).catch(function (err: Error) {
+                        Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
+                        // format must be : {error :' message '}
+                        res.json(400, {error: err.message});
                         return next();
                     });
-                }).catch(function (err: Error) {
-              //      Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
-                    // format must be : {error :' message '}
-                    res.json(400, {error: err.message});
-                    return next();
-                });
             });
 
         } catch (err) {
