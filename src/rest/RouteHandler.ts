@@ -78,8 +78,9 @@ export default class RouteHandler {
                         if (err){
                             err.message = 'Hi i am a fs.stat error : ' + err.message;
                             res.json(400, {error: err});
+                        } else {
+                            res.json(result, {Message: 'Success!'});
                         }
-                        res.json(result, {Message: 'Success!'});
                     });
                 }).catch(function (err: Error) {
               //      Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);
