@@ -320,8 +320,8 @@ export default class QueryController {
             let bValue = b[queryKey];
 
               // turn null values to empty string
-              aValue = (aValue) ? aValue: "";
-              bValue = (bValue) ? bValue: "";
+              aValue = (aValue) ? aValue : "";
+              bValue = (bValue) ? bValue : "";
 
               if (aValue < bValue) {
                   return -1;
