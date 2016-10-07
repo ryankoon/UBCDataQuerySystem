@@ -164,8 +164,8 @@ describe("QueryController", function () {
 
         let expectedResult: any = { render: 'TABLE',
           result: [
-            { "asdf_instructor": "Elmo" },
             { "asdf_instructor": "E.T." },
+            { "asdf_instructor": "Elmo" },
             { "asdf_instructor": "Vader, Darth" }
           ]
 
@@ -245,8 +245,28 @@ describe("QueryController", function () {
         comparestr = "acpsc";
         ret = controller.wildcardMatching(wildcardstr, comparestr);
         expect(ret).to.equal(true);
-
-
     });
 
+    it("Should be able to properly sort according to ascii table", function() {
+        let controller = new QueryController({});
+        let ret: Object[];
+        let filteredResults: Object[];
+        let expectedOrder: Object[];
+        let sortBy: string = "Professor";
+
+        filteredResults = [{"Professor": "Canada"}, {"Professor": "USA"}];
+        expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
+        ret = controller.orderResults(filteredResults, sortBy);
+        expect(ret).to.be.deep.equal(expectedOrder);
+
+        filteredResults = [{"Professor": "USA"}, {"Professor": "Canada"}];
+        expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
+        ret = controller.orderResults(filteredResults, sortBy);
+        expect(ret).to.be.deep.equal(expectedOrder);
+
+        filteredResults = [{"Professor": "-"}, {"Professor": ","}];
+        expectedOrder = [{"Professor": ","}, {"Professor": "-"}];
+        ret = controller.orderResults(filteredResults, sortBy);
+        expect(ret).to.be.deep.equal(expectedOrder);
+    });
 });
