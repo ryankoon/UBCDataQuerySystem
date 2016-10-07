@@ -75,7 +75,7 @@ export default class RouteHandler {
                             res.json(result, {Message: 'Success!'});
                         }
                         else {
-                            res.json(result, {result: 'Error putting into dataset'});
+                            res.json(400, {result: 'Error putting into dataset'});
                         }
                     }).catch(function (err: Error) {
                         Log.trace('RouteHandler::postDataset(..) - ERROR: ' + err.message);

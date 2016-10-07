@@ -101,7 +101,7 @@ export default class DatasetController {
             fs.stat(pathName, (err, stats) => {
                 // if the pathname doesnt exist, stats will be undefined and an error will be passed.
                 // annoyingly enough we can't determine more.
-                if (err) {
+                if (err || !stats) {
                     fs.mkdir(pathName, (err) => {
                         if (err) {
                             reject(false);
@@ -110,7 +110,7 @@ export default class DatasetController {
                         fulfill(true);
                     })
                 }
-                else if (stats.isDirectory() || stats.isFile()){
+                else if (stats && (stats.isDirectory() || stats.isFile())){
                     fulfill(true);
                 }
                 else{
@@ -124,13 +124,20 @@ export default class DatasetController {
     @param string
     @returns boolean
      */
-    private isDataOnDisk(id:string, pathname:string) : boolean {
-        let obj = fs.statSync(pathname);
-        if (!obj) { return false;}
-        if (obj.isFile()) { return true;}
-        else{
-            return false;
-        }
+    private isDataOnDisk(id:string, pathname:string) : Promise<boolean> {
+        return new Promise(function (fulfill, reject) {
+            fs.stat(pathname, function (err, stats){
+                if (err || !stats) { // then data doesnt exist.
+                    fulfill(false);
+                }
+                if (stats && stats.isFile()){
+                    fulfill(true);
+                }
+                else{ // some weird edge case
+                    fulfill(false);
+                }
+            });
+        });
     }
     /*
     @function parses out the last '.ext'.
@@ -320,26 +327,30 @@ export default class DatasetController {
                 err.message = 'DatasetController save - stringify error : ' + err.message;
                 reject(err);
             }
-            let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
-            fs.writeFile(pathname, jsonData, (err) => {
-                if (err) {
-                    Log.trace('Writefile error! ' + err);
-                    reject(err);
-                }
-                // if in memory, OR, not on DISK, return 204
-                // if not in memory OR not on disk, return 201
-                let dataPath:string = path.resolve(__dirname, '..', '..','data',id + '.json');
+            var dataPath = path.resolve(__dirname, '..', '..','data',id + '.json');
+            that.isDataOnDisk(id, dataPath)
+            .then(function (isFileOnDisk) {
+                fs.writeFile(dataPath, jsonData, (err) => {
+                    if (err) {
+                        Log.trace('Writefile error! ' + err);
+                        reject(err);
+                    }
+                    // if in memory, OR, not on DISK, return 204
+                    // if not in memory OR not on disk, return 201
+                    if (Object.keys(that.datasets).indexOf(id) === -1 && !isFileOnDisk) {
+                        that.datasets[id] = processedDataset;
+                        fulfill(204);
+                    }
+                    else {
+                        that.datasets[id] = processedDataset;
+                        fulfill(201);
+                    }
 
-                if (Object.keys(that.datasets).indexOf(id) === -1 || !that.isDataOnDisk(id, dataPath)) {
-                    that.datasets[id] = processedDataset;
-                    fulfill(204);
-                }
-                else{
-                    that.datasets[id] = processedDataset;
-                    fulfill(201);
-                }
-
+                });
+            }).catch (function (err){
+                Log.error('Ruhoh! AN ERROR SHAGGY! ' + err);
             });
+
         });
     }
   }
