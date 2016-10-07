@@ -19,17 +19,16 @@ export default class RouteHandler {
     //    Log.trace('RouteHandler::deleteDataSet(..) - params: ' + JSON.stringify(req.params));
         var id: string = req.params.id;
         try {
-            let filePath: string = path.resolve(__dirname, '..', '..', 'data', id + '.json');
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    res.json(404, "The operation was unsuccessful because the delete was for a resource that was not previously PUT. ");
-                }
-                else {
-                    RouteHandler.datasetController.deleteDataset(id);
-                    res.json(204, {Message: 'The operation was successful.'});
-                }
-                return next();
-            });
+            RouteHandler.datasetController.deleteDataset(id)
+                .then(function (result) {
+                    if(result === 400){
+                        res.json(400, {'Message' : 'Successful delete!'});
+                    }
+                    else {
+                        res.json(200, {'Message': 'Successful delete!'});
+                    }
+                    return next();
+                });
         }
         catch (err) {
             res.send(400, 'ERROR: ' + err);

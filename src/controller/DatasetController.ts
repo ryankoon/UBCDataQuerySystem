@@ -21,20 +21,12 @@ export default class DatasetController {
     constructor() {
         Log.trace('DatasetController::init()');
     }
-
     /*
-    Does the directory eist on disk?
-    Yes? Then load the data into memory.
-    No? Then return null.
-
+        Loads data into memory from disk
      */
-
     private loadDataIntoMemory(id : string) : any{
         var that = this;
         return new Promise(function (fulfill, reject){
-            // changed from this to dirname path
-            // let path:string = './data/' + id + ".json";
-            //let path:string = __dirname + "/../../data/" + id + '.json';
             let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
             fs.readFile(pathname, (err, data) => {
                 if (err) {
@@ -69,8 +61,6 @@ export default class DatasetController {
         Log.trace('Entering getDataset ...');
         //let path:string = __dirname + '/../../data';
           let pathName:string = path.resolve(__dirname, '..', '..', 'data');
-          // changed from ./data
-          console.log('getDataSetsPathname: ' + pathName);
         fs.readdir(pathName, (err, files) => {
           if (err){
             reject(err);
@@ -206,8 +196,19 @@ export default class DatasetController {
      *
      * Returns: Boolean.
      */
-    public deleteDataset(id: string) : void {
-        delete this.datasets[id];
+    public deleteDataset(id: string) : Promise<Number> {
+        return new Promise(function (fulfill, reject) {
+            let filePath: string = path.resolve(__dirname, '..', '..', 'data', id + '.json');
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    fulfill(404);
+                }
+                else {
+                    delete this.datasets[id];
+                    fulfill(204);
+                }
+            });
+        });
     }
 
     // !!! how do we know the ID is new?
