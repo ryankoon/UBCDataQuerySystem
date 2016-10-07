@@ -10,7 +10,7 @@ import {ILogicComparison} from "./IEBNF";
 import {IFilter} from "./IEBNF";
 
 export interface QueryRequest {
-    GET: string|string[];
+    GET: string[];
     WHERE: IFilter;
     ORDER?: string;
     AS: string;
@@ -43,15 +43,14 @@ export default class QueryController {
           return 'Query GET does not have any keys!'
         } else if (query.ORDER && query.ORDER.length === 1) {
           // order key needs to be among the get keys
+            // NOTE: GET should not and cannot be empty here
           let result: boolean = true;
-          if (query.GET.length === 1) {
-            result = query.GET[0] === query.ORDER;
-          } else {
-            let queryGETArray: string[] = <string[]> query.GET;
+
+            let queryGETArray: string[] = query.GET;
             queryGETArray.forEach((getKey: string) => {
               result = result && getKey === query.ORDER;
             });
-          }
+
             if (result === false) {
               // stop finding on first key that cannot be found in GET
               // behaviour similar to arrayFirst
@@ -341,27 +340,18 @@ export default class QueryController {
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
       let finalResults: IObject[] = [];
       //create new objects based on given columns and return format.
-      let getQueryKeys: string | string[] = query.GET;
+      let getQueryKeys: string[] = query.GET;
         let translatedQueryKeys: string[] = [];
         let datasetId: string;
-      //check if there is more than one querykey in GET
-      if (getQueryKeys.constructor === Array) {
-          //typecast to string array
-        let getQueryKeysStringArray: string[] = <string[]> query.GET;
-          datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
+        let getQueryKeysStringArray: string[] = query.GET;
+
+        datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
         getQueryKeysStringArray.forEach((key: string) => {
           // strip out datasetID
           key = this.getQueryKey(key);
           translatedQueryKeys.push(this.translateKey(key));
+
         });
-      } else if (typeof(getQueryKeys) === 'string') {
-          //typecast to string
-        let getQueryKeysString: string = <string> query.GET;
-          datasetId = this.getDatasetId(getQueryKeysString);
-        // strip out datasetID
-        getQueryKeysString = this.getQueryKey(getQueryKeysString);
-        translatedQueryKeys.push(this.translateKey(getQueryKeysString));
-      }
 
       if (query.AS === 'TABLE') {
         orderedResults.forEach((result: IObject) => {
