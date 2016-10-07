@@ -21,12 +21,10 @@ export default class RouteHandler {
         try {
             RouteHandler.datasetController.deleteDataset(id)
                 .then(function (result) {
-                    if(result === 400){
-                        res.json(400, {'Message' : 'Successful delete!'});
+                    if (result.error && result.error != null) {
+                        Log.error(JSON.stringify(result.error));
                     }
-                    else {
-                        res.json(200, {'Message': 'Successful delete!'});
-                    }
+                    res.json(result.status, result.message);
                     return next();
                 });
         }
