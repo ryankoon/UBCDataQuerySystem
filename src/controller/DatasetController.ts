@@ -13,7 +13,11 @@ import path = require('path');
 export interface Datasets {
     [id: string]: {};
 }
-
+interface responseObject {
+    message : string;
+    status : Number;
+    error : Error;
+}
 export default class DatasetController {
 
     private datasets: Datasets = {};
@@ -196,16 +200,29 @@ export default class DatasetController {
      *
      * Returns: Boolean.
      */
-    public deleteDataset(id: string) : Promise<Number> {
+    public deleteDataset(id: string) : Promise<responseObject> {
         return new Promise(function (fulfill, reject) {
             let filePath: string = path.resolve(__dirname, '..', '..', 'data', id + '.json');
             fs.unlink(filePath, (err) => {
                 if (err) {
-                    fulfill(404);
+                    let responseObject : responseObject =
+                    {status : 404,
+                     message : 'the operation was unsuccessful because the delete was for a resource that was not previously PUT.',
+                     error : err
+                    }
+                    fulfill(responseObject);
                 }
                 else {
-                    delete this.datasets[id];
-                    fulfill(204);
+                    // TODO: check maybe here for datasets?
+                    if (this && !this.datasets && !this.datasets[id]) {
+                        delete this.datasets[id];
+                    }
+                    let responseObject : responseObject =
+                    {status : 204,
+                        message : 'the operation was successful.',
+                        error : null
+                    }
+                    fulfill(responseObject);
                 }
             });
         });
