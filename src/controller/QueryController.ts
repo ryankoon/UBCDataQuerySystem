@@ -316,14 +316,20 @@ export default class QueryController {
         // sort filtered results
         let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
           return unsortedResults.sort((a: IObject, b: IObject) => {
-            let aValue = this.lettersNumbersOnlyLowercase(a[queryKey]);
-            let bValue = this.lettersNumbersOnlyLowercase(b[queryKey]);
-          if(aValue < bValue){
-              return -1;
-          } else if(aValue > bValue){
-              return 1;
-          }
-          return 0;
+            let aValue = a[queryKey];
+            let bValue = b[queryKey];
+
+              // turn null values to empty string
+              aValue = (aValue) ? aValue: "";
+              bValue = (bValue) ? bValue: "";
+
+              if (aValue < bValue) {
+                  return -1;
+              } else if (aValue > bValue) {
+                  return 1;
+              } else {
+                  return 0;
+              }
           });
         });
 
@@ -373,13 +379,6 @@ export default class QueryController {
       return finalResults;
     }
 
-    public lettersNumbersOnlyLowercase(input: any): any {
-      let result: any = input;
-      if (typeof(input) === 'string') {
-        result = input.toLowerCase().replace(/[^a-zA-Z0-9]+/g, "");
-      }
-      return result;
-    }
     public getStringIndexKVByNumber(object: IObject, index: number): IObject {
       let keys: string[] = Object.keys(object);
       if (keys && keys.length > index){
