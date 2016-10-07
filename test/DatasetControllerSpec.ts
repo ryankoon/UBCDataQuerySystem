@@ -39,6 +39,7 @@ describe("DatasetController", function () {
                 });
         }).then(function (result) {
             expect(result).to.equal(201);
+
                 done();
         });
 
@@ -84,8 +85,6 @@ describe("DatasetController", function () {
                 expect(out['setB']).to.be.instanceOf(Object);
                 expect(out['setC']).to.be.instanceOf(Object);
                 done();
-            }).catch(function (err){
-               Log.error(err);
             });
     });
     it('Should be able to getdataset (singular)', function (done) {
@@ -112,8 +111,6 @@ describe("DatasetController", function () {
                 expect(out['item1ThatShouldExist']).to.be.instanceOf(Object);
                 expect(out['item2ThatShouldExist']).to.be.instanceOf(Object);
                 done();
-            }).catch(function (err){
-                Log.error(err);
             });
     });
     it('should get null from non-existant dataset', function (done) {
@@ -139,8 +136,25 @@ describe("DatasetController", function () {
         }).then(function (out){
             expect(out).to.equal(null);
             done();
-        }).catch(function (err){
-            Log.error(err);
+        });
+    });
+    it('should get data from file and return a 201', function (done) {
+       let content0 = {'NewData': 'SomeData'};
+        let content2 = {'job' : 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('item2ThatShouldExist', JSON.stringify(content2));
+        zip.file('SomerandomfilenotNamedHankHill', JSON.stringify(content0));
+        var controller = new DatasetController();
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            Log.test('Dataset created');
+            return controller.process('setD', data)
+        }).then(function(result) {
+            expect(result === 201).to.be.true;
+            done();
         });
     });
 });
