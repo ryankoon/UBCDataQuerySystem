@@ -374,4 +374,46 @@ describe("QueryController", function () {
         }).to.throw("EQ Comparator must have exactly one key!");
     });
 
+    it("Should throw error when Comparators are not given the right type of value", function () {
+
+        let controller = new QueryController({});
+        let query: Object;
+
+        query = {
+            "AND" : [{
+                "NOT" : {
+                    "IS": {"asdf_instructor": 32}
+                }
+            },
+                {
+                    "OR" : [
+                        {"LT": {"asdf_avg": 30}},
+                        {"IS": {"asdf_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(query);
+        }).to.throw("IS Comparator value must be a string!");
+
+        query = {
+                "AND" : [{
+                    "NOT" : {
+                        "IS": {"asdf_instructor": "Bond, James"}
+                    }
+                },
+                    {
+                        "OR" : [
+                            {"LT": {"asdf_avg": "asdf"}},
+                            {"IS": {"asdf_instructor": "Vader, Darth"}}
+                        ]
+                    }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(query);
+        }).to.throw("LT Comparator value must be a number!");
+
+    });
 });
