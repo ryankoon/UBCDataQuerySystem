@@ -41,20 +41,13 @@ export default class QueryController {
           return 'Query is empty!';
         } else if (!query.GET || query.GET.length === 0) {
           return 'Query GET does not have any keys!'
-        } else if (query.ORDER && query.ORDER.length === 1) {
+        } else if (query.ORDER && query.ORDER.length > 0) {
           // order key needs to be among the get keys
-            // NOTE: GET should not and cannot be empty here
-          let result: boolean = true;
-
+            // NOTE: GET should not and cannot be empty here based on the previous checks
             let queryGETArray: string[] = query.GET;
-            queryGETArray.forEach((getKey: string) => {
-              result = result && getKey === query.ORDER;
-            });
 
-            if (result === false) {
-              // stop finding on first key that cannot be found in GET
-              // behaviour similar to arrayFirst
-                return 'A key in ORDER does not exist in GET!';
+            if (queryGETArray.indexOf(query.ORDER) === -1) {
+                return 'The key in ORDER does not exist in GET!';
             }
         } else if (!query.WHERE) {
             return "Query WHERE has not been defined!";

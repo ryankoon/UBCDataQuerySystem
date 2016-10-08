@@ -18,24 +18,41 @@ describe("QueryController", function () {
 
     it("Should be able to validate a valid query", function () {
         let query: QueryRequest = {
-          "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
-          "WHERE": {
-              "OR": [
-                  {"AND": [
-                          {"GT": {"asdf_avg": 70}},
-                          {"IS": {"asdf_dept": "adhe"}}
-                      ]},
-                      {"EQ": {"asdf_avg": 90}}
-              ]
-          },
-          "ORDER": "asdf_avg",
-          "AS": "TABLE"
+            "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
+            "WHERE": {
+                "OR": [
+                    {"AND":
+                        [
+                            {"GT": {"asdf_avg": 70}},
+                            {"IS": {"asdf_dept": "adhe"}}
+                        ]
+                    },
+                    {"EQ": {"asdf_avg": 90}}
+                ]
+            },
+            "ORDER": "asdf_avg",
+            "AS": "TABLE"
         };
         let dataset: Datasets = {};
-        let controller = new QueryController(dataset);
-        let isValid = controller.isValid(query);
+        let controller: QueryController = new QueryController(dataset);
+        let isValid: string | boolean ;
 
+        isValid = controller.isValid(query);
         expect(isValid).to.equal(true);
+
+        // The key in ORDER does not exist in GET!
+        query = {
+            "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
+            "WHERE":
+            {
+                "IS": {"asdf_dept": "adhe"}
+            },
+            "ORDER": "asdf_BADORDER",
+            "AS": "TABLE"
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a("string");
+
     });
 
     it("Should be able to invalidate an invalid query", function () {
