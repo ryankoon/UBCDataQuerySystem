@@ -22,14 +22,14 @@ export interface QueryResponse {
 }
 
 export default class QueryController {
-    private dataset: IObject = null;
+    private datasets: Datasets;
 
-    constructor(dataset?: IObject) {
-        this.dataset = dataset;
+    constructor(datasets?: Datasets) {
+        this.datasets = datasets;
     }
 
-    public setDataset(dataset: IObject) {
-      this.dataset = dataset;
+    public setDataset(datasets: Datasets) {
+        this.datasets = datasets;
     }
 
     public isValid(query: QueryRequest): boolean | string {
@@ -75,6 +75,84 @@ export default class QueryController {
         return true;
     }
 
+    // returns all the querykeys in WHERE
+    public getWhereQueryKeys (query: IFilter): string[] {
+        let whereQueryKeys: string[] = [];
+
+        let queryObjectKeys: string[] = Object.keys(query);
+
+            queryObjectKeys.forEach((queryObjectKey) => {
+                switch (queryObjectKey) {
+                    case "AND":
+                        // AND must have at least one filter
+                        if (!query.AND || query.AND.length === 0) {
+                            throw new Error("AND must have at least one filter!");
+                        } else {
+                            whereQueryKeys.concat(this.getWhereQueryKeys(query.AND));
+                        }
+                        break;
+
+                    case "OR":
+                        // OR must have at least one filter
+                        if (!query.OR || query.OR.length === 0) {
+                            throw new Error("OR must have at least one filter!");
+                        } else {
+                            whereQueryKeys.concat(this.getWhereQueryKeys(query.OR));
+                        }
+                        break;
+
+                    case "NOT":
+                        // NOT must have at least one filter
+                        if (!query.OR || Object.keys(query.NOT).length === 0) {
+                            throw new Error("NOT must have at least one filter!");
+                        } else {
+                            whereQueryKeys.concat(this.getWhereQueryKeys(query.NOT));
+                        }
+                        break;
+
+                    case "LT":
+                        // Comparator must have exactly one key
+                        if (!query.LT || Object.keys(query.LT).length === 0) {
+                            throw new Error("Comparator must have exactly one key!");
+                        } else {
+                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.LT, 0)["key"]);
+                        }
+                        break;
+
+                    case "GT":
+                        // Comparator must have exactly one key
+                        if (!query.GT || Object.keys(query.GT).length === 0) {
+                            throw new Error("Comparator must have exactly one key!");
+                        } else {
+                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.GT, 0)["key"]);
+                        }
+                        break;
+
+                    case "EQ":
+                        // Comparator must have exactly one key
+                        if (!query.EQ || Object.keys(query.EQ).length === 0) {
+                            throw new Error("Comparator must have exactly one key!");
+                        } else {
+                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.EQ, 0)["key"]);
+                        }
+                        break;
+
+                    case "IS":
+                        // Comparator must have exactly one key
+                        if (!query.IS || Object.keys(query.IS).length === 0) {
+                            throw new Error("Comparator must have exactly one key!");
+                        } else {
+                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.IS, 0)["key"]);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            });
+        return whereQueryKeys;
+    }
+
     /**
      * Splits the key (refer to EBNF for definition of key) into two parts:
      * 1. DatasetId   2.QueryKey (e.g. Professor)
@@ -118,14 +196,14 @@ export default class QueryController {
       if (isValidQuery === true) {
 
         // 1. FILTER
-        let courses: string[] = Object.keys(this.dataset);
+        let courses: string[] = Object.keys(this.getStringIndexKVByNumber(this.datasets, 0)["value"]);
         let allCourseResults: IObject[] = [];
         let filteredResults: IObject[];
 
         courses.forEach((course) => {
           // combine results of all courses
           let courseResults: IObject;
-          courseResults = this.dataset[course]["result"];
+          courseResults = this.getStringIndexKVByNumber(this.datasets, 0)["value"][course]["result"];
           if (courseResults) {
               allCourseResults = allCourseResults.concat(courseResults);
           }

@@ -85,9 +85,9 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: {} = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
+        let datasets: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
 
-        let controller = new QueryController(dataset);
+        let controller = new QueryController(datasets);
         Log.test("Controller: " + controller);
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
@@ -177,7 +177,7 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
+        let dataset: Datasets ={"asdfDatasetID": {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}}};
 
         let expectedResult: any = { render: 'TABLE',
           result: [
