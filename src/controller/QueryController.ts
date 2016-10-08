@@ -103,8 +103,8 @@ export default class QueryController {
 
                     case "NOT":
                         // NOT must have at least one filter
-                        if (!query.OR || Object.keys(query.NOT).length === 0) {
-                            throw new Error("NOT must have at least one filter!");
+                        if (!query.NOT || Object.keys(query.NOT).length !== 1) {
+                            throw new Error("NOT must have exactly one filter!");
                         } else {
                             whereQueryKeys.concat(this.getWhereQueryKeys(query.NOT));
                         }
@@ -112,8 +112,8 @@ export default class QueryController {
 
                     case "LT":
                         // Comparator must have exactly one key
-                        if (!query.LT || Object.keys(query.LT).length === 0) {
-                            throw new Error("Comparator must have exactly one key!");
+                        if (!query.LT || Object.keys(query.LT).length !== 1) {
+                            throw new Error("LT Comparator must have exactly one key!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.LT, 0)["key"]);
                         }
@@ -121,8 +121,8 @@ export default class QueryController {
 
                     case "GT":
                         // Comparator must have exactly one key
-                        if (!query.GT || Object.keys(query.GT).length === 0) {
-                            throw new Error("Comparator must have exactly one key!");
+                        if (!query.GT || Object.keys(query.GT).length !== 1) {
+                            throw new Error("GT Comparator must have exactly one key!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.GT, 0)["key"]);
                         }
@@ -130,8 +130,8 @@ export default class QueryController {
 
                     case "EQ":
                         // Comparator must have exactly one key
-                        if (!query.EQ || Object.keys(query.EQ).length === 0) {
-                            throw new Error("Comparator must have exactly one key!");
+                        if (!query.EQ || Object.keys(query.EQ).length !== 1) {
+                            throw new Error("EQ Comparator must have exactly one key!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.EQ, 0)["key"]);
                         }
@@ -139,14 +139,15 @@ export default class QueryController {
 
                     case "IS":
                         // Comparator must have exactly one key
-                        if (!query.IS || Object.keys(query.IS).length === 0) {
-                            throw new Error("Comparator must have exactly one key!");
+                        if (!query.IS || Object.keys(query.IS).length !== 1) {
+                            throw new Error("IS Comparator must have exactly one key!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.IS, 0)["key"]);
                         }
                         break;
 
                     default:
+                        Log.error("Unknown Key while getting WHERE Query Keys!");
                         break;
                 }
             });
