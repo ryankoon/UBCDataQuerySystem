@@ -93,7 +93,6 @@ export default class RouteHandler {
      //   Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
         try {
             let query: QueryRequest = req.params;
-            //let datasets: Datasets = RouteHandler.datasetController.getDatasets();
             let controller: QueryController = new QueryController();
             let isValidResult: boolean | string = controller.isValid(query);
 

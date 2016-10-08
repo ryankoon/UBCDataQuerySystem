@@ -88,7 +88,10 @@ export default class QueryController {
                         if (!query.AND || query.AND.length === 0) {
                             throw new Error("AND must have at least one filter!");
                         } else {
-                            whereQueryKeys.concat(this.getWhereQueryKeys(query.AND));
+                            query.AND.forEach((queryFilter) => {
+                               whereQueryKeys = whereQueryKeys.concat(this.getWhereQueryKeys(queryFilter));
+                            });
+
                         }
                         break;
 
@@ -97,7 +100,9 @@ export default class QueryController {
                         if (!query.OR || query.OR.length === 0) {
                             throw new Error("OR must have at least one filter!");
                         } else {
-                            whereQueryKeys.concat(this.getWhereQueryKeys(query.OR));
+                            query.OR.forEach((queryFilter) => {
+                                whereQueryKeys = whereQueryKeys.concat(this.getWhereQueryKeys(queryFilter));
+                            });
                         }
                         break;
 
@@ -106,7 +111,7 @@ export default class QueryController {
                         if (!query.NOT || Object.keys(query.NOT).length !== 1) {
                             throw new Error("NOT must have exactly one filter!");
                         } else {
-                            whereQueryKeys.concat(this.getWhereQueryKeys(query.NOT));
+                            whereQueryKeys = whereQueryKeys.concat(this.getWhereQueryKeys(query.NOT));
                         }
                         break;
 
@@ -133,7 +138,7 @@ export default class QueryController {
                         if (!query.EQ || Object.keys(query.EQ).length !== 1) {
                             throw new Error("EQ Comparator must have exactly one key!");
                         } else {
-                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.EQ, 0)["key"]);
+                           whereQueryKeys.push(this.getStringIndexKVByNumber(query.EQ, 0)["key"]);
                         }
                         break;
 

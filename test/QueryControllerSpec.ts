@@ -192,8 +192,6 @@ describe("QueryController", function () {
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
         expect(ret).to.be.deep.equal(expectedResult);
-        // should check that the value is meaningful
-        // will be meaningful once entire query feature is complete
     });
 
     it("Should be able to validate a query for string comparison", function() {
@@ -285,5 +283,26 @@ describe("QueryController", function () {
         expectedOrder = [{"Professor": ","}, {"Professor": "-"}];
         ret = controller.orderResults(filteredResults, sortBy);
         expect(ret).to.be.deep.equal(expectedOrder);
+    });
+
+    it("Should return all queryKeys with getWhereQueryKeys", function() {
+        let whereObject: Object = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        let expectedResult: string[] = ["asdf_instructor", "myID_avg", "yourID_instructor"];
+        let controller = new QueryController({});
+        let ret = controller.getWhereQueryKeys(whereObject);
+        expect(ret).to.be.deep.equal(expectedResult);
     });
 });
