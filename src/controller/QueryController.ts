@@ -117,8 +117,15 @@ export default class QueryController {
 
                     case "LT":
                         // Comparator must have exactly one key
+                        let ltValueType: string;
+                        if (query.LT) {
+                            ltValueType = typeof (this.getStringIndexKVByNumber(query.LT, 0)["value"]);
+                        }
+
                         if (!query.LT || Object.keys(query.LT).length !== 1) {
                             throw new Error("LT Comparator must have exactly one key!");
+                        } else if (ltValueType !== "number") {
+                            throw new Error("LT Comparator value must be a number!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.LT, 0)["key"]);
                         }
@@ -126,8 +133,15 @@ export default class QueryController {
 
                     case "GT":
                         // Comparator must have exactly one key
+                        let gtValueType: string;
+                        if (query.GT) {
+                            gtValueType = typeof (this.getStringIndexKVByNumber(query.GT, 0)["value"]);
+                        }
+
                         if (!query.GT || Object.keys(query.GT).length !== 1) {
                             throw new Error("GT Comparator must have exactly one key!");
+                        } else if (gtValueType !== "number") {
+                            throw new Error("GT Comparator value must be a number!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.GT, 0)["key"]);
                         }
@@ -135,8 +149,15 @@ export default class QueryController {
 
                     case "EQ":
                         // Comparator must have exactly one key
+                        let eqValueType: string;
+                        if (query.EQ) {
+                            eqValueType = typeof (this.getStringIndexKVByNumber(query.EQ, 0)["value"]);
+                        }
+
                         if (!query.EQ || Object.keys(query.EQ).length !== 1) {
                             throw new Error("EQ Comparator must have exactly one key!");
+                        } else if (eqValueType !== "number") {
+                            throw new Error("EQ Comparator value must be a number!");
                         } else {
                            whereQueryKeys.push(this.getStringIndexKVByNumber(query.EQ, 0)["key"]);
                         }
@@ -144,15 +165,22 @@ export default class QueryController {
 
                     case "IS":
                         // Comparator must have exactly one key
+                        let isValueType: string;
+                        if (query.IS) {
+                            isValueType = typeof (this.getStringIndexKVByNumber(query.IS, 0)["value"]);
+                        }
+
                         if (!query.IS || Object.keys(query.IS).length !== 1) {
                             throw new Error("IS Comparator must have exactly one key!");
+                        } else if (isValueType !== "string") {
+                            throw new Error("IS Comparator value must be a string!");
                         } else {
                             whereQueryKeys.push(this.getStringIndexKVByNumber(query.IS, 0)["key"]);
                         }
                         break;
 
                     default:
-                        Log.error("Unknown Key while getting WHERE Query Keys!");
+                        Log.error("Unknown Key while getting WHERE Query Keys!: " + queryObjectKey);
                         break;
                 }
             });
