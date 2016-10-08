@@ -305,4 +305,73 @@ describe("QueryController", function () {
         let ret = controller.getWhereQueryKeys(whereObject);
         expect(ret).to.be.deep.equal(expectedResult);
     });
+
+    it("Should throw error when query is invalid deep inside WHERE", function () {
+        let controller = new QueryController({});
+        let whereObject: Object = {
+            "AND": [{
+                "NOT": {
+                    "IS": {}
+                }
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("IS Comparator must have exactly one key!");
+
+
+        whereObject = {
+            "AND": [{
+                "NOT": {}
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("NOT must have exactly one filter!");
+
+        whereObject = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "OR": []
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("OR must have at least one filter!");
+
+        whereObject = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "EQ": {}
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("EQ Comparator must have exactly one key!");
+    });
+
 });
