@@ -104,7 +104,7 @@ export default class RouteHandler {
                 }
                 catch (err) {
                     // invalid result determined after deep traversal of WHERE
-                    res.json(400, err);
+                    res.json(400, {error: err.message);
                     return next();
                 }
 
