@@ -93,24 +93,71 @@ export default class RouteHandler {
      //   Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
         try {
             let query: QueryRequest = req.params;
-            //let datasets: Datasets = RouteHandler.datasetController.getDatasets();
             let controller: QueryController = new QueryController();
             let isValidResult: boolean | string = controller.isValid(query);
 
             if (isValidResult === true) {
-              let firstGETKey: string = query.GET[0];
-              let datasetId: string = controller.getDatasetId(firstGETKey);
-              RouteHandler.datasetController.getDataset(datasetId)
-              .then((dataset: any) => {
-                if (dataset) {
-                controller.setDataset(dataset);
-                let result = controller.query(query);
-                res.json(200, result);
-                } else {
-                res.json(424, {missing: [datasetId]});
+                let allQueryKeys: string[] = [];
+                allQueryKeys = allQueryKeys.concat(query.GET);
+                try {
+                    allQueryKeys = allQueryKeys.concat(controller.getWhereQueryKeys(query.WHERE));
                 }
-                return next();
-              });
+                catch (err) {
+                    // invalid result determined after deep traversal of WHERE
+                    res.json(400, {error: isValidResult});
+                    return next();
+                }
+
+                // get all dataset ids
+                let datasetIds: string[] = [];
+                allQueryKeys.forEach((queryKey) => {
+                    let datasetId = controller.getDatasetId(queryKey);
+                    if (datasetIds.indexOf(datasetId) === -1) {
+                        datasetIds.push(datasetId);
+                    }
+                });
+
+                let getDatasetPromises: Promise<any>[] = [];
+                let recievedDatasets: Datasets = {};
+                let missingDatasets: string[] = [];
+                // get and store datasets in queryController
+
+                datasetIds.forEach((datasetId) => {
+                    let getDatasetPromise: Promise<any>;
+                    getDatasetPromise = new Promise((fulfill, reject) => {
+                        RouteHandler.datasetController.getDataset(datasetId)
+                            .then((dataset: any) => {
+
+                                if (dataset) {
+                                    recievedDatasets[datasetId] = dataset;
+                                } else {
+                                    missingDatasets.push(datasetId);
+                                }
+                                fulfill();
+                            })
+                            .catch((err) => {
+                                reject("getDataset Error in postQuery!");
+                            });
+                    });
+
+                    getDatasetPromises.push(getDatasetPromise);
+                });
+
+                Promise.all(getDatasetPromises)
+                    .then(() => {
+                        if (missingDatasets.length === 0) {
+                            controller.setDataset(recievedDatasets);
+                            let result = controller.query(query);
+                            res.json(200, result);
+                        } else {
+                            res.json(424, {missing: missingDatasets});
+                        }
+                        return next();
+                    })
+                    .catch((err) => {
+                        res.json(400, {error: err});
+                        return next();
+                    });
             } else {
                 res.json(400, {error: isValidResult});
                 return next();

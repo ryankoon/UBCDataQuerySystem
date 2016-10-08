@@ -85,9 +85,9 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: {} = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
+        let datasets: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
 
-        let controller = new QueryController(dataset);
+        let controller = new QueryController(datasets);
         Log.test("Controller: " + controller);
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
@@ -177,7 +177,7 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
+        let dataset: Datasets ={"asdfDatasetID": {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}}};
 
         let expectedResult: any = { render: 'TABLE',
           result: [
@@ -192,8 +192,6 @@ describe("QueryController", function () {
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
         expect(ret).to.be.deep.equal(expectedResult);
-        // should check that the value is meaningful
-        // will be meaningful once entire query feature is complete
     });
 
     it("Should be able to validate a query for string comparison", function() {
@@ -286,4 +284,94 @@ describe("QueryController", function () {
         ret = controller.orderResults(filteredResults, sortBy);
         expect(ret).to.be.deep.equal(expectedOrder);
     });
+
+    it("Should return all queryKeys with getWhereQueryKeys", function() {
+        let whereObject: Object = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        let expectedResult: string[] = ["asdf_instructor", "myID_avg", "yourID_instructor"];
+        let controller = new QueryController({});
+        let ret = controller.getWhereQueryKeys(whereObject);
+        expect(ret).to.be.deep.equal(expectedResult);
+    });
+
+    it("Should throw error when query is invalid deep inside WHERE", function () {
+        let controller = new QueryController({});
+        let whereObject: Object = {
+            "AND": [{
+                "NOT": {
+                    "IS": {}
+                }
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("IS Comparator must have exactly one key!");
+
+
+        whereObject = {
+            "AND": [{
+                "NOT": {}
+            },
+                {
+                    "OR": [
+                        {"GT": {"myID_avg": 30}},
+                        {"IS": {"yourID_instructor": "Vader, Darth"}}
+                    ]
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("NOT must have exactly one filter!");
+
+        whereObject = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "OR": []
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("OR must have at least one filter!");
+
+        whereObject = {
+            "AND": [{
+                "NOT": {
+                    "IS": {"asdf_instructor": "Bond, James"}
+                }
+            },
+                {
+                    "EQ": {}
+                }]
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("EQ Comparator must have exactly one key!");
+    });
+
 });
