@@ -4,15 +4,14 @@
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
-import {IMComparison} from "./IEBNF";
-import {ISComparison} from "./IEBNF";
-import {ILogicComparison} from "./IEBNF";
-import {IFilter} from "./IEBNF";
+import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string[];
     WHERE: IFilter;
-    ORDER?: string;
+    GROUP?: string[];
+    APPLY?: IApplyObject[];
+    ORDER?: string | IOrderObject;
     AS: string;
 }
 
@@ -41,13 +40,18 @@ export default class QueryController {
           return 'Query is empty!';
         } else if (!query.GET || query.GET.length === 0) {
           return 'Query GET does not have any keys!'
-        } else if (query.ORDER && query.ORDER.length > 0) {
-          // order key needs to be among the get keys
-            // NOTE: GET should not and cannot be empty here based on the previous checks
-            let queryGETArray: string[] = query.GET;
+        } else if (query.ORDER) {
+            //TODO: handle D2 version of ORDER
+            let order = <string>query.ORDER
+            if (order.length > 0) {
+                // order key needs to be among the get keys
+                // NOTE: GET should not and cannot be empty here based on the previous checks
+                let queryGETArray: string[] = query.GET;
 
-            if (queryGETArray.indexOf(query.ORDER) === -1) {
-                return 'The key in ORDER does not exist in GET!';
+                if (queryGETArray.indexOf(<string>query.ORDER) === -1) {
+                    //TODO: handle D2 version of ORDER
+                    return 'The key in ORDER does not exist in GET!';
+                }
             }
         } else if (!query.WHERE) {
             return "Query WHERE has not been defined!";
@@ -246,7 +250,8 @@ export default class QueryController {
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
-        let orderQueryKey: string = this.getQueryKey(query.ORDER);
+          //TODO: handle D2 version of ORDER
+        let orderQueryKey: string = this.getQueryKey(<string>query.ORDER);
 
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
