@@ -33,13 +33,21 @@ export default class QueryController {
 
     public isValid(query: QueryRequest): boolean | string {
         if (typeof query === 'undefined') {
-          return 'Query is undefined!';
+            return 'Query is undefined!';
         } else if (query === null) {
-          return 'Query is null!';
+            return 'Query is null!';
         } else if (Object.keys(query).length === 0) {
-          return 'Query is empty!';
+            return 'Query is empty!';
         } else if (!query.GET || query.GET.length === 0) {
-          return 'Query GET does not have any keys!'
+            return 'Query GET does not have any keys!';
+        } else if (!query.WHERE) {
+            return "Query WHERE has not been defined!";
+        } else if (query.GROUP && query.GROUP.length === 0) {
+            return "Query GROUP must have at least one key!";
+        } else if (query.GROUP && !query.APPLY || !query.GROUP && query.APPLY) {
+            return "Query GROUP and APPLY must both be defined/undefined";
+        } else if (query.APPLY && query.APPLY.length === 0) {
+            return "Query APPLY cannot be empty!";
         } else if (query.ORDER) {
             //TODO: handle D2 version of ORDER
             let order = <string>query.ORDER
@@ -53,21 +61,20 @@ export default class QueryController {
                     return 'The key in ORDER does not exist in GET!';
                 }
             }
-        } else if (!query.WHERE) {
-            return "Query WHERE has not been defined!";
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
-          return "Query AS must be 'TABLE'!"
+          return "Query AS must be 'TABLE'!";
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
         if (!whereKeys || whereKeys.length === 0){
-            return "Query WHERE does not contain a comparison or negation key!"
+            return "Query WHERE does not contain a comparison or negation key!";
         }
 
         let invalidFilterKey: boolean = true;
         whereKeys.forEach((key: string) => {
+            //TODO double-check logic here
             if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
                 invalidFilterKey = false;
             }
@@ -75,6 +82,25 @@ export default class QueryController {
         if (invalidFilterKey) {
             return "Query WHERE contains an invalid filter key!";
         }
+
+        if (query.APPLY) {
+            let validApplyToken: boolean = true;
+            // iterate through all the apply Object key definitions
+            query.APPLY.forEach((applyObject: IApplyObject) => {
+                let applyObjectKeys = Object.keys(applyObject);
+                if (applyObjectKeys) {
+                    // there should only be one key
+                    let applyObjectKey = applyObjectKeys[0];
+                    validApplyToken = validApplyToken && (applyObjectKey === "MAX" || applyObjectKey === "MIN"
+                        || applyObjectKey === "AVG" || applyObjectKey === "COUNT");
+                }
+                ;
+            });
+            if (!validApplyToken) {
+                return "Query APPLY contains an invalid APPLYTOKEN!";
+            }
+        }
+
 
         return true;
     }
