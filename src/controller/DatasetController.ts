@@ -210,7 +210,7 @@ export default class DatasetController {
                      message : 'the operation was unsuccessful because the delete was for a resource that was not previously PUT.',
                      error : err
                     }
-                    fulfill(responseObject);
+                    reject(responseObject);
                 }
                 else {
                     // TODO: check maybe here for datasets?
