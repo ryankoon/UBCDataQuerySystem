@@ -226,8 +226,6 @@ export default class QueryController {
 
     public query(query: QueryRequest): QueryResponse {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-      let isValidQuery: boolean | string = this.isValid(query);
-      if (isValidQuery === true) {
 
         // 1. FILTER
         let courses: string[] = Object.keys(this.getStringIndexKVByNumber(this.datasets, 0)["value"]);
@@ -256,9 +254,6 @@ export default class QueryController {
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
-      }  else {
-        throw new Error(<string> isValidQuery);
-      }
     }
 
     public filterCourseResults(queryFilter: IFilter, allCourseResults: IObject[]): IObject[] {
