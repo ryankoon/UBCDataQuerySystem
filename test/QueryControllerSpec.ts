@@ -102,6 +102,8 @@ describe("QueryController", function () {
       let result: string;
       result = controller.translateKey('dept');
       expect(result).to.be.equal('Subject');
+      result = controller.translateKey('uuid');
+      expect(result).to.be.equal('id');
       result = controller.translateKey('id');
       expect(result).to.be.equal('Course');
       result = controller.translateKey('avg');
@@ -118,6 +120,32 @@ describe("QueryController", function () {
       expect(result).to.be.equal('Audit');
       result = controller.translateKey('MacOrWindows');
       expect(result).to.be.equal('unknownKey');
+    });
+
+    it("Should properly reverse the translation of keys used in dataset", function () {
+        // NOTE: this directly tagets translatekey function in QueryController
+        let controller = new QueryController({});
+        let result: string;
+        result = controller.reverseKeyTranslation('Subject');
+        expect(result).to.be.equal('dept');
+        result = controller.reverseKeyTranslation('id');
+        expect(result).to.be.equal('uuid');
+        result = controller.reverseKeyTranslation('Course');
+        expect(result).to.be.equal('id');
+        result = controller.reverseKeyTranslation('Avg');
+        expect(result).to.be.equal('avg');
+        result = controller.reverseKeyTranslation('Professor');
+        expect(result).to.be.equal('instructor');
+        result = controller.reverseKeyTranslation('Title');
+        expect(result).to.be.equal('title');
+        result = controller.reverseKeyTranslation('Pass');
+        expect(result).to.be.equal('pass');
+        result = controller.reverseKeyTranslation('Fail');
+        expect(result).to.be.equal('fail');
+        result = controller.reverseKeyTranslation('Audit');
+        expect(result).to.be.equal('audit');
+        result = controller.reverseKeyTranslation('MacOrWindows');
+        expect(result).to.be.equal('unknownKey');
     });
 
     it("Should properly split keys into datasetId and column names", function() {

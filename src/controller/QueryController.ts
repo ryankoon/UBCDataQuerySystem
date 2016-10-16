@@ -4,15 +4,14 @@
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
-import {IMComparison} from "./IEBNF";
-import {ISComparison} from "./IEBNF";
-import {ILogicComparison} from "./IEBNF";
-import {IFilter} from "./IEBNF";
+import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string[];
     WHERE: IFilter;
-    ORDER?: string;
+    GROUP?: string[];
+    APPLY?: IApplyObject[];
+    ORDER?: string | IOrderObject;
     AS: string;
 }
 
@@ -34,33 +33,45 @@ export default class QueryController {
 
     public isValid(query: QueryRequest): boolean | string {
         if (typeof query === 'undefined') {
-          return 'Query is undefined!';
+            return 'Query is undefined!';
         } else if (query === null) {
-          return 'Query is null!';
+            return 'Query is null!';
         } else if (Object.keys(query).length === 0) {
-          return 'Query is empty!';
+            return 'Query is empty!';
         } else if (!query.GET || query.GET.length === 0) {
-          return 'Query GET does not have any keys!'
-        } else if (query.ORDER && query.ORDER.length > 0) {
-          // order key needs to be among the get keys
-            // NOTE: GET should not and cannot be empty here based on the previous checks
-            let queryGETArray: string[] = query.GET;
-
-            if (queryGETArray.indexOf(query.ORDER) === -1) {
-                return 'The key in ORDER does not exist in GET!';
-            }
+            return 'Query GET does not have any keys!';
         } else if (!query.WHERE) {
             return "Query WHERE has not been defined!";
+        } else if (query.GROUP && query.GROUP.length === 0) {
+            return "Query GROUP must have at least one key!";
+        } else if (query.GROUP && !query.APPLY || !query.GROUP && query.APPLY) {
+            return "Query GROUP and APPLY must both be defined/undefined";
+        } else if (query.APPLY && query.APPLY.length === 0) {
+            return "Query APPLY cannot be empty!";
+        } else if (query.ORDER) {
+            //TODO: handle D2 version of ORDER
+            let order = <string>query.ORDER
+            if (order.length > 0) {
+                // order key needs to be among the get keys
+                // NOTE: GET should not and cannot be empty here based on the previous checks
+                let queryGETArray: string[] = query.GET;
+
+                if (queryGETArray.indexOf(<string>query.ORDER) === -1) {
+                    //TODO: handle D2 version of ORDER
+                    return 'The key in ORDER does not exist in GET!';
+                }
+            }
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
-          return "Query AS must be 'TABLE'!"
+          return "Query AS must be 'TABLE'!";
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
         if (whereKeys.length > 0) {
             let invalidFilterKey: boolean = true;
             whereKeys.forEach((key: string) => {
+                //TODO: double-check logic here
                 if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
                     invalidFilterKey = false;
                 }
@@ -69,6 +80,25 @@ export default class QueryController {
                 return "Query WHERE contains an invalid filter key!";
             }
         }
+
+        if (query.APPLY) {
+            let validApplyToken: boolean = true;
+            // iterate through all the apply Object key definitions
+            query.APPLY.forEach((applyObject: IApplyObject) => {
+                let applyObjectKeys = Object.keys(applyObject);
+                if (applyObjectKeys) {
+                    // there should only be one key
+                    let applyObjectKey = applyObjectKeys[0];
+                    validApplyToken = validApplyToken && (applyObjectKey === "MAX" || applyObjectKey === "MIN"
+                        || applyObjectKey === "AVG" || applyObjectKey === "COUNT");
+                }
+                ;
+            });
+            if (!validApplyToken) {
+                return "Query APPLY contains an invalid APPLYTOKEN!";
+            }
+        }
+
 
         return true;
     }
@@ -224,8 +254,6 @@ export default class QueryController {
 
     public query(query: QueryRequest): QueryResponse {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-      let isValidQuery: boolean | string = this.isValid(query);
-      if (isValidQuery === true) {
 
         // 1. FILTER
         let courses: string[] = Object.keys(this.getStringIndexKVByNumber(this.datasets, 0)["value"]);
@@ -244,19 +272,17 @@ export default class QueryController {
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
 
         // 2. ORDER (from A-Z, from 0, 1, 2,...)
-        let orderQueryKey: string = this.getQueryKey(query.ORDER);
+          //TODO: handle D2 version of ORDER
+        let orderQueryKey: string = this.getQueryKey(<string>query.ORDER);
 
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
         // 3. BUILD
-        let finalResults: IObject[] = this.buildResults(orderedResults, query)
+        let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
-      }  else {
-        throw new Error(<string> isValidQuery);
-      }
     }
 
     public filterCourseResults(queryFilter: IFilter, allCourseResults: IObject[]): IObject[] {
@@ -290,13 +316,10 @@ export default class QueryController {
       // apply query on a result in a Course
       // return true if it matches the query
 
-      let result: boolean;
+      let result: boolean = false;
       let queryKeys: string[] = Object.keys(queryFilter);
 
       queryKeys.forEach((queryKey) => {
-        let keyValue: IObject;
-        let newQueryFilter1: IObject;
-        let newQueryFilter2: IObject;
         switch(queryKey) {
           case "AND":
           let ANDResult: boolean = true;
@@ -448,7 +471,6 @@ export default class QueryController {
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
       let finalResults: IObject[] = [];
       //create new objects based on given columns and return format.
-      let getQueryKeys: string[] = query.GET;
         let translatedQueryKeys: string[] = [];
         let datasetId: string;
         let getQueryKeysStringArray: string[] = query.GET;
@@ -489,22 +511,11 @@ export default class QueryController {
       }
     }
 
-    public buildObject(keys: string[], values: IObject[]){
-      //length of keys must be equal to the length of values
-      let newObject: IObject = {};
-      for(let i = 0; i < keys.length; i++){
-        if (values[i]) {
-          newObject[keys[i]] = values[i];
-        }
-      }
-      return newObject;
-    }
     /**
      * Translates the keys in the query to the corresponding keys in the dataset
      * parses department and course id given the key of the current iteration in dataset
      *
      * @param queryKey
-     * @param objectKey?
      */
     public translateKey(queryKey: string): string {
       let result: string;
@@ -512,6 +523,10 @@ export default class QueryController {
       switch(queryKey) {
         case 'dept':
           result = 'Subject';
+          break;
+
+        case 'uuid':
+          result = 'id';
           break;
 
         case 'id':
@@ -543,7 +558,7 @@ export default class QueryController {
           break;
 
         default:
-          result = 'unknownKey'
+          result = 'unknownKey';
           break;
       }
 
@@ -556,6 +571,10 @@ export default class QueryController {
         switch(queryKey) {
             case 'Subject':
                 result = 'dept';
+                break;
+
+            case 'id':
+                result = 'uuid';
                 break;
 
             case 'Course':
@@ -587,7 +606,7 @@ export default class QueryController {
                 break;
 
             default:
-                result = 'unknownKey'
+                result = 'unknownKey';
                 break
         }
 
