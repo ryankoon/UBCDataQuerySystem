@@ -21,3 +21,19 @@ export interface IFilter {
   EQ?: IMComparison;
   IS?: ISComparison;
 }
+
+export interface IOrderObject {
+  dir: string;
+  keys: string[];
+}
+
+export interface IApplyObject {
+    [customKey: string]: IApplyTokenToKey;
+}
+
+export interface IApplyTokenToKey {
+    MAX?: string;
+    MIN?: string;
+    AVG?: string;
+    COUNT?: string;
+}
