@@ -58,16 +58,18 @@ export default class QueryController {
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
-        if (whereKeys.length > 0) {
-            let invalidFilterKey: boolean = true;
-            whereKeys.forEach((key: string) => {
-                if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
-                    invalidFilterKey = false;
-                }
-            });
-            if (invalidFilterKey) {
-                return "Query WHERE contains an invalid filter key!";
+        if (!whereKeys || whereKeys.length === 0){
+            return "Query WHERE does not contain a comparison or negation key!"
+        }
+
+        let invalidFilterKey: boolean = true;
+        whereKeys.forEach((key: string) => {
+            if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
+                invalidFilterKey = false;
             }
+        });
+        if (invalidFilterKey) {
+            return "Query WHERE contains an invalid filter key!";
         }
 
         return true;
@@ -265,23 +267,18 @@ export default class QueryController {
       // translatekey as needed
       let queryFilterMatches: IObject[] = [];
 
-        if (queryFilter && Object.keys(queryFilter) && Object.keys(queryFilter).length === 0) {
-            // if query.WHERE is an empty object, return all course results
-            queryFilterMatches = queryFilterMatches.concat(allCourseResults);
-        } else {
-            allCourseResults.forEach((courseResult: IObject) => {
-                let queryResult: boolean = this.queryACourseResult(queryFilter, courseResult);
+      allCourseResults.forEach((courseResult: IObject) => {
+        let queryResult: boolean = this.queryACourseResult(queryFilter, courseResult);
 
-                if (queryResult !== null) {
-                    if (queryResult) {
-                        // add courseResult to matches collection
-                        queryFilterMatches.push(courseResult);
-                    }
-                } else {
-                    throw new Error('No match result returned from queryResult on courseResult!')
-                }
-            });
+        if (queryResult !== null) {
+          if(queryResult) {
+          // add courseResult to matches collection
+          queryFilterMatches.push(courseResult);
+          }
+        } else {
+          throw new Error('No match result returned from queryResult on courseResult!')
         }
+      });
 
       return queryFilterMatches;
     }

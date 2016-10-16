@@ -416,15 +416,4 @@ describe("QueryController", function () {
         }).to.throw("LT Comparator value must be a number!");
 
     });
-
-    it("Should return all results if WHERE is an empty object", function () {
-
-        let controller = new QueryController({});
-        let results: Object[];
-        let inputItems: Object[] = [{"a":"a"}, {"b":"b"}, {"c":"c"}, {"d":"d"}, {"e":"e"}];
-
-        results = controller.filterCourseResults({}, inputItems);
-
-        expect(results).to.be.deep.equal(inputItems);
-    });
 });
