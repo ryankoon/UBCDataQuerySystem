@@ -542,6 +542,10 @@ export default class QueryController {
           result = 'Subject';
           break;
 
+        case 'uuid':
+          result = 'id';
+          break;
+
         case 'id':
           result = 'Course';
           break;
@@ -584,6 +588,10 @@ export default class QueryController {
         switch(queryKey) {
             case 'Subject':
                 result = 'dept';
+                break;
+
+            case 'id':
+                result = 'uuid';
                 break;
 
             case 'Course':
