@@ -17,12 +17,12 @@ export default class RouteHandler {
             let controller = new InsightFacade();
             controller.removeDataset(id)
                 .then( (result) => {
-                    res.json(result);
+                    res.json(result.code,result.body);
                     return next();
 
                 })
                 .catch( (err) => {
-                    res.json(err)
+                    res.json(err.code,err.body);
                     return next();
 
                 });
@@ -68,15 +68,14 @@ export default class RouteHandler {
 
                 controller.addDataset(id, req.body)
                     .then(function (result) {
-                        res.json(result);
+                        res.json(result.code, result.body);
                         return next();
-                    }).catch(function (err: Error) {
+                    }).catch(function (err) {
                     Log.trace('RouteHandler::postDataset.addDataset(..) - ERROR: ' + err.message);
-                        res.json(err);
+                        res.json(err.code, err.body);
                         return next();
                     });
             });
-
         } catch (err) {
             Log.error('RouteHandler::postDataset(..) - ERROR: ' + err.message);
             res.send(400, {err: err.message});
@@ -101,7 +100,8 @@ export default class RouteHandler {
                 });
         }
         catch (err){
-            res.json(400, err); //check this one.
+            Log.error('RouteHandler::postQuery(...) - ERROR' + err);
+            res.json(403, err);
             return next();
         }
     }

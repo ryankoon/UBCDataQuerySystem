@@ -44,6 +44,10 @@ export default class InsightFacade implements IInsightFacade {
                         reject(responseObject); // we need to return a 400.
                     }
                 })
+                .catch(function (err){
+                    let errObject = new ResponseObject(400, { error: err});
+                    reject(errObject);
+                });
         });
     }
     public removeDataset(id: string): Promise<InsightResponse> {
@@ -90,12 +94,10 @@ export default class InsightFacade implements IInsightFacade {
                     // reject with a response object.
                     let errBody = {
                             error: err.message
-                    }
-
+                    };
                     let errorResponseObject : InsightResponse = new ResponseObject(400, errBody);
                     reject(errorResponseObject);
                 }
-
                 // get all dataset ids
                 let datasetIds: string[] = [];
                 allQueryKeys.forEach((queryKey) => {
@@ -112,7 +114,7 @@ export default class InsightFacade implements IInsightFacade {
 
                 datasetIds.forEach((datasetId) => {
                     let getDatasetPromise: Promise<any>;
-                    getDatasetPromise = new Promise((fulfill, reject) => {
+                    getDatasetPromise = new Promise((yes, no) => {
                         InsightFacade.datasetController.getDataset(datasetId)
                             .then((dataset: any) => {
                                 if (dataset) {
@@ -120,22 +122,19 @@ export default class InsightFacade implements IInsightFacade {
                                 } else {
                                     missingDatasets.push(datasetId);
                                 }
-                                fulfill();
+                                yes();
                             })
                             .catch((err) => {
-                                reject("getDataset Error in postQuery!");
+                                no("getDataset Error in postQuery!");
                             });
                     });
-
                     getDatasetPromises.push(getDatasetPromise);
                 });
-
                 Promise.all(getDatasetPromises)
                     .then(() => {
                         if (missingDatasets.length === 0) {
                             controller.setDataset(recievedDatasets);
                             let result = controller.query(query);
-                            // TODO: Check that result has the proper contract.
                             let successObject : InsightResponse = new ResponseObject(200, result);
                             fulfill(successObject);
                         } else {

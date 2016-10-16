@@ -8,7 +8,9 @@ export interface InsightResponse {
     body: {
         error? : string,
         message?: string,
-        missing? : string
+        missing? : string[]
+        render? : string,
+        result? : string[]
     };
 }
 

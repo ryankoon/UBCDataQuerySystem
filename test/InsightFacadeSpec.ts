@@ -10,6 +10,7 @@ import {QueryRequest} from "../src/controller/QueryController";
 
 
 describe('InsightFacade', () => {
+
     let InsightFacadeController = new InsightFacade();
     it('addDataSet success!', (done) => {
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
@@ -102,10 +103,35 @@ describe('InsightFacade', () => {
             done();
         });
     });
-    it('processQuery successful add, filter', (done) =>
-    {
-        let content0 = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
-        let content1Identical = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
+    it('processQuery successful add, filter', (done) => {
+        after((done) => {
+                InsightFacadeController.removeDataset('asdf').then(function (result){
+                    expect(result.code === 204).to.be.true;
+                    done();
+                });
+        })
+        let content0 = {
+            "asdf1234": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
+        let content1Identical = {
+            "asdf": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
         let zip = new JSZip();
         zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
         zip.file('ourfile', JSON.stringify(content1Identical));
@@ -114,7 +140,7 @@ describe('InsightFacade', () => {
             compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
         };
         return zip.generateAsync(opts).then(function (data) {
-            return InsightFacadeController.addDataset('asdf_avg', data);
+            return InsightFacadeController.addDataset('asdf', data);
         }).then(function (result) {
             Log.test('Dataset processed; result: ' + result);
             let query: QueryRequest = {
@@ -135,10 +161,15 @@ describe('InsightFacade', () => {
                 "ORDER": "asdf_instructor",
                 "AS": "TABLE"
             }
-            InsightFacadeController.performQuery(query).then(function (result){
-             expect(result.code === 200);
-        }).catch(function (err){
-            expect(false).to.be.true;
+            InsightFacadeController.performQuery(query).then(function (result) {
+                expect(result.code === 200);
+                expect(result.body.render === "TABLE");
+                done();
+            }).catch(function (err) {
+                expect(false).to.be.true;
+                done();
+            })
         })
-    })
+    });
+
 });
