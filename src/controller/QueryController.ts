@@ -256,8 +256,6 @@ export default class QueryController {
 
     public query(query: QueryRequest): QueryResponse {
       Log.trace('QueryController::query( ' + JSON.stringify(query) + ' )');
-      let isValidQuery: boolean | string = this.isValid(query);
-      if (isValidQuery === true) {
 
         // 1. FILTER
         let courses: string[] = Object.keys(this.getStringIndexKVByNumber(this.datasets, 0)["value"]);
@@ -284,12 +282,9 @@ export default class QueryController {
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
         // 3. BUILD
-        let finalResults: IObject[] = this.buildResults(orderedResults, query)
+        let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
-      }  else {
-        throw new Error(<string> isValidQuery);
-      }
     }
 
     public filterCourseResults(queryFilter: IFilter, allCourseResults: IObject[]): IObject[] {
@@ -318,13 +313,10 @@ export default class QueryController {
       // apply query on a result in a Course
       // return true if it matches the query
 
-      let result: boolean;
+      let result: boolean = false;
       let queryKeys: string[] = Object.keys(queryFilter);
 
       queryKeys.forEach((queryKey) => {
-        let keyValue: IObject;
-        let newQueryFilter1: IObject;
-        let newQueryFilter2: IObject;
         switch(queryKey) {
           case "AND":
           let ANDResult: boolean = true;
@@ -476,7 +468,6 @@ export default class QueryController {
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
       let finalResults: IObject[] = [];
       //create new objects based on given columns and return format.
-      let getQueryKeys: string[] = query.GET;
         let translatedQueryKeys: string[] = [];
         let datasetId: string;
         let getQueryKeysStringArray: string[] = query.GET;
@@ -517,22 +508,11 @@ export default class QueryController {
       }
     }
 
-    public buildObject(keys: string[], values: IObject[]){
-      //length of keys must be equal to the length of values
-      let newObject: IObject = {};
-      for(let i = 0; i < keys.length; i++){
-        if (values[i]) {
-          newObject[keys[i]] = values[i];
-        }
-      }
-      return newObject;
-    }
     /**
      * Translates the keys in the query to the corresponding keys in the dataset
      * parses department and course id given the key of the current iteration in dataset
      *
      * @param queryKey
-     * @param objectKey?
      */
     public translateKey(queryKey: string): string {
       let result: string;
@@ -575,7 +555,7 @@ export default class QueryController {
           break;
 
         default:
-          result = 'unknownKey'
+          result = 'unknownKey';
           break;
       }
 
@@ -623,7 +603,7 @@ export default class QueryController {
                 break;
 
             default:
-                result = 'unknownKey'
+                result = 'unknownKey';
                 break
         }
 
