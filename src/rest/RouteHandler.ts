@@ -85,9 +85,9 @@ export default class RouteHandler {
 
     public static postQuery(req: restify.Request, res: restify.Response, next: restify.Next) {
         //   Log.trace('RouteHandler::postQuery(..) - params: ' + JSON.stringify(req.params));
-        let query: QueryRequest = req.params;
-        let controller = new InsightFacade();
         try {
+            let query: QueryRequest = req.params;
+            let controller = new InsightFacade();
             controller.performQuery(query)
                 .then(function (result) {
                     res.json(result.code, result.body);

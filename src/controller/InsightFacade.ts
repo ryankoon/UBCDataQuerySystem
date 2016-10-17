@@ -86,12 +86,12 @@ export default class InsightFacade implements IInsightFacade {
             if (isValidResult === true) {
                 let allQueryKeys: string[] = [];
                 allQueryKeys = allQueryKeys.concat(query.GET);
+                Log.trace('DEBUG: query.Get is' + query.GET);
+                Log.trace('DEBUG: allqueryKeys is : ' + allQueryKeys);
                 try {
                     allQueryKeys = allQueryKeys.concat(controller.getWhereQueryKeys(query.WHERE));
                 }
                 catch (err) {
-                    // invalid result determined after deep traversal of WHERE
-                    // reject with a response object.
                     let errBody = {
                             error: err.message
                     };
@@ -111,7 +111,6 @@ export default class InsightFacade implements IInsightFacade {
                 let recievedDatasets: Datasets = {};
                 let missingDatasets: string[] = [];
                 // get and store datasets in queryController
-
                 datasetIds.forEach((datasetId) => {
                     let getDatasetPromise: Promise<any>;
                     getDatasetPromise = new Promise((yes, no) => {
