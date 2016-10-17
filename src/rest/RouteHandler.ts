@@ -5,7 +5,7 @@ import restify = require('restify');
 import fs = require('fs');
 import path = require('path');
 import InsightFacade from '../controller/InsightFacade';
-import {QueryRequest} from "../controller/QueryController";
+import {QueryRequest, default as QueryController} from "../controller/QueryController";
 import Log from '../Util';
 
 export default class RouteHandler {
@@ -88,16 +88,23 @@ export default class RouteHandler {
         try {
             let query: QueryRequest = req.params;
             let controller = new InsightFacade();
+            let queryController = new QueryController();
+            let isValidResult: boolean | string = queryController.isValid(query);
+            if (queryController.isValid(query) === true){
             controller.performQuery(query)
                 .then(function (result) {
                     res.json(result.code, result.body);
                     return next();
-
                 })
                 .catch(function (err) {
                     res.json(err.code, err.body);
                     return next();
                 });
+            }
+            else{
+                res.json(400, {error : isValidResult});
+                return next();
+            }
         }
         catch (err){
             Log.error('RouteHandler::postQuery(...) - ERROR' + err);

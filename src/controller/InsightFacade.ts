@@ -80,19 +80,16 @@ export default class InsightFacade implements IInsightFacade {
         Log.trace('InsightFacade:performQuery(..): query: ' + query);
         return new Promise( (fulfill, reject) => {
             // let query: QueryRequest = req.params;
-            let controller: QueryController = new QueryController();
+            var controller: QueryController = new QueryController();
             let isValidResult: boolean | string = controller.isValid(query);
 
             if (isValidResult === true) {
                 let allQueryKeys: string[] = [];
                 allQueryKeys = allQueryKeys.concat(query.GET);
-                Log.trace('DEBUG: query.Get is' + query.GET);
-                Log.trace('DEBUG: allqueryKeys is : ' + allQueryKeys);
                 try {
                     allQueryKeys = allQueryKeys.concat(controller.getWhereQueryKeys(query.WHERE));
                 }
                 catch (err) {
-                    Log.error('Error in InsightFacade catch of getWhereKeys: ' + err);
                     let errBody = {
                             error: err
                     };

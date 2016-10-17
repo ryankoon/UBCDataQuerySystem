@@ -128,6 +128,7 @@ export default class QueryController {
                         if (!query.OR || query.OR.length === 0) {
                             throw new Error("OR must have at least one filter!");
                         } else {
+                            console.log('QUERY OBJECT: ' + JSON.stringify(query));
                             query.OR.forEach((queryFilter) => {
                                 whereQueryKeys = whereQueryKeys.concat(this.getWhereQueryKeys(queryFilter));
                             });
