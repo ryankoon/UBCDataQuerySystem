@@ -177,30 +177,43 @@ describe("DatasetController", function () {
     });
     it ('should fail to delete setA', (done) => {
         controller.deleteDataset('setA')
-            .then(function (resultObj) {
+            .then(function forceFail() {
+                expect(true).to.not.be.true;
+            })
+            .catch(function (resultObj){
                 expect(resultObj.status === 404).to.be.true;
                 done();
             });
-    })
+    });
     it ('should fail to delete setB', (done) => {
         controller.deleteDataset('setB')
-            .then(function (resultObj) {
+            .then(function forceFail() {
+                expect(true).to.not.be.true;
+
+            })
+            .catch(function (resultObj){
                 expect(resultObj.status === 404).to.be.true;
                 done();
             });
-    })
+    });
     it ('should fail to delete setC', (done) => {
         controller.deleteDataset('setC')
-            .then(function (resultObj) {
+            .then(function forceFail(resultObj) {
+                expect(true).to.not.be.true;
+            })
+            .catch(function (resultObj) {
                 expect(resultObj.status === 404).to.be.true;
                 done();
             });
-    })
+    });
     it ('should fail to delete setD', (done) => {
         controller.deleteDataset('setD')
-            .then(function (resultObj) {
+            .then(function () {
+                expect(true).to.not.be.true;
+            })
+            .catch(function (resultObj){
                 expect(resultObj.status === 404).to.be.true;
                 done();
             });
-    })
+    });
 });
