@@ -92,8 +92,9 @@ export default class InsightFacade implements IInsightFacade {
                     allQueryKeys = allQueryKeys.concat(controller.getWhereQueryKeys(query.WHERE));
                 }
                 catch (err) {
+                    Log.error('Error in InsightFacade catch of getWhereKeys: ' + err);
                     let errBody = {
-                            error: err.message
+                            error: err
                     };
                     let errorResponseObject : InsightResponse = new ResponseObject(400, errBody);
                     reject(errorResponseObject);
