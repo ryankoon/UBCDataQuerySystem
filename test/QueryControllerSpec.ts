@@ -455,4 +455,134 @@ describe("QueryController", function () {
 
         expect(results).to.be.deep.equal(inputItems);
     });
+    it("Should find the MAX of an APPLY", function (done) {
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let applyObject: Object = {}
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 21, "Professor": "Vader, Darth"}];
+        let applyToken : Object = { MAX : 'Avg'};
+        let out: Number = controller.executeApplyTokenOnResults(applyToken, results);
+        expect(out === 110).to.be.true;
+        done();
+
+    });
+    it("Should find the MIN of an APPLY" ,function (done) {
+        let controller = new QueryController();
+        let results = [{ "Avg": 70, "Professor": "Elmo" },
+            { "Avg": 110, "Professor": "Bond, James" },
+            { "Avg": 21, "Professor": "Vader, Darth" }];
+        let applyToken = {MIN : 'Avg'};
+        let out: Number = controller.executeApplyTokenOnResults(applyToken, results);
+        expect(out === 21).to.be.true;
+        done();
+    });
+    it("Should find the AVG of an APPLY (rounded to 2dp) ", function (done) {
+        let controller = new QueryController();
+        let results = [{ "Avg": 70, "Professor": "Elmo" },
+            { "Avg": 111, "Professor": "Bond, James" },
+            { "Avg": 21, "Professor": "Vader, Darth" }];
+        Log.test("Average should be 67.33333 rounded to 2dp");
+        let applyToken = {Avg : 'Avg'};
+        let out: Number = controller.executeApplyTokenOnResults(applyToken, results);
+        expect(out === 67).to.be.true;
+        done();
+    });
+    it("Should find the COUNT of an APPLY", function (done) {
+        let controller = new QueryController();
+        let results = [{ "Avg": 70, "Professor": "Elmo" },
+            { "Avg": 111, "Professor": "Bond, James" },
+            { "Avg": 21, "Professor": "Vader, Darth" }];
+        let applyToken = {COUNT : 'Avg'};
+        let out: Number = controller.executeApplyTokenOnResults(applyToken, results);
+        expect(out === 67).to.be.true;
+        done();
+    });
+
+    it("Should ensure apply propertys type is correct", function (done) {
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let applyObject: Object = {}
+        let stringNumberResult = {"Avg": "70", "Professor": "Elmo"};
+        let intNumberResult = { "Avg" : 70, "Professor" : "Elmo" };
+
+
+        let maxToken : Object = { MAX : 'Avg'};
+        let minToken : Object = { MAX : 'Avg'};
+        let avgToken : Object = { MAX : 'Avg'};
+        let countToken : Object = {COUNT :'AVG'};
+
+        let out1: Boolean = controller.numberCheck(maxToken, stringNumberResult);
+        let out2: Boolean = controller.numberCheck(minToken, stringNumberResult);
+        let out3: Boolean = controller.numberCheck(avgToken, stringNumberResult);
+        let out4: Boolean = controller.numberCheck(countToken, stringNumberResult);
+        let out5: Boolean = controller.numberCheck(maxToken, intNumberResult);
+        let out6: Boolean = controller.numberCheck(minToken, intNumberResult);
+        let out7: Boolean = controller.numberCheck(avgToken, intNumberResult);
+        let out8: Boolean = controller.numberCheck(countToken, intNumberResult);
+        let out9: Boolean = controller.numberCheck(countToken, intNumberResult)
+
+        //Assert string number outcomes.
+        expect(out1 === false).to.be.true;
+        expect(out2 === false).to.be.true;
+        expect(out3 === false).to.be.true;
+        expect(out4 === true).to.be.true;
+
+        //Assert integer number outcomes
+        expect(out5 === true).to.be.true;
+        expect(out6 === true).to.be.true;
+        expect(out7 === true).to.be.true;
+        expect(out8 === true).to.be.true;
+        expect(out9 === true).to.be.true;
+
+        done();
+    });
+
+    it("Should pass if APPLY doesnt have two targets with the same name" ,(done) => {
+        let controller = new QueryController();
+        let applyQuery = [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ];
+        let result : boolean = controller.checkDuplicateTarget(applyQuery);
+        expect(result === true).to.be.true;
+    });
+    it("Should fail if APPLY has two targets with the same name" ,(done) => {
+        let controller = new QueryController();
+        let applyQuery = [ {"courseAverage": {"AVG": "courses_avg"}}, {"courseAverage": {"MAX": "courses_fail"}} ];
+        let result : boolean = controller.checkDuplicateTarget(applyQuery);
+        expect(result === false).to.be.true;
+    });
+
+    it("Should iterate through a list of results successfully and find the outcome", (done) =>{
+        let controller = new QueryController();
+        let results = [{ "Avg": 70, "Professor": "Elmo", "CourseNumber" : 5 },
+            { "Avg": 111, "Professor": "Bond, James", "CourseNumber" : 5 },
+            { "Avg": 21, "Professor": "Vader, Darth", "CourseNumber" : 6 }];
+        let applyToken = [
+            {"courseAvg" : { SUM : "CourseNumber" } },
+            {"courseNum" :{ MAX: "CourseNumber" }},
+            {"courseCount" : { COUNT : "111" }},
+            {"profCount" :{ COUNT : {"Professor" : "Bond, James"}}},
+            {"lowestAvg" : {MIN: "Avg"}}
+            ];
+
+        let resultFromApplyToken = [
+            {"courseAvg" :  16 },
+            {"courseNum" : 6},
+            {"courseCount" : 1},
+            {"profCount" : 1 },
+            {"lowestAvg" : 21}
+        ]
+        let out: Number = controller.executeApplyTokenOnResults(applyToken, results);
+        expect(out).to.deep.equal(resultFromApplyToken);
+        done
+    });
+
+
+/*
+ "APPLY": [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ],
+
+ APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' ) '],'
+    APPLYTOKEN ::= 'MAX' | 'MIN' | 'AVG' | 'COUNT'
+*/
+
 });
