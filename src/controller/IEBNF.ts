@@ -27,10 +27,19 @@ export interface IOrderObject {
   keys: string[];
 }
 
+/**
+ * [customKey: string]: IApplyTokenToKey;
+ * customKey - references a queryKey without underscore
+ * IApplyTokenToKey - object with one of the following keys: MAX, MIN, AVG, or COUNT
+ */
 export interface IApplyObject {
     [customKey: string]: IApplyTokenToKey;
 }
 
+/**
+ * Can contain one of the following keys: MAX, MIN, AVG, or COUNT.
+ * The value is a querykey with an underscore (<datasetId>_<key>);
+ */
 export interface IApplyTokenToKey {
     MAX?: string;
     MIN?: string;

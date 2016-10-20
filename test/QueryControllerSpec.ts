@@ -530,4 +530,78 @@ describe("QueryController", function () {
         expect(result).to.be.a("string");
     });
 
+    it("Should be able to validate that all GET keys with underscore are in GROUP and keys without underscore are in APPLY",
+        function() {
+
+        let controller = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        Log.test("Testing - GET keys are either found in GROUP or APPLY. (D1)");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing - GET keys are missing in GROUP");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_anykey"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing - GET keys are missing in APPLY");
+        Log.test("Note: Keys defined in APPLY do not need to be used");
+        query = {
+            "GET": ["myCustomApplyKey", "myMissingApplyKey", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing - ORDER keys are missing in APPLY");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myMissingApplyKey"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+
+        Log.test("Testing - ORDER keys are found in APPLY");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myCustomApplyKey2"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+    });
+
+
 });
