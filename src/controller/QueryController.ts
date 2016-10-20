@@ -4,7 +4,7 @@
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
-import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison} from "./IEBNF";
+import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string[];
@@ -48,23 +48,101 @@ export default class QueryController {
             return "Query GROUP and APPLY must both be defined/undefined";
         } else if (query.APPLY && query.APPLY.length === 0) {
             return "Query APPLY cannot be empty!";
-        } else if (query.ORDER) {
-            //TODO: handle D2 version of ORDER
-            let order = <string>query.ORDER
-            if (order.length > 0) {
-                // order key needs to be among the get keys
-                // NOTE: GET should not and cannot be empty here based on the previous checks
-                let queryGETArray: string[] = query.GET;
-
-                if (queryGETArray.indexOf(<string>query.ORDER) === -1) {
-                    //TODO: handle D2 version of ORDER
-                    return 'The key in ORDER does not exist in GET!';
-                }
-            }
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
           return "Query AS must be 'TABLE'!";
+        }
+
+        /**
+         * If there are keys without "_", GROUP and APPLY must be defined.
+         * Keys with "_" must be found in GROUP.
+         * Key without "_" (CustomKeys) must be found in APPLY;
+         */
+        if (query.GET) {
+            let containsCustomKeys = false;
+            let queryKeys: string[] = []
+            let customKeys: string[] = [];
+            let errorMessage: string;
+
+            query.GET.forEach((getKey) => {
+               if (getKey.indexOf("_") === -1) {
+                   customKeys.push(getKey);
+               } else {
+                   queryKeys.push(getKey);
+               }
+
+               if (customKeys.length > 0){
+                   // 1. Are queryKeys (keys with "_") found in GROUP?
+                   queryKeys.forEach((queryKey: string) => {
+                       if (errorMessage) {
+                           return;
+                       } else if (query.GROUP.indexOf(queryKey) === -1) {
+                            errorMessage = "Query key (key with '_') not found in GROUP!";
+                       }
+                   });
+
+
+                   // 2. Are customKeys (keys without "_") found in APPLY?
+                   let applyObjectKeys: string[] = [];
+                   // get apply object keys (not the query key, the one without "_")
+                   query.APPLY.forEach((applyObject: IApplyObject) => {
+                       let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["key"];
+                       applyObjectKeys.push(applyObjectKey);
+                   });
+
+                    customKeys.forEach((cKey) => {
+                       if (errorMessage) {
+                           return;
+                       } else if (applyObjectKeys.indexOf(cKey) === -1) {
+                           errorMessage = "Custom key (key without '_') not found in APPLY Object!";
+                       }
+                    });
+               }
+            });
+            if (errorMessage) {
+                return errorMessage;
+            }
+
+        }
+
+        if (query.ORDER) {
+            //Check if ORDER is string(D1) or object(D2)
+            let orderType: string = typeof(query.ORDER);
+            let orderKeys: string[];
+            let errorMessage: string;
+
+            // store order keys in an array
+            if (orderType === "string") {
+                // cast to string
+                let orderString: string = <string>query.ORDER;
+                if (orderString.length > 0) {
+                    orderKeys = [<string>query.ORDER];
+                }
+            } else if (orderType === "object") {
+                // cast to IOrderObject
+                let orderObject: IOrderObject = <IOrderObject>query.ORDER;
+                orderKeys = orderObject.keys;
+            }
+
+            if (orderKeys.length === 0) {
+                errorMessage = "Order must have at least one key!"
+            } else if (orderKeys && orderKeys.length > 0) {
+                // order key needs to be among the get keys
+                // NOTE: GET should not and cannot be empty here based on the previous checks
+                let queryGETArray: string[] = query.GET;
+                orderKeys.forEach((key) => {
+                    if (errorMessage) {
+                        return;
+                    } else if (queryGETArray.indexOf(key) === -1) {
+                        errorMessage = 'The key in ORDER does not exist in GET!';
+                    }
+                });
+            }
+
+            if (errorMessage) {
+                return errorMessage;
+            }
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
@@ -88,11 +166,11 @@ export default class QueryController {
                 let applyObjectKeys = Object.keys(applyObject);
                 if (applyObjectKeys) {
                     // there should only be one key
-                    let applyObjectKey = applyObjectKeys[0];
-                    validApplyToken = validApplyToken && (applyObjectKey === "MAX" || applyObjectKey === "MIN"
-                        || applyObjectKey === "AVG" || applyObjectKey === "COUNT");
+                    let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+                    let applyObjectToken = this.getStringIndexKVByNumber(applyObjectKey, 0)["key"];
+                    validApplyToken = validApplyToken && (applyObjectToken === "MAX" || applyObjectToken === "MIN"
+                        || applyObjectToken === "AVG" || applyObjectToken === "COUNT");
                 }
-                ;
             });
             if (!validApplyToken) {
                 return "Query APPLY contains an invalid APPLYTOKEN!";
@@ -611,5 +689,25 @@ export default class QueryController {
         }
 
         return result;
+    }
+
+    /**
+     * Given a customKey (key without "_") and APPLY Array return the ApplyTokenToKeyObject
+     * Return an empty object if not found
+     * @param customKey
+     */
+    public getApplyTokenToKeyObject(applyArray: IApplyObject[], customKey: string): IApplyTokenToKey {
+        let applyTokenToKeyObject: IApplyTokenToKey = {};
+
+        applyArray.forEach((applyObject: IApplyObject) => {
+            if (Object.keys(applyTokenToKeyObject).length === 1) {
+                // Stop iterating, we found the key in the applyArray already!
+                return;
+            } else if (this.getStringIndexKVByNumber(applyObject, 0)["key"] === customKey) {
+                applyTokenToKeyObject = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+            }
+        });
+
+        return applyTokenToKeyObject;
     }
 }

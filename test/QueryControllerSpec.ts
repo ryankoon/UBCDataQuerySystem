@@ -8,6 +8,7 @@ import {QueryRequest} from "../src/controller/QueryController";
 import Log from "../src/Util";
 
 import {expect} from 'chai';
+import {IApplyTokenToKey, IApplyObject} from "../src/controller/IEBNF";
 describe("QueryController", function () {
 
     beforeEach(function () {
@@ -17,6 +18,7 @@ describe("QueryController", function () {
     });
 
     it("Should be able to validate a valid query", function () {
+        Log.test("Test - A valid query.");
         let query: QueryRequest = {
             "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
             "WHERE": {
@@ -40,7 +42,7 @@ describe("QueryController", function () {
         isValid = controller.isValid(query);
         expect(isValid).to.equal(true);
 
-        // The key in ORDER does not exist in GET!
+        Log.test("Test - The key in ORDER does not exist in GET");
         query = {
             "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
             "WHERE":
@@ -455,6 +457,7 @@ describe("QueryController", function () {
 
         expect(results).to.be.deep.equal(inputItems);
     });
+<<<<<<< HEAD
     it("Should find the MAX of an APPLY", function (done) {
         let controller = new QueryController();
         // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
@@ -585,4 +588,218 @@ describe("QueryController", function () {
     APPLYTOKEN ::= 'MAX' | 'MIN' | 'AVG' | 'COUNT'
 */
 
+    it("Should return the ApplyTokenToKey Object given the custom key", function() {
+        let controller = new QueryController({});
+        let applyArray: IApplyObject[] = [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ];
+        let result: IApplyTokenToKey;
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "courseAverage");
+        expect(result).to.be.deep.equal({"AVG": "courses_avg"});
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "maxFail");
+        expect(result).to.be.deep.equal({"MAX": "courses_fail"});
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "nonexistentkey");
+        expect(result).to.be.deep.equal({});
+
+    });
+
+    it("Should be able to validate the ORDER part of the query", function() {
+        let controller = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        //D1 implementation - a single string
+        Log.test("Testing when Order value is found in get. (D1)");
+         query = {
+            "GET": ["asdf_avg", "asdf_instructor"],
+            "WHERE": {},
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+         };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing when Order value is not found in get. (D1)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        //D2 implementation - an object with 'dir' and array of 'keys'
+        Log.test("Testing when Order object keys are found in get. (D2)");
+        query = {
+            "GET": ["asdf_avg", "asdf_instructor"],
+            "WHERE": {},
+            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing when Order object keys missing in get. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing when Order object keys is empty. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "down", "keys": []},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing when Order object direction is invalid. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "sideways", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+    });
+
+    it("Should be able to validate that all GET keys with underscore are in GROUP and keys without underscore are in APPLY",
+        function() {
+
+        let controller = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        Log.test("Testing - GET keys are either found in GROUP or APPLY.");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing - GET keys are missing in GROUP");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_anykey"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing - GET keys are missing in APPLY");
+        Log.test("Note: Keys defined in APPLY do not need to be used");
+        query = {
+            "GET": ["myCustomApplyKey", "myMissingApplyKey", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing - ORDER keys are missing in APPLY");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myMissingApplyKey"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+
+        Log.test("Testing - ORDER keys are found in APPLY");
+        query = {
+            "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor"],
+            "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myCustomApplyKey2"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+    });
+
+    it("Should be able to validate that GROUP and APPLY are either both defined or both undefined",
+        function() {
+
+            let controller = new QueryController();
+            let query: QueryRequest;
+            let result: boolean | string;
+
+            Log.test("Testing - GROUP is defined but APPLY is not.");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "GROUP": ["asdf_instructor"],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.be.a("string");
+
+            Log.test("Testing - APPLY is defined but GROUP is not.");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.be.a("string");
+
+            Log.test("Testing - Both GROUP and APPLY are defined");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "GROUP": ["asdf_instructor"],
+                "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.equal(true);
+
+            Log.test("Testing - Neither GROUP and APPLY are defined");
+            query = {
+                "GET": ["asdf_instructor"],
+                "WHERE": {},
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.equal(true);
+        });
 });
