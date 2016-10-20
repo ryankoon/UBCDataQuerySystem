@@ -5,6 +5,8 @@ import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
 import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
+import QueryUtility from "./QueryUtility";
+
 
 export interface QueryRequest {
     GET: string[];
@@ -19,6 +21,8 @@ export interface QueryResponse {
   render: string;
   result: IObject[];
 }
+
+let queryUtility = new QueryUtility();
 
 export default class QueryController {
     private datasets: Datasets;
@@ -162,21 +166,27 @@ export default class QueryController {
         if (query.APPLY) {
             let validApplyToken: boolean = true;
             // iterate through all the apply Object key definitions
-            query.APPLY.forEach((applyObject: IApplyObject) => {
-                let applyObjectKeys = Object.keys(applyObject);
-                if (applyObjectKeys) {
-                    // there should only be one key
-                    let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
-                    let applyObjectToken = this.getStringIndexKVByNumber(applyObjectKey, 0)["key"];
-                    validApplyToken = validApplyToken && (applyObjectToken === "MAX" || applyObjectToken === "MIN"
-                        || applyObjectToken === "AVG" || applyObjectToken === "COUNT");
-                }
-            });
-            if (!validApplyToken) {
+
+            // check for duplicates.
+            // if no duplicates execute belows, otherwise validApplyToken is false.
+
+            let hasDuplicateKey: boolean = queryUtility.targetHasDuplicate(query.APPLY);
+            if (hasDuplicateKey === false) {
+                query.APPLY.forEach((applyObject: IApplyObject) => {
+                    let applyObjectKeys = Object.keys(applyObject);
+                    if (applyObjectKeys) {
+                        // there should only be one key
+                        let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+                        let applyObjectToken = this.getStringIndexKVByNumber(applyObjectKey, 0)["key"];
+                        validApplyToken = validApplyToken && (applyObjectToken === "MAX" || applyObjectToken === "MIN"
+                            || applyObjectToken === "AVG" || applyObjectToken === "COUNT");
+                    }
+                });
+            }
+            if (!validApplyToken || hasDuplicateKey) {
                 return "Query APPLY contains an invalid APPLYTOKEN!";
             }
         }
-
 
         return true;
     }
@@ -357,7 +367,16 @@ export default class QueryController {
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
-        // 3. BUILD
+        // lets get the APPLY key.
+        // let applyKey = this.translateKey(applyQueryKey);
+        // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
+        //  should be similar to the LT GT etc case.
+        // let appliedResults: IObject[] = this.applyResults(orderedResults, appliedKey);
+
+        // 3. APPLY
+        let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
+
+        // 4. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
@@ -516,6 +535,44 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
+   /*
+    public applyOrdering(resultSetToApply : string, query : String) : string {
+
+        // case: min  @requires numeric field @returns maximum value of a field
+        // case: max  @requires numeric field @returns minimum value of a field.
+        // case: avg  @requires numeric field, @returns average value of a field rounded to 2dp.
+        // case: count  @require numeric or string. @returns number of occurences.
+        // determine the apply key
+        if (query.Apply) {
+
+            let applyKey = query.APPLY;
+        }
+        return "";
+    }
+
+    */
+
+    /*
+    Expect an array of results to be given.
+    Return the expected output resulting from this.
+     */
+    public executeApplyTokenOnResults(resultSet : Object, applyQuery : Object) : any  {
+        // "APPLY": [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ],
+        // will need translateKey to know the value and do max/min.
+
+        // create a new array.
+        // forEach item in the fed array.
+        // look at the key and store it locally.
+        // Parse the key. Translate the key (translateKey)
+        // Parse the value.
+        // For example, then we need to take a result like : { "Avg": 111, "Professor": "Bond, James", "CourseNumber" : 5 },
+        // We need then need to create switch cases that look at 'AVG', 'SUM',  etc and do logic where they find a translated key.
+
+
+
+        return 1;
+    }
+
     public orderResults(filteredResults: IObject[], order: string): IObject[] {
       // implement sort method and pass in method to be able to compare letters
       let orderedResults: IObject[] = filteredResults;
@@ -577,6 +634,9 @@ export default class QueryController {
       return finalResults;
     }
 
+    /*
+    Given an object, return the key value pair.
+     */
     public getStringIndexKVByNumber(object: IObject, index: number): IObject {
       let keys: string[] = Object.keys(object);
       if (keys && keys.length > index){
@@ -710,4 +770,5 @@ export default class QueryController {
 
         return applyTokenToKeyObject;
     }
+
 }
