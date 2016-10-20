@@ -17,6 +17,7 @@ describe("QueryController", function () {
     });
 
     it("Should be able to validate a valid query", function () {
+        Log.test("Test - A valid query.");
         let query: QueryRequest = {
             "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
             "WHERE": {
@@ -40,7 +41,7 @@ describe("QueryController", function () {
         isValid = controller.isValid(query);
         expect(isValid).to.equal(true);
 
-        // The key in ORDER does not exist in GET!
+        Log.test("Test - The key in ORDER does not exist in GET");
         query = {
             "GET": ["asdf_dept", "asdf_id", "asdf_avg"],
             "WHERE":
@@ -537,7 +538,7 @@ describe("QueryController", function () {
         let query: QueryRequest;
         let result: boolean | string;
 
-        Log.test("Testing - GET keys are either found in GROUP or APPLY. (D1)");
+        Log.test("Testing - GET keys are either found in GROUP or APPLY.");
         query = {
             "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
             "WHERE": {},
