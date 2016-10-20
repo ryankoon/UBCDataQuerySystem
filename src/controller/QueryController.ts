@@ -4,7 +4,7 @@
 import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
-import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison} from "./IEBNF";
+import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
 
 export interface QueryRequest {
     GET: string[];
@@ -689,5 +689,25 @@ export default class QueryController {
         }
 
         return result;
+    }
+
+    /**
+     * Given a customKey (key without "_") and APPLY Array return the ApplyTokenToKeyObject
+     * Return an empty object if not found
+     * @param customKey
+     */
+    public getApplyTokenToKeyObject(applyArray: IApplyObject[], customKey: string): IApplyTokenToKey {
+        let applyTokenToKeyObject: IApplyTokenToKey = {};
+
+        applyArray.forEach((applyObject: IApplyObject) => {
+            if (Object.keys(applyTokenToKeyObject).length === 1) {
+                // Stop iterating, we found the key in the applyArray already!
+                return;
+            } else if (this.getStringIndexKVByNumber(applyObject, 0)["key"] === customKey) {
+                applyTokenToKeyObject = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+            }
+        });
+
+        return applyTokenToKeyObject;
     }
 }

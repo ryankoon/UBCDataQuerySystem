@@ -8,6 +8,7 @@ import {QueryRequest} from "../src/controller/QueryController";
 import Log from "../src/Util";
 
 import {expect} from 'chai';
+import {IApplyTokenToKey, IApplyObject} from "../src/controller/IEBNF";
 describe("QueryController", function () {
 
     beforeEach(function () {
@@ -455,6 +456,22 @@ describe("QueryController", function () {
         results = controller.filterCourseResults({}, inputItems);
 
         expect(results).to.be.deep.equal(inputItems);
+    });
+
+    it("Should return the ApplyTokenToKey Object given the custom key", function() {
+        let controller = new QueryController({});
+        let applyArray: IApplyObject[] = [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ];
+        let result: IApplyTokenToKey;
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "courseAverage");
+        expect(result).to.be.deep.equal({"AVG": "courses_avg"});
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "maxFail");
+        expect(result).to.be.deep.equal({"MAX": "courses_fail"});
+
+        result = controller.getApplyTokenToKeyObject(applyArray, "nonexistentkey");
+        expect(result).to.be.deep.equal({});
+
     });
 
     it("Should be able to validate the ORDER part of the query", function() {
