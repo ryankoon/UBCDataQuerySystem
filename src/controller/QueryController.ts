@@ -516,11 +516,18 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
-    public orderResults(filteredResults: IObject[], order: string[]): IObject[] {
+    /**
+     *
+     * @param filteredResults
+     * @param orderKeys
+     * @param direction - "up" (smallest to largest) is the default direction
+     * @returns {IObject[]}
+     */
+    public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
       // implement sort method and pass in method to be able to compare letters
       let orderedResults: IObject[] = filteredResults;
       //check if querykey exists
-      if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order[0]] !== 'undefined') {
+      if (filteredResults && filteredResults.length > 1 && orderKeys && filteredResults[0][orderKeys[0]] !== 'undefined') {
         // sort filtered results
         let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
           return unsortedResults.sort((a: IObject, b: IObject) => {
@@ -541,7 +548,7 @@ export default class QueryController {
           });
         });
 
-        orderedResults = sortByQueryKey(order[0], orderedResults);
+        orderedResults = sortByQueryKey(orderKeys[0], orderedResults);
       }
       return orderedResults;
     }

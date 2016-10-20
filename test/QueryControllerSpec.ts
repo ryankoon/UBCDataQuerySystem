@@ -216,7 +216,7 @@ describe("QueryController", function () {
             { "asdf_instructor": "Vader, Darth" }
           ]
 
-        }
+        };
 
         let controller = new QueryController(dataset);
         let ret = controller.query(query);
@@ -672,4 +672,129 @@ describe("QueryController", function () {
             result = controller.isValid(query);
             expect(result).to.equal(true);
         });
+
+    it("Should be able to order results with given direction.", function() {
+        let controller: QueryController = new QueryController();
+        let unorderedResults: Object[];
+        let expectedResults: Object[];
+        let results: Object[];
+
+        Log.test("Test - Ordering is 'up' by default.");
+        unorderedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+        expectedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"]);
+        expect(results).to.be.deep.equal(expectedResults);
+
+        Log.test("Test - Ordering is 'up' by default but still works if explicitly defined.");
+        unorderedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+        expectedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "up");
+        expect(results).to.be.deep.equal(expectedResults);
+
+        Log.test("Test - Ordering is 'down'.");
+        unorderedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+        expectedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "down");
+        expect(results).to.be.deep.equal(expectedResults);
+    });
+
+    it("Should be able to order results with multiple keys", function() {
+        let controller: QueryController = new QueryController();
+        let unorderedResults: Object[];
+        let expectedResults: Object[];
+        let results: Object[];
+
+        Log.test("Test - Ordering with two keys.");
+        unorderedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+
+        expectedResults = [
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
+            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"]);
+        expect(results).to.be.deep.equal(expectedResults);
+
+        Log.test("Test - Ordering with many keys. Final comparisons are with strings.");
+        unorderedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Coffee"},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Animal"},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Zebra"}
+        ];
+
+        expectedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Animal"},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Coffee"},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Zebra"}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"]);
+        expect(results).to.be.deep.equal(expectedResults);
+
+        Log.test("Test - Ordering with many keys. Final comparisons are with numbers.");
+        unorderedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 3},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1}
+        ];
+
+        expectedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 3},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"]);
+        expect(results).to.be.deep.equal(expectedResults);
+
+        Log.test("Test - Ordering with many keys. All values involved in comparison are the same.");
+        unorderedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 3},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1}
+        ];
+
+        expectedResults = [
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 3},
+            {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1}
+        ];
+
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby"]);
+        expect(results).to.be.deep.equal(expectedResults);
+
+    });
+
 });
