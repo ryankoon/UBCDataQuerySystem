@@ -355,7 +355,7 @@ export default class QueryController {
 
         //translate queryKey
         orderQueryKey = this.translateKey(orderQueryKey);
-        let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
+        let orderedResults: IObject[] = this.orderResults(filteredResults, [orderQueryKey]);
 
         // 3. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
@@ -516,11 +516,11 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
-    public orderResults(filteredResults: IObject[], order: string): IObject[] {
+    public orderResults(filteredResults: IObject[], order: string[]): IObject[] {
       // implement sort method and pass in method to be able to compare letters
       let orderedResults: IObject[] = filteredResults;
       //check if querykey exists
-      if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order] !== 'undefined') {
+      if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order[0]] !== 'undefined') {
         // sort filtered results
         let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
           return unsortedResults.sort((a: IObject, b: IObject) => {
@@ -541,7 +541,7 @@ export default class QueryController {
           });
         });
 
-        orderedResults = sortByQueryKey(order, orderedResults);
+        orderedResults = sortByQueryKey(order[0], orderedResults);
       }
       return orderedResults;
     }

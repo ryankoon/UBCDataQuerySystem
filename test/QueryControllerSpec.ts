@@ -179,10 +179,10 @@ describe("QueryController", function () {
 
       let controller = new QueryController({});
       let orderedResults: any[];
-      orderedResults = controller.orderResults(results, controller.translateKey("instructor"));
+      orderedResults = controller.orderResults(results, [controller.translateKey("instructor")]);
       expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
 
-      orderedResults = controller.orderResults(results, controller.translateKey("avg"));
+      orderedResults = controller.orderResults(results, [controller.translateKey("avg")]);
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
     });
@@ -301,17 +301,17 @@ describe("QueryController", function () {
 
         filteredResults = [{"Professor": "Canada"}, {"Professor": "USA"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, sortBy);
+        ret = controller.orderResults(filteredResults, [sortBy]);
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "USA"}, {"Professor": "Canada"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, sortBy);
+        ret = controller.orderResults(filteredResults, [sortBy]);
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "-"}, {"Professor": ","}];
         expectedOrder = [{"Professor": ","}, {"Professor": "-"}];
-        ret = controller.orderResults(filteredResults, sortBy);
+        ret = controller.orderResults(filteredResults, [sortBy]);
         expect(ret).to.be.deep.equal(expectedOrder);
     });
 
