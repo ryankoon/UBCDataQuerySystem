@@ -455,4 +455,79 @@ describe("QueryController", function () {
 
         expect(results).to.be.deep.equal(inputItems);
     });
+
+    it("Should be able to validate the ORDER part of the query", function() {
+        let controller = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        //D1 implementation - a single string
+        Log.test("Testing when Order value is found in get. (D1)");
+         query = {
+            "GET": ["asdf_avg", "asdf_instructor"],
+            "WHERE": {},
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+         };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing when Order value is not found in get. (D1)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": "asdf_instructor",
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        //D2 implementation - an object with 'dir' and array of 'keys'
+        Log.test("Testing when Order object keys are found in get. (D2)");
+        query = {
+            "GET": ["asdf_avg", "asdf_instructor"],
+            "WHERE": {},
+            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.equal(true);
+
+        Log.test("Testing when Order object keys missing in get. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing when Order object keys is empty. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "down", "keys": []},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+
+        Log.test("Testing when Order object direction is invalid. (D2)");
+        query = {
+            "GET": ["asdf_avg"],
+            "WHERE": {},
+            "ORDER": {"dir": "sideways", "keys": ["asdf_avg", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.a("string");
+    });
+
 });
