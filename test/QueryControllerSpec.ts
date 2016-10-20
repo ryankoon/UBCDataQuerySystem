@@ -603,5 +603,55 @@ describe("QueryController", function () {
         expect(result).to.equal(true);
     });
 
+    it("Should be able to validate that GROUP and APPLY are either both defined or both undefined",
+        function() {
 
+            let controller = new QueryController();
+            let query: QueryRequest;
+            let result: boolean | string;
+
+            Log.test("Testing - GROUP is defined but APPLY is not.");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "GROUP": ["asdf_instructor"],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.be.a("string");
+
+            Log.test("Testing - APPLY is defined but GROUP is not.");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.be.a("string");
+
+            Log.test("Testing - Both GROUP and APPLY are defined");
+            query = {
+                "GET": ["myCustomApplyKey", "myCustomApplyKey2", "asdf_instructor"],
+                "WHERE": {},
+                "GROUP": ["asdf_instructor"],
+                "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.equal(true);
+
+            Log.test("Testing - Neither GROUP and APPLY are defined");
+            query = {
+                "GET": ["asdf_instructor"],
+                "WHERE": {},
+                "ORDER": "asdf_instructor",
+                "AS": "TABLE"
+            };
+            result = controller.isValid(query);
+            expect(result).to.equal(true);
+        });
 });
