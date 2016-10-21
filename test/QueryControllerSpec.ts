@@ -458,6 +458,100 @@ describe("QueryController", function () {
         expect(results).to.be.deep.equal(inputItems);
     });
 
+    it ("Should determine what the max is", function (done){
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let applyObject: Object = {}
+        let results = [{"Professor": "Elmo", "Avg": 70, },
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 21, "Professor": "Vader, Darth"}];
+        let applyToken : Object = { MAX : 'Avg'};
+        let out: Number = controller.findMaximumValueInDataSet('avg', results);
+        expect(out === 110).to.be.true;
+        done();
+    });
+    it ("Should determine what the min is", function (done){
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let applyObject: Object = {}
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Professor": "Bond, James", "Avg": 110},
+            {"Avg": 21, "Professor": "Vader, Darth"}];
+        let applyToken : Object = { MAX : 'Avg'};
+        let out: Number = controller.findMinimumValueInDataSet('avg', results);
+        expect(out === 21).to.be.true;
+        done();
+    });
+    it ("Should determine what the average is", function (done){
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let applyObject: Object = {}
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Professor": "Bond, James", "Avg": 110},
+            {"Professor": "Vader, Darth", "Avg": 21}];
+        let applyToken : Object = { MAX : 'Avg'};
+        let out: Number = controller.findAverageValueInDataSet('avg', results);
+        expect(out === 67.00).to.be.true;
+        done();
+    });
+    it ("Should determine what the unique row count is", function (done){
+        let controller = new QueryController();
+        // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Professor": "Vader, Darth", "Avg": 21, }];
+        let applyToken : Object = { MAX : 'Avg'};
+        let out: Number = controller.findCountSearchedInDataSet('avg', results);
+        expect(out === 3).to.be.true;
+        done();
+    });
+    it("Should submit and return every possible query for applyActionOnDataSet", function (done) {
+        let controller = new QueryController();
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 21, "Professor": "Vader, Darth"}];
+        let max = controller.applyActionOnDataSet('MAX', 'avg', results);
+        let min = controller.applyActionOnDataSet('MIN', 'avg', results);
+        let count = controller.applyActionOnDataSet('COUNT', 'avg', results);
+        let avg = controller.applyActionOnDataSet('AVG', 'avg', results);
+        expect (max === 110).to.be.true;
+        expect(min === 21).to.be.true;
+        expect(count === 3).to.be.true;
+        expect(avg === 67.00).to.be.true;
+        done();
+     });
+
+    it("Should iterate through a list of results successfully and find the outcome", (done) =>{
+        let controller = new QueryController();
+        let results = [{"Avg": 70, "Professor": "Elmo", "Audit" : 5 },
+            {"Avg": 111, "Professor": "Bond, James", "Audit" : 5 } ,
+            {"Avg": 21, "Professor": "Vader, Darth", "Audit" : 6 }  ];
+
+        let applyToken = [
+            {"courseAvg" : { AVG : "audit" } },
+            {"maxCourseNumber" :{ MAX: "audit" }},
+            {"anotherProfCount" : { COUNT : "instructor" }},
+            {"profCount" :{ COUNT : "instructor"}},
+            {"lowestAvg" : {MIN: "avg"}}
+        ];
+
+        let resultFromApplyToken = [
+            {"courseAvg" :  5.33 },
+            {"maxCourseNumber" : 6},
+            {"anotherProfCount" : 3},
+            {"profCount" : 3 },
+            {"lowestAvg" : 21 }
+        ];
+        let out = controller.executeApplyTokenOnResults(results, applyToken);
+        expect(out).to.deep.equal(resultFromApplyToken);
+        done();
+    });
+
     it("Should return the ApplyTokenToKey Object given the custom key", function() {
         let controller = new QueryController({});
         let applyArray: IApplyObject[] = [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ];
