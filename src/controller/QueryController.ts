@@ -349,13 +349,20 @@ export default class QueryController {
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
 
-        // 2. ORDER (from A-Z, from 0, 1, 2,...)
-          //TODO: handle D2 version of ORDER
-        let orderQueryKey: string = this.getQueryKey(<string>query.ORDER);
+        // 2. ORDER
+        // determine if query.ORDER is string/object
+        let orderType: string = typeof(query.ORDER);
+        let orderKeys: string[] = [];
 
-        //translate queryKey
-        orderQueryKey = this.translateKey(orderQueryKey);
-        let orderedResults: IObject[] = this.orderResults(filteredResults, [orderQueryKey]);
+        if (orderType === "string") {
+            orderKeys.push(<string>query.ORDER);
+        } else if (orderType === "object") {
+            let orderObject: IOrderObject = <IOrderObject>query.ORDER;
+            orderKeys = orderKeys.concat(orderObject.keys);
+        }
+        let translatedOrderKeys: string[] = this.translateKeys(orderKeys, query.APPLY);
+
+        let orderedResults: IObject[] = this.orderResults(filteredResults, translatedOrderKeys);
 
         // 3. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
@@ -609,6 +616,36 @@ export default class QueryController {
     }
 
     /**
+     * Translates array of query keys and custom keys to corresponding keys in the dataset
+     * @param keys
+     * @param applyObjects - optional but required to translate custom keys
+     */
+    public translateKeys(keys: string[], applyObjects?: IApplyObject[]): string[] {
+        let queryKeys: string[] = [];
+        let customKeys: string[] = [];
+        let translatedKeys: string[] = [];
+
+        keys.forEach((key: string) => {
+            if (key.indexOf("_") === -1) {
+                customKeys.push(key);
+            } else {
+                queryKeys.push(this.getQueryKey(key));
+            }
+        });
+
+        queryKeys.forEach((queryKey: string) => {
+            translatedKeys.push(this.translateKey(queryKey));
+        });
+
+        if (applyObjects) {
+            customKeys.forEach((customKey: string) => {
+                translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
+            });
+        }
+        return translatedKeys;
+    }
+
+    /**
      * Translates the keys in the query to the corresponding keys in the dataset
      * parses department and course id given the key of the current iteration in dataset
      *
@@ -660,6 +697,26 @@ export default class QueryController {
       }
 
       return result;
+    }
+
+    /**
+     * Translates custom keys (keys without '_') to keys in dataset.
+     *  Strips out datasetId.
+     * @param applyObjects
+     * @param customKey
+     * @returns {string}
+     */
+    public translateCustomKey(applyObjects: IApplyObject[], customKey: string): string {
+        let translatedKey: string;
+
+        let associatedApplyObject: IApplyTokenToKey = this.getApplyTokenToKeyObject(applyObjects, customKey);
+        if (associatedApplyObject) {
+            let queryKeyWithDatasetId = this.getStringIndexKVByNumber(associatedApplyObject, 0)["value"];
+            let queryKey = this.getQueryKey(queryKeyWithDatasetId);
+            translatedKey = this.translateKey(queryKey);
+        }
+
+        return translatedKey;
     }
 
     public reverseKeyTranslation(queryKey: string): string {

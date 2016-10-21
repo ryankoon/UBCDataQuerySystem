@@ -797,4 +797,26 @@ describe("QueryController", function () {
 
     });
 
+    it("Should properly translate a custom key.", function() {
+        let controller: QueryController = new QueryController();
+        let applyObjects: IApplyObject[] = [{"myCustomKey": {"MAX": "asdf_instructor"}}, {"betterCustomKey": {"MIN": "asdf_avg"}}];
+        let expectedResults: Object[];
+        let result: string;
+
+        result = controller.translateCustomKey(applyObjects, "betterCustomKey");
+        expect(result).to.be.equal("Avg");
+        result = controller.translateCustomKey(applyObjects, "myCustomKey");
+        expect(result).to.be.equal("Professor");
+    });
+
+    it("Should properly translate an array of query keys and custom keys.", function () {
+        let controller: QueryController = new QueryController();
+        let untranslatedKeys: string[] = ["asdf_instructor", "asdf_avg", "betterCustomKey", "myCustomKey", "uuid"];
+        let applyObjects: IApplyObject[] = [{"myCustomKey": {"MAX": "asdf_title"}}, {"betterCustomKey": {"MIN": "asdf_pass"}}];
+        let expectedResults: string[] = ["Professor, Pass, Avg, Title, id"];
+        let result: string[];
+
+        result = controller.translateKeys(untranslatedKeys, applyObjects);
+        expect(result).to.be.deep.equal(result);
+    });
 });
