@@ -374,7 +374,7 @@ export default class QueryController {
         // let appliedResults: IObject[] = this.applyResults(orderedResults, appliedKey);
 
         // 3. APPLY
-        let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
+    //    let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
 
         // 4. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
@@ -552,25 +552,116 @@ export default class QueryController {
 
     */
 
+    public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        let currentMaxValue: number = 0;
+        resultSet.forEach( (item : any, index : number) => {
+            let resultSetsKeyArray =  Object.keys(item);
+            // this always grabs the first one.... but we  really just need to check if its there or not among any keys.
+
+            if (resultSetsKeyArray.indexOf(translatedValueToSearch) > -1 ){
+                // !!! need to fix this up, almost there.
+                let currentNumber = item[translatedValueToSearch];
+                if (currentNumber === 0){
+                    currentNumber = currentMaxValue;
+                }
+               else if( currentNumber > currentMaxValue ){
+                   currentMaxValue = currentNumber;
+               }
+            }
+        });
+        return currentMaxValue;
+    }
+    public findMinimumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        let currentMinValue: number = 0;
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
+                    let currentNumber = item[translatedValueToSearch];
+                    if (currentMinValue === 0){
+                        currentMinValue = currentNumber;
+                    }
+                    else if(currentNumber < currentMinValue ){
+                        currentMinValue = currentNumber;
+                    }
+            }
+        });
+        return currentMinValue;
+    }
+    public findAverageValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        var count = 0;
+        var sum = 0;
+        let averageValueCalculated : number;
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
+                let currentNumber = item[translatedValueToSearch];
+                sum += currentNumber;
+                count += 1;
+            }
+        });
+        averageValueCalculated = parseFloat((sum / count).toFixed(2));
+
+        return averageValueCalculated;
+    }
+    public findCountSearchedInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        var count = 0;
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
+                count += 1;
+            }
+        });
+        return count;
+    }
+   /*
+   Calls the appropriate function based on the current APPLY key being examined.(e.g. max, min etc).
+   Returns the value from the calculation.
+    */
+   public applyActionOnDataSet(item : string, valueToSearch : string, resultSet : IObject[]) : number {
+        switch(item) {
+            case 'MAX' :
+                return this.findMaximumValueInDataSet(valueToSearch, resultSet);
+            case 'MIN' :
+                return this.findMinimumValueInDataSet(valueToSearch, resultSet);
+            case 'AVG' :
+                return this.findAverageValueInDataSet(valueToSearch, resultSet);
+            case 'COUNT' :
+                return this.findCountSearchedInDataSet(valueToSearch, resultSet);
+            default:
+                Log.trace('Apply is invalid here and should be dealt with');
+                break;
+        }
+   }
+
     /*
     Expect an array of results to be given.
     Return the expected output resulting from this.
      */
-    public executeApplyTokenOnResults(resultSet : Object, applyQuery : Object) : any  {
-        // "APPLY": [ {"courseAverage": {"AVG": "courses_avg"}}, {"maxFail": {"MAX": "courses_fail"}} ],
-        // will need translateKey to know the value and do max/min.
+    public executeApplyTokenOnResults(resultSet : IObject[], applyQuery : Array<Object> ) : IObject[]  {
 
-        // create a new array.
-        // forEach item in the fed array.
-        // look at the key and store it locally.
-        // Parse the key. Translate the key (translateKey)
-        // Parse the value.
-        // For example, then we need to take a result like : { "Avg": 111, "Professor": "Bond, James", "CourseNumber" : 5 },
-        // We need then need to create switch cases that look at 'AVG', 'SUM',  etc and do logic where they find a translated key.
+        let resultArray : Array<IObject> = [];
+        applyQuery.forEach( (item : IApplyObject) => {
+
+            let customKeyToStore : string = Object.keys(item)[0];
+            let action = Object.keys(item[customKeyToStore])[0];
+            let actionObject : IObject = item[customKeyToStore];
+
+            let valueOfAction : IObject = Object.keys(actionObject).map((key) => {
+                return actionObject[key];
+            });
+            let actionsOutcome = this.applyActionOnDataSet(action, valueOfAction[0], resultSet);
 
 
-
-        return 1;
+            let tempObject : IObject = {
+                [customKeyToStore] : actionsOutcome
+            }
+            resultArray.push(tempObject);
+        });
+        return resultArray;
     }
 
     public orderResults(filteredResults: IObject[], order: string): IObject[] {
