@@ -163,6 +163,33 @@ export default class QueryController {
             }
         }
 
+        if (query.GROUP) {
+            let errorMessage: string;
+            // Make sure query keys only appear in either GROUP or APPLY
+            let groupKeys: string[] = query.GROUP;
+            let applyObjects: IApplyObject[] = query.APPLY;
+            let applyQueryKeys: string[] = [];
+
+            applyObjects.forEach((applyObject: IApplyObject) => {
+                let customKey: string = Object.keys(applyObject)[0];
+                let applyTokenValue: string = this.getStringIndexKVByNumber(applyObject[customKey], 0)["value"];
+
+                applyQueryKeys.push(applyTokenValue);
+            })
+
+            applyQueryKeys.forEach((applyQueryKey: string) => {
+                if (errorMessage) {
+                    return;
+                } else if (groupKeys.indexOf(applyQueryKey) > -1) {
+                    errorMessage = "A key appears in both GROUP and APPLY!";
+                }
+            });
+
+            if (errorMessage) {
+                return errorMessage;
+            }
+        }
+
         if (query.APPLY) {
             let validApplyToken: boolean = true;
             // iterate through all the apply Object key definitions
