@@ -494,10 +494,15 @@ describe("QueryController", function () {
         expect(out === 67.00).to.be.true;
         done();
     });
-    it ("Should determine what the count of avg is", function (done){
+    it ("Should determine what the unique row count is", function (done){
         let controller = new QueryController();
         // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
         let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 110, "Professor": "Bond, James"},
             {"Avg": 110, "Professor": "Bond, James"},
             {"Professor": "Vader, Darth", "Avg": 21, }];
         let applyToken : Object = { MAX : 'Avg'};

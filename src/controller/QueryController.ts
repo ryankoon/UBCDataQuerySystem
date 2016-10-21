@@ -548,9 +548,15 @@ export default class QueryController {
             let applyKey = query.APPLY;
         }
         return "";
+
     }
 
+    MAX/MIN/AVG should only be requested of numeric keys,
+     while COUNT counts the number of unique rows in the group (according to the specified key).
+
     */
+
+
 
     public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
@@ -559,7 +565,8 @@ export default class QueryController {
             let resultSetsKeyArray =  Object.keys(item);
             // this always grabs the first one.... but we  really just need to check if its there or not among any keys.
 
-            if (resultSetsKeyArray.indexOf(translatedValueToSearch) > -1 ){
+            if (resultSetsKeyArray.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number"))
+            {
                 // !!! need to fix this up, almost there.
                 let currentNumber = item[translatedValueToSearch];
                 if (currentNumber === 0){
@@ -577,7 +584,7 @@ export default class QueryController {
         let currentMinValue: number = 0;
         resultSet.forEach( (item, index) => {
             let resultSetsKey =  Object.keys(item);
-            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number")) {
                     let currentNumber = item[translatedValueToSearch];
                     if (currentMinValue === 0){
                         currentMinValue = currentNumber;
@@ -591,28 +598,34 @@ export default class QueryController {
     }
     public findAverageValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
-        var count = 0;
-        var sum = 0;
+        var count : number = 0;
+        let sum : number = 0;
         let averageValueCalculated : number;
         resultSet.forEach( (item, index) => {
             let resultSetsKey =  Object.keys(item);
-            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number")) {
                 let currentNumber = item[translatedValueToSearch];
                 sum += currentNumber;
                 count += 1;
             }
         });
-        averageValueCalculated = parseFloat((sum / count).toFixed(2));
-
+        averageValueCalculated = parseFloat((sum/count).toFixed(2));
         return averageValueCalculated;
     }
+    /*
+    Find every unique set of elemnents in a data-set.
+     */
     public findCountSearchedInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
         var count = 0;
+        let viewedElements : Array<IObject> = [];
         resultSet.forEach( (item, index) => {
             let resultSetsKey =  Object.keys(item);
-            if (resultSetsKey.indexOf(translatedValueToSearch) > -1) {
-                count += 1;
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1){
+                if (viewedElements.indexOf(item[translatedValueToSearch]) === -1) {
+                    viewedElements.push(item[translatedValueToSearch]);
+                    count += 1;
+                }
             }
         });
         return count;
