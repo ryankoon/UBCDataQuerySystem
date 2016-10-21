@@ -524,31 +524,44 @@ export default class QueryController {
      * @returns {IObject[]}
      */
     public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
-      // implement sort method and pass in method to be able to compare letters
       let orderedResults: IObject[] = filteredResults;
-      //check if querykey exists
-      if (filteredResults && filteredResults.length > 1 && orderKeys && filteredResults[0][orderKeys[0]] !== 'undefined') {
-        // sort filtered results
-        let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
-          return unsortedResults.sort((a: IObject, b: IObject) => {
-            let aValue = a[queryKey];
-            let bValue = b[queryKey];
+      if (filteredResults && filteredResults.length > 1 && orderKeys) {
 
-              // turn null values to empty string
-              aValue = (aValue) ? aValue : "";
-              bValue = (bValue) ? bValue : "";
+          let sortByQueryKey = ((unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] => {
+             let customSortFunction: any =  ((a: IObject, b: IObject) => {
+                 let aValue = a[orderKeys[0]];
+                 let bValue = b[orderKeys[0]];
 
-              if (aValue < bValue) {
-                  return -1;
-              } else if (aValue > bValue) {
-                  return 1;
-              } else {
-                  return 0;
-              }
+                 // turn null values to empty string
+                 aValue = (aValue) ? aValue : "";
+                 bValue = (bValue) ? bValue : "";
+
+                 if (aValue < bValue) {
+                     if (direction === "down") {
+                         return 1;
+                     } else {
+                         return -1;
+                     }
+                 } else if (aValue > bValue) {
+                     if (direction === "down") {
+                         return -1;
+                     } else {
+                         return 1;
+                     }
+                 } else {
+                     // sort by the next key on orderKeys if the values are the same
+                     if (orderKeys.length > 1) {
+                         orderKeys.shift();
+                         return customSortFunction(a, b);
+                     }
+                     return 0;
+                 }
+             });
+
+              return unsortedResults.sort(customSortFunction);
           });
-        });
 
-        orderedResults = sortByQueryKey(orderKeys[0], orderedResults);
+        orderedResults = sortByQueryKey(orderedResults, orderKeys, direction);
       }
       return orderedResults;
     }
