@@ -90,10 +90,8 @@ describe("QueryController", function () {
         let datasets: Datasets = {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}};
 
         let controller = new QueryController(datasets);
-        Log.test("Controller: " + controller);
         let ret = controller.query(query);
         Log.test('In: ' + JSON.stringify(query) + ', out: ' + JSON.stringify(ret));
-        expect(ret).not.to.be.equal(null);
         // should check that the value is meaningful
         // will be meaningful once entire query feature is complete
     });
@@ -913,4 +911,35 @@ describe("QueryController", function () {
         result = controller.translateKeys(untranslatedKeys, applyObjects);
         expect(result).to.be.deep.equal(result);
     });
+
+    it("Should invalidate query when a key is found in both Order and Apply.", function() {
+        let controller: QueryController = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        Log.test("Test - Keys are found in both GROUP and APPLY");
+        query = {
+            "GET": ["asdf_keyboard", "asdf_mouse"],
+            "WHERE": {},
+            "GROUP": ["asdf_keyboard", "asdf_mouse"],
+            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_mouse"}}],
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.equal("A key appears in both GROUP and APPLY!");
+
+        Log.test("Test - Keys are unique beteween GROUP and APPLY");
+        query = {
+            "GET": ["asdf_keyboard", "asdf_mouse"],
+            "WHERE": {},
+            "GROUP": ["asdf_keyboard", "asdf_mouse"],
+            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_pause"}}],
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.equal(true);
+    });
+
 });
