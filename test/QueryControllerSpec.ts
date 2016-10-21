@@ -9,6 +9,8 @@ import Log from "../src/Util";
 
 import {expect} from 'chai';
 import {IApplyTokenToKey, IApplyObject} from "../src/controller/IEBNF";
+import {IObject} from "../src/controller/IObject";
+import {IGroupHashMap} from "../src/controller/IHashMap";
 describe("QueryController", function () {
 
     beforeEach(function () {
@@ -941,5 +943,46 @@ describe("QueryController", function () {
         result = controller.isValid(query);
         expect(result).to.be.equal(true);
     });
+
+    it("Should be able to group filtered results.", function() {
+        let controller: QueryController = new QueryController();
+        let filteredResults: IObject[];
+        let queryApply: IApplyObject[];
+        let expectedResult: IGroupHashMap;
+        let result: IGroupHashMap;
+
+        filteredResults = [
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 4,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 6,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 2, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 4,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 6,"Professor": "Snape, Severus"}
+        ];
+
+        queryApply = [{"powerButton": {"MAX": "asdf_avg"}}, {"restartButton": {"COUNT": "asdf_instructor"}}];
+        expectedResult = {
+            "AVG1ProfessorSnape, Severus": [
+                {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+                {"Avg": 1, "id": 4,"Professor": "Snape, Severus"},
+                ],
+            "AVG2ProfessorSnape, Severus": [
+                {"Avg": 2, "id": 2,"Professor": "Snape, Severus"}
+                ],
+            "AVG3ProfessorSnape, Severus": [
+                {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+                {"Avg": 3, "id": 4,"Professor": "Snape, Severus"},
+                {"Avg": 3, "id": 6,"Professor": "Snape, Severus"},
+                {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+                {"Avg": 3, "id": 6,"Professor": "Snape, Severus"},
+                ]
+        };
+
+        result = controller.groupFilteredResults(filteredResults, queryApply);
+        expect(result).to.be.deep.equal(expectedResult);
+    });
+
 
 });

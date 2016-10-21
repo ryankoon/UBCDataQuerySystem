@@ -6,6 +6,7 @@ import Log from "../Util";
 import {IObject} from "./IObject";
 import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
 import QueryUtility from "./QueryUtility";
+import {IGroupHashMap} from "./IHashMap";
 
 
 export interface QueryRequest {
@@ -385,8 +386,27 @@ export default class QueryController {
         });
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
+        let unorderedResults = filteredResults;
+        let groupedResults: IGroupHashMap;
+        let collapsedResults: IObject[];
 
-        // 2. ORDER
+        // GROUP and APPLY if they are defined
+
+        if (query.GROUP && query.APPLY) {
+            // 2. GROUP
+
+            groupedResults = this.groupFilteredResults(filteredResults, query.APPLY);
+
+            // 3. APPLY
+            // lets get the APPLY key.
+            // let applyKey = this.translateKey(applyQueryKey);
+            // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
+            //  should be similar to the LT GT etc case.
+
+            //let applyResults : IObject[] = this.executeApplyTokenOnResults(groupedResult, query.APPLY);
+        }
+
+        // 4. ORDER
         // determine if query.ORDER is string/object
         let orderType: string = typeof(query.ORDER);
         let orderKeys: string[] = [];
@@ -399,18 +419,9 @@ export default class QueryController {
         }
         let translatedOrderKeys: string[] = this.translateKeys(orderKeys, query.APPLY);
 
-        let orderedResults: IObject[] = this.orderResults(filteredResults, translatedOrderKeys);
+        let orderedResults: IObject[] = this.orderResults(unorderedResults, translatedOrderKeys);
 
-        // lets get the APPLY key.
-        // let applyKey = this.translateKey(applyQueryKey);
-        // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
-        //  should be similar to the LT GT etc case.
-        // let appliedResults: IObject[] = this.applyResults(orderedResults, appliedKey);
-
-        // 3. APPLY
-    //    let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
-
-        // 4. BUILD
+        // 5. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
@@ -567,6 +578,18 @@ export default class QueryController {
         // replace all asterisks with '.*'
         // '.*' means: match any character 0+ times
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
+    }
+
+    /**
+     * Groups/collapses filtered results into one entry based on the conditions defined in APPLY
+     * @param filteredResults
+     * @param queryApply
+     * @returns {IObject[]}
+     */
+    public groupFilteredResults(filteredResults: IObject[], queryApply: IApplyObject[]): IGroupHashMap {
+        let groupedResults: IGroupHashMap = {};
+
+        return groupedResults;
     }
 
     public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
