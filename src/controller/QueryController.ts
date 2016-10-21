@@ -359,13 +359,20 @@ export default class QueryController {
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
 
-        // 2. ORDER (from A-Z, from 0, 1, 2,...)
-          //TODO: handle D2 version of ORDER
-        let orderQueryKey: string = this.getQueryKey(<string>query.ORDER);
+        // 2. ORDER
+        // determine if query.ORDER is string/object
+        let orderType: string = typeof(query.ORDER);
+        let orderKeys: string[] = [];
 
-        //translate queryKey
-        orderQueryKey = this.translateKey(orderQueryKey);
-        let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
+        if (orderType === "string") {
+            orderKeys.push(<string>query.ORDER);
+        } else if (orderType === "object") {
+            let orderObject: IOrderObject = <IOrderObject>query.ORDER;
+            orderKeys = orderKeys.concat(orderObject.keys);
+        }
+        let translatedOrderKeys: string[] = this.translateKeys(orderKeys, query.APPLY);
+
+        let orderedResults: IObject[] = this.orderResults(filteredResults, translatedOrderKeys);
 
         // lets get the APPLY key.
         // let applyKey = this.translateKey(applyQueryKey);
@@ -535,7 +542,6 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
-
     public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
         let currentMaxValue: number = 0;
@@ -654,35 +660,54 @@ export default class QueryController {
         return resultArray;
     }
 
-    public orderResults(filteredResults: IObject[], order: string): IObject[] {
-      // implement sort method and pass in method to be able to compare letters
+    /**
+     *
+     * @param filteredResults
+     * @param orderKeys
+     * @param direction - "up" (smallest to largest) is the default direction
+     * @returns {IObject[]}
+     */
+    public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
       let orderedResults: IObject[] = filteredResults;
-      //check if querykey exists
-      if (filteredResults && filteredResults.length > 1 && order && filteredResults[0][order] !== 'undefined') {
-        // sort filtered results
-        let sortByQueryKey = ((queryKey: string, unsortedResults: IObject[]): IObject[] => {
-          return unsortedResults.sort((a: IObject, b: IObject) => {
-            let aValue = a[queryKey];
-            let bValue = b[queryKey];
-
-              // turn null values to empty string
-              aValue = (aValue) ? aValue : "";
-              bValue = (bValue) ? bValue : "";
-
-              if (aValue < bValue) {
-                  return -1;
-              } else if (aValue > bValue) {
-                  return 1;
-              } else {
-                  return 0;
-              }
-          });
-        });
-
-        orderedResults = sortByQueryKey(order, orderedResults);
+      if (filteredResults && filteredResults.length > 1 && orderKeys) {
+        orderedResults = this.sortByQueryKey(orderedResults, orderKeys, direction);
       }
       return orderedResults;
     }
+
+    public sortByQueryKey (unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
+        let customSortFunction: (a:IObject, b: IObject) => number =  ((a: IObject, b: IObject) => {
+            let aValue = a[orderKeys[0]];
+            let bValue = b[orderKeys[0]];
+
+            // turn null values to empty string
+            aValue = (aValue) ? aValue : "";
+            bValue = (bValue) ? bValue : "";
+
+            if (aValue < bValue) {
+                if (direction === "down") {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else if (aValue > bValue) {
+                if (direction === "down") {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else {
+                // sort by the next key on orderKeys if the values are the same
+                if (orderKeys.length > 1) {
+                    orderKeys.shift();
+                    return customSortFunction(a, b);
+                }
+                return 0;
+            }
+        });
+
+        return unsortedResults.sort(customSortFunction);
+    };
 
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
       let finalResults: IObject[] = [];
@@ -728,6 +753,36 @@ export default class QueryController {
       } else {
         return {key: "", value: ""};
       }
+    }
+
+    /**
+     * Translates array of query keys and custom keys to corresponding keys in the dataset
+     * @param keys
+     * @param applyObjects - optional but required to translate custom keys
+     */
+    public translateKeys(keys: string[], applyObjects?: IApplyObject[]): string[] {
+        let queryKeys: string[] = [];
+        let customKeys: string[] = [];
+        let translatedKeys: string[] = [];
+
+        keys.forEach((key: string) => {
+            if (key.indexOf("_") === -1) {
+                customKeys.push(key);
+            } else {
+                queryKeys.push(this.getQueryKey(key));
+            }
+        });
+
+        queryKeys.forEach((queryKey: string) => {
+            translatedKeys.push(this.translateKey(queryKey));
+        });
+
+        if (applyObjects) {
+            customKeys.forEach((customKey: string) => {
+                translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
+            });
+        }
+        return translatedKeys;
     }
 
     /**
@@ -782,6 +837,26 @@ export default class QueryController {
       }
 
       return result;
+    }
+
+    /**
+     * Translates custom keys (keys without '_') to keys in dataset.
+     *  Strips out datasetId.
+     * @param applyObjects
+     * @param customKey
+     * @returns {string}
+     */
+    public translateCustomKey(applyObjects: IApplyObject[], customKey: string): string {
+        let translatedKey: string;
+
+        let associatedApplyObject: IApplyTokenToKey = this.getApplyTokenToKeyObject(applyObjects, customKey);
+        if (associatedApplyObject) {
+            let queryKeyWithDatasetId = this.getStringIndexKVByNumber(associatedApplyObject, 0)["value"];
+            let queryKey = this.getQueryKey(queryKeyWithDatasetId);
+            translatedKey = this.translateKey(queryKey);
+        }
+
+        return translatedKey;
     }
 
     public reverseKeyTranslation(queryKey: string): string {
