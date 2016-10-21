@@ -535,28 +535,6 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
-   /*
-    public applyOrdering(resultSetToApply : string, query : String) : string {
-
-        // case: min  @requires numeric field @returns maximum value of a field
-        // case: max  @requires numeric field @returns minimum value of a field.
-        // case: avg  @requires numeric field, @returns average value of a field rounded to 2dp.
-        // case: count  @require numeric or string. @returns number of occurences.
-        // determine the apply key
-        if (query.Apply) {
-
-            let applyKey = query.APPLY;
-        }
-        return "";
-
-    }
-
-    MAX/MIN/AVG should only be requested of numeric keys,
-     while COUNT counts the number of unique rows in the group (according to the specified key).
-
-    */
-
-
 
     public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
@@ -567,10 +545,9 @@ export default class QueryController {
 
             if (resultSetsKeyArray.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number"))
             {
-                // !!! need to fix this up, almost there.
                 let currentNumber = item[translatedValueToSearch];
-                if (currentNumber === 0){
-                    currentNumber = currentMaxValue;
+                if (currentMaxValue === 0){
+                    currentMaxValue = currentNumber;
                 }
                else if( currentNumber > currentMaxValue ){
                    currentMaxValue = currentNumber;
