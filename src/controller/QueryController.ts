@@ -5,6 +5,8 @@ import {Datasets} from "./DatasetController";
 import Log from "../Util";
 import {IObject} from "./IObject";
 import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
+import QueryUtility from "./QueryUtility";
+
 
 export interface QueryRequest {
     GET: string[];
@@ -19,6 +21,8 @@ export interface QueryResponse {
   render: string;
   result: IObject[];
 }
+
+let queryUtility = new QueryUtility();
 
 export default class QueryController {
     private datasets: Datasets;
@@ -162,21 +166,27 @@ export default class QueryController {
         if (query.APPLY) {
             let validApplyToken: boolean = true;
             // iterate through all the apply Object key definitions
-            query.APPLY.forEach((applyObject: IApplyObject) => {
-                let applyObjectKeys = Object.keys(applyObject);
-                if (applyObjectKeys) {
-                    // there should only be one key
-                    let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
-                    let applyObjectToken = this.getStringIndexKVByNumber(applyObjectKey, 0)["key"];
-                    validApplyToken = validApplyToken && (applyObjectToken === "MAX" || applyObjectToken === "MIN"
-                        || applyObjectToken === "AVG" || applyObjectToken === "COUNT");
-                }
-            });
-            if (!validApplyToken) {
+
+            // check for duplicates.
+            // if no duplicates execute belows, otherwise validApplyToken is false.
+
+            let hasDuplicateKey: boolean = queryUtility.targetHasDuplicate(query.APPLY);
+            if (hasDuplicateKey === false) {
+                query.APPLY.forEach((applyObject: IApplyObject) => {
+                    let applyObjectKeys = Object.keys(applyObject);
+                    if (applyObjectKeys) {
+                        // there should only be one key
+                        let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+                        let applyObjectToken = this.getStringIndexKVByNumber(applyObjectKey, 0)["key"];
+                        validApplyToken = validApplyToken && (applyObjectToken === "MAX" || applyObjectToken === "MIN"
+                            || applyObjectToken === "AVG" || applyObjectToken === "COUNT");
+                    }
+                });
+            }
+            if (!validApplyToken || hasDuplicateKey) {
                 return "Query APPLY contains an invalid APPLYTOKEN!";
             }
         }
-
 
         return true;
     }
@@ -357,7 +367,16 @@ export default class QueryController {
         orderQueryKey = this.translateKey(orderQueryKey);
         let orderedResults: IObject[] = this.orderResults(filteredResults, orderQueryKey);
 
-        // 3. BUILD
+        // lets get the APPLY key.
+        // let applyKey = this.translateKey(applyQueryKey);
+        // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
+        //  should be similar to the LT GT etc case.
+        // let appliedResults: IObject[] = this.applyResults(orderedResults, appliedKey);
+
+        // 3. APPLY
+    //    let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
+
+        // 4. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
@@ -516,6 +535,125 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
+
+    public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        let currentMaxValue: number = 0;
+        resultSet.forEach( (item : any, index : number) => {
+            let resultSetsKeyArray =  Object.keys(item);
+            // this always grabs the first one.... but we  really just need to check if its there or not among any keys.
+
+            if (resultSetsKeyArray.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number"))
+            {
+                let currentNumber = item[translatedValueToSearch];
+                if (currentMaxValue === 0){
+                    currentMaxValue = currentNumber;
+                }
+               else if( currentNumber > currentMaxValue ){
+                   currentMaxValue = currentNumber;
+               }
+            }
+        });
+        return currentMaxValue;
+    }
+    public findMinimumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        let currentMinValue: number = 0;
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number")) {
+                    let currentNumber = item[translatedValueToSearch];
+                    if (currentMinValue === 0){
+                        currentMinValue = currentNumber;
+                    }
+                    else if(currentNumber < currentMinValue ){
+                        currentMinValue = currentNumber;
+                    }
+            }
+        });
+        return currentMinValue;
+    }
+    public findAverageValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        var count : number = 0;
+        let sum : number = 0;
+        let averageValueCalculated : number;
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1 && ((typeof item[translatedValueToSearch]) === "number")) {
+                let currentNumber = item[translatedValueToSearch];
+                sum += currentNumber;
+                count += 1;
+            }
+        });
+        averageValueCalculated = parseFloat((sum/count).toFixed(2));
+        return averageValueCalculated;
+    }
+    /*
+    Find every unique set of elemnents in a data-set.
+     */
+    public findCountSearchedInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
+        let translatedValueToSearch = this.translateKey(valueToSearch);
+        var count = 0;
+        let viewedElements : Array<IObject> = [];
+        resultSet.forEach( (item, index) => {
+            let resultSetsKey =  Object.keys(item);
+            if (resultSetsKey.indexOf(translatedValueToSearch) > -1){
+                if (viewedElements.indexOf(item[translatedValueToSearch]) === -1) {
+                    viewedElements.push(item[translatedValueToSearch]);
+                    count += 1;
+                }
+            }
+        });
+        return count;
+    }
+   /*
+   Calls the appropriate function based on the current APPLY key being examined.(e.g. max, min etc).
+   Returns the value from the calculation.
+    */
+   public applyActionOnDataSet(item : string, valueToSearch : string, resultSet : IObject[]) : number {
+        switch(item) {
+            case 'MAX' :
+                return this.findMaximumValueInDataSet(valueToSearch, resultSet);
+            case 'MIN' :
+                return this.findMinimumValueInDataSet(valueToSearch, resultSet);
+            case 'AVG' :
+                return this.findAverageValueInDataSet(valueToSearch, resultSet);
+            case 'COUNT' :
+                return this.findCountSearchedInDataSet(valueToSearch, resultSet);
+            default:
+                Log.trace('Apply is invalid here and should be dealt with');
+                break;
+        }
+   }
+
+    /*
+    Expect an array of results to be given.
+    Return the expected output resulting from this.
+     */
+    public executeApplyTokenOnResults(resultSet : IObject[], applyQuery : Array<Object> ) : IObject[]  {
+
+        let resultArray : Array<IObject> = [];
+        applyQuery.forEach( (item : IApplyObject) => {
+
+            let customKeyToStore : string = Object.keys(item)[0];
+            let action = Object.keys(item[customKeyToStore])[0];
+            let actionObject : IObject = item[customKeyToStore];
+
+            let valueOfAction : IObject = Object.keys(actionObject).map((key) => {
+                return actionObject[key];
+            });
+            let actionsOutcome = this.applyActionOnDataSet(action, valueOfAction[0], resultSet);
+
+
+            let tempObject : IObject = {
+                [customKeyToStore] : actionsOutcome
+            }
+            resultArray.push(tempObject);
+        });
+        return resultArray;
+    }
+
     public orderResults(filteredResults: IObject[], order: string): IObject[] {
       // implement sort method and pass in method to be able to compare letters
       let orderedResults: IObject[] = filteredResults;
@@ -577,6 +715,9 @@ export default class QueryController {
       return finalResults;
     }
 
+    /*
+    Given an object, return the key value pair.
+     */
     public getStringIndexKVByNumber(object: IObject, index: number): IObject {
       let keys: string[] = Object.keys(object);
       if (keys && keys.length > index){
@@ -710,4 +851,5 @@ export default class QueryController {
 
         return applyTokenToKeyObject;
     }
+
 }
