@@ -947,7 +947,7 @@ describe("QueryController", function () {
     it("Should be able to group filtered results.", function() {
         let controller: QueryController = new QueryController();
         let filteredResults: IObject[];
-        let queryApply: IApplyObject[];
+        let queryGroup: string[];
         let expectedResult: IGroupHashMap;
         let result: IGroupHashMap;
 
@@ -962,16 +962,16 @@ describe("QueryController", function () {
             {"Avg": 3, "id": 6,"Professor": "Snape, Severus"}
         ];
 
-        queryApply = [{"powerButton": {"MAX": "asdf_avg"}}, {"restartButton": {"COUNT": "asdf_instructor"}}];
+        queryGroup = ["asdf_avg", "asdf_instructor"];
         expectedResult = {
-            "AVG1ProfessorSnape, Severus": [
+            "Avg1ProfessorSnape, Severus": [
                 {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
                 {"Avg": 1, "id": 4,"Professor": "Snape, Severus"},
                 ],
-            "AVG2ProfessorSnape, Severus": [
+            "Avg2ProfessorSnape, Severus": [
                 {"Avg": 2, "id": 2,"Professor": "Snape, Severus"}
                 ],
-            "AVG3ProfessorSnape, Severus": [
+            "Avg3ProfessorSnape, Severus": [
                 {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
                 {"Avg": 3, "id": 4,"Professor": "Snape, Severus"},
                 {"Avg": 3, "id": 6,"Professor": "Snape, Severus"},
@@ -980,7 +980,7 @@ describe("QueryController", function () {
                 ]
         };
 
-        result = controller.groupFilteredResults(filteredResults, queryApply);
+        result = controller.groupFilteredResults(filteredResults, queryGroup);
         expect(result).to.be.deep.equal(expectedResult);
     });
 

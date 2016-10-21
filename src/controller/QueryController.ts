@@ -395,7 +395,7 @@ export default class QueryController {
         if (query.GROUP && query.APPLY) {
             // 2. GROUP
 
-            groupedResults = this.groupFilteredResults(filteredResults, query.APPLY);
+            groupedResults = this.groupFilteredResults(filteredResults, query.GROUP);
 
             // 3. APPLY
             // lets get the APPLY key.
@@ -586,8 +586,28 @@ export default class QueryController {
      * @param queryApply
      * @returns {IObject[]}
      */
-    public groupFilteredResults(filteredResults: IObject[], queryApply: IApplyObject[]): IGroupHashMap {
+    public groupFilteredResults(filteredResults: IObject[], queryGroup: string[]): IGroupHashMap {
         let groupedResults: IGroupHashMap = {};
+        let groupQueryKeys: string[];
+
+        groupQueryKeys = this.translateKeys(queryGroup);
+
+        filteredResults.forEach((result) => {
+            let hash: string = "";
+
+            groupQueryKeys.forEach((key) => {
+                hash += key;
+                if (result[key]) {
+                    hash += result[key];
+                }
+            });
+
+            if (groupedResults[hash]) {
+                groupedResults[hash].push(result);
+            } else {
+                groupedResults[hash] = [result];
+            }
+        })
 
         return groupedResults;
     }
