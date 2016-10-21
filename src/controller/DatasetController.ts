@@ -201,6 +201,7 @@ export default class DatasetController {
      * Returns: Boolean.
      */
     public deleteDataset(id: string) : Promise<responseObject> {
+        var that = this;
         return new Promise(function (fulfill, reject) {
             let filePath: string = path.resolve(__dirname, '..', '..', 'data', id + '.json');
             fs.unlink(filePath, (err) => {
@@ -213,9 +214,8 @@ export default class DatasetController {
                     reject(responseObject);
                 }
                 else {
-                    // TODO: check maybe here for datasets?
-                    if (this && !this.datasets && !this.datasets[id]) {
-                        delete this.datasets[id];
+                    if (that && that.datasets && that.datasets[id]) {
+                        delete that.datasets[id];
                     }
                     let responseObject : responseObject =
                     {status : 204,

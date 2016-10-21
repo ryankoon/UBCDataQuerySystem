@@ -7,7 +7,7 @@ import Log from "../src/Util";
 import JSZip = require('jszip');
 import {expect} from 'chai';
 import fs = require('fs');
-import testGlobals from '../test/TestGlobals';
+import path = require('path');
 
 describe("DatasetController", function () {
     let controller = new DatasetController();
@@ -81,8 +81,19 @@ describe("DatasetController", function () {
             }).then(function (out) {
                 expect(out['setB']).to.be.instanceOf(Object);
                 expect(out['setC']).to.be.instanceOf(Object);
+            }).then(function tearDown() {
+                return controller.deleteDataset('setA');
+            }).then(function(){
+                return controller.deleteDataset('setB');
+            }).then(function () {
+                return controller.deleteDataset('setC');
+            }).then(function () {
+                return controller.getDatasets();
+            }).then(function (result) {
                 done();
-            });
+            }).catch(function (err){
+                done();
+            })
     });
     it('Should be able to getdataset (singular)', (done) => {
         Log.test('Creating dataset');
@@ -105,7 +116,7 @@ describe("DatasetController", function () {
             expect(out['item1ThatShouldExist']).to.be.instanceOf(Object);
             expect(out['item2ThatShouldExist']).to.be.instanceOf(Object);
             done();
-        });
+        })
     });
     it('should get null from non-existant dataset', (done) => {
         Log.test('Creating dataset');
@@ -146,32 +157,46 @@ describe("DatasetController", function () {
             return controller.process('setD', data)
         }).then(function (result) {
             expect(result === 201).to.be.true;
-            done();
+        }).then(function () {
+                return controller.deleteDataset('setD');
+        }).then(function () {
+                done();
         });
     });
+
     it('should delete setA', (done) => {
-        controller.deleteDataset('setA')
-            .then(function (resultObj) {
-                expect(resultObj.status === 204).to.be.true;
-                done();
-            });
+        Log.test('Creating dataset');
+        let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
+        let content1 = {'Batmanvs': 'Superman'};
+        let content2 = {'job': 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
+        zip.file('item1ThatShouldExist', JSON.stringify(content1));
+        zip.file('item2ThatShouldExist', JSON.stringify(content2));
+
+
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            Log.test('Dataset created');
+            return controller.process('setA', data)
+        }).then(function () {
+            controller.deleteDataset('setA')
+                .then(function (resultObj) {
+                    expect(resultObj.status === 204).to.be.true;
+                    done();
+                })
+        });
     });
-    it('should delete setB', (done)  => {
-        controller.deleteDataset('setB')
-            .then(function (resultObj) {
-                expect(resultObj.status === 204).to.be.true;
-                done();
-            });
-    }); it('should delete setC', (done) => {
-        controller.deleteDataset('setC')
-            .then(function (resultObj) {
-                expect(resultObj.status === 204).to.be.true;
-                done();
-            });
-    }); it('should delete setD', (done) => {
-        controller.deleteDataset('setD')
-            .then(function (resultObj) {
-                expect(resultObj.status === 204).to.be.true;
+    it ('should fail to delete setA', (done) => {
+        controller.deleteDataset('setA')
+            .then(function forceFail() {
+                expect(true).to.not.be.true;
+            })
+            .catch(function (resultObj){
+                expect(resultObj.status === 404).to.be.true;
                 done();
             });
     });
@@ -185,35 +210,24 @@ describe("DatasetController", function () {
                 done();
             });
     });
-    it ('should fail to delete setB', (done) => {
-        controller.deleteDataset('setB')
-            .then(function forceFail() {
-                expect(true).to.not.be.true;
+    
+    it ('should delete and re-make a directory', (done) => {
+        let dirPath: string = path.resolve(__dirname, '..',  'data');
+        let a = new Promise(function (fulfill, reject) {
+            fs.rmdir(dirPath, function (err) {
+                if (err){
+                    Log.test('Error removing data path');
+                    fulfill();
+                }
+                else{
+                    Log.test('Removed data path');
+                    fulfill();
+                }
+            });
+        })
+        a.then(function (){
+            done();
+        })
+    });
 
-            })
-            .catch(function (resultObj){
-                expect(resultObj.status === 404).to.be.true;
-                done();
-            });
-    });
-    it ('should fail to delete setC', (done) => {
-        controller.deleteDataset('setC')
-            .then(function forceFail(resultObj) {
-                expect(true).to.not.be.true;
-            })
-            .catch(function (resultObj) {
-                expect(resultObj.status === 404).to.be.true;
-                done();
-            });
-    });
-    it ('should fail to delete setD', (done) => {
-        controller.deleteDataset('setD')
-            .then(function () {
-                expect(true).to.not.be.true;
-            })
-            .catch(function (resultObj){
-                expect(resultObj.status === 404).to.be.true;
-                done();
-            });
-    });
 });
