@@ -526,45 +526,44 @@ export default class QueryController {
     public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
       let orderedResults: IObject[] = filteredResults;
       if (filteredResults && filteredResults.length > 1 && orderKeys) {
-
-          let sortByQueryKey = ((unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] => {
-             let customSortFunction: any =  ((a: IObject, b: IObject) => {
-                 let aValue = a[orderKeys[0]];
-                 let bValue = b[orderKeys[0]];
-
-                 // turn null values to empty string
-                 aValue = (aValue) ? aValue : "";
-                 bValue = (bValue) ? bValue : "";
-
-                 if (aValue < bValue) {
-                     if (direction === "down") {
-                         return 1;
-                     } else {
-                         return -1;
-                     }
-                 } else if (aValue > bValue) {
-                     if (direction === "down") {
-                         return -1;
-                     } else {
-                         return 1;
-                     }
-                 } else {
-                     // sort by the next key on orderKeys if the values are the same
-                     if (orderKeys.length > 1) {
-                         orderKeys.shift();
-                         return customSortFunction(a, b);
-                     }
-                     return 0;
-                 }
-             });
-
-              return unsortedResults.sort(customSortFunction);
-          });
-
-        orderedResults = sortByQueryKey(orderedResults, orderKeys, direction);
+        orderedResults = this.sortByQueryKey(orderedResults, orderKeys, direction);
       }
       return orderedResults;
     }
+
+    public sortByQueryKey (unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
+        let customSortFunction: (a:IObject, b: IObject) => number =  ((a: IObject, b: IObject) => {
+            let aValue = a[orderKeys[0]];
+            let bValue = b[orderKeys[0]];
+
+            // turn null values to empty string
+            aValue = (aValue) ? aValue : "";
+            bValue = (bValue) ? bValue : "";
+
+            if (aValue < bValue) {
+                if (direction === "down") {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else if (aValue > bValue) {
+                if (direction === "down") {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else {
+                // sort by the next key on orderKeys if the values are the same
+                if (orderKeys.length > 1) {
+                    orderKeys.shift();
+                    return customSortFunction(a, b);
+                }
+                return 0;
+            }
+        });
+
+        return unsortedResults.sort(customSortFunction);
+    };
 
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
       let finalResults: IObject[] = [];
