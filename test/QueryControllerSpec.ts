@@ -786,7 +786,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "UP");
+        results = controller.orderResults(unorderedResults, ["Java", "JavaScript", "C"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering is 'down'.");
@@ -970,76 +970,72 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(expectedResult);
     });
 
-    // it("Should be able to query with GROUP and APPLY.", function() {
-    //     let controller: QueryController = new QueryController();
-    //     let datasetResults: IObject[];
-    //     let datasets: Datasets;
-    //     let query: QueryRequest;
-    //     let expectedResults: QueryResponse;
-    //     let result: QueryResponse;
-    //
-    //     datasetResults = [
-    //         {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
-    //         {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
-    //         {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
-    //         {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
-    //         {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
-    //         {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
-    //         {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
-    //         {"Avg": 1, "id": 11,"Professor": "Snape, Severus"},
-    //         {"Avg": 3, "id": 11,"Professor": "Snape, Severus"},
-    //         {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
-    //         {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
-    //         {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
-    //         {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
-    //         {"Avg": 3, "id": 11,"Professor": "HarryPotter"},
-    //         {"Avg": 2, "id": 11,"Professor": "HarryPotter"}
-    //     ];
-    //
-    //     datasets = {
-    //         "asdfDatasetID": {"asdf1234":{"result": datasetResults,"rank":7}}
-    //     };
-    //
-    //     query = {
-    //         "GET": ["asdf_instructor", "asdf_uuid", "MaxAverage", "minaverage"],
-    //         "WHERE": {
-    //             "AND": [
-    //                 {"OR": [
-    //                     {"NOT": {"IS": {"asdf_uuid": "notAProf"}}},
-    //                     {"NOT": {"LT": {"asdf_avg": -10}}},
-    //                     {"NOT": {"EQ": {"asdf_avg": 101}}}
-    //                         ]
-    //                 },
-    //                 {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
-    //             ]
-    //         },
-    //         "GROUP": ["asdf_instructor", "asdf_uuid"],
-    //         "APPLY": [
-    //             {"MaxAverage": {"MAX": "asdf_avg"}},
-    //             {"minaverage": {"MIN": "asdf_avg"}}
-    //         ],
-    //         "ORDER": {"dir": "DOWN", "keys": ["asdf_uuid", "MaxAverage"]},
-    //         "AS": "TABLE"
-    //     };
-    //
-    //     expectedResults = {
-    //         "render": "TABLE",
-    //         "result": [
-    //             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
-    //             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
-    //             {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
-    //             {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
-    //             {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
-    //             {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
-    //             {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
-    //
-    //
-    //             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
-    //             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
-    //             {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
-    //             {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
-    //         ]
-    //     }
-    //
-    // });
+    it("Should be able to query with GROUP and APPLY.", function() {
+        let controller: QueryController = new QueryController();
+        let datasetResults: IObject[];
+        let datasets: Datasets;
+        let query: QueryRequest;
+        let expectedResults: QueryResponse;
+        let result: QueryResponse;
+
+        datasetResults = [
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 11,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 11,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
+            {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 11,"Professor": "HarryPotter"},
+            {"Avg": 2, "id": 11,"Professor": "HarryPotter"}
+        ];
+
+        datasets = {
+            "asdfDatasetID": {"asdf1234":{"result": datasetResults,"rank":7}}
+        };
+
+        query = {
+            "GET": ["asdf_instructor", "asdf_uuid", "MaxAverage", "minaverage"],
+            "WHERE": {
+                "AND": [
+                    {"AND": [
+                        {"NOT": {"IS": {"asdf_instructor": "notAProf"}}},
+                        {"NOT": {"LT": {"asdf_avg": -10}}},
+                        {"NOT": {"EQ": {"asdf_uuid": 11}}}
+                            ]
+                    },
+                    {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
+                ]
+            },
+            "GROUP": ["asdf_instructor", "asdf_uuid"],
+            "APPLY": [
+                {"MaxAverage": {"MAX": "asdf_avg"}},
+                {"minaverage": {"MIN": "asdf_avg"}}
+            ],
+            "ORDER": {"dir": "DOWN", "keys": ["asdf_uuid", "MaxAverage"]},
+            "AS": "TABLE"
+        };
+
+        expectedResults = {
+            "render": "TABLE",
+            "result": [
+                {"Professor": "HarryPotter", "id": 7, "MaxAverage": 3, "minaverage": 3},
+                {"Professor": "Snape, Severus", "id": 3, "MaxAverage": 1, "minaverage": 1},
+                {"Professor": "Snape, Severus", "id": 2, "MaxAverage": 3, "minaverage": 1},
+                {"Professor": "HarryPotter", "id": 2, "MaxAverage": 2, "minaverage": 2},
+                {"Professor": "Snape, Severus", "id": 1, "MaxAverage": 3, "minaverage": 3},
+                {"Professor": "HarryPotter", "id": 1, "MaxAverage": 3, "minaverage": 3}
+            ]
+        }
+
+        controller.setDataset(datasets);
+        result = controller.query(query);
+        expect(result).to.be.deep.equal(expectedResults);
+    });
 });
