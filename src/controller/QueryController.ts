@@ -780,38 +780,54 @@ export default class QueryController {
       return orderedResults;
     }
 
+    /**
+     * Adapted from: http://stackoverflow.com/questions/11379361/how-to-sort-an-array-of-objects-with-multiple-field-values-in-javascript
+     * This sorts by an array of objects based on the order of the given keys
+     * @param unsortedResults
+     * @param orderKeys
+     * @param direction
+     * @returns {IObject[]}
+     */
     public sortByQueryKey (unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
-        let customSortFunction: (a:IObject, b: IObject) => number =  ((a: IObject, b: IObject) => {
-            let aValue = a[orderKeys[0]];
-            let bValue = b[orderKeys[0]];
 
-            // turn null values to empty string
-            aValue = (aValue) ? aValue : "";
-            bValue = (bValue) ? bValue : "";
+        // Given a key to sort with, it returns a number that determines how two objects should be sorted
+        let customSortWrapper = (key: string, direction: string, a:IObject, b: IObject): number => {
+            let customSort = (a: IObject, b: IObject): number => {
+                if (a[key] > b[key]){
+                    if(direction === "DOWN") {
+                        return -1;
+                    }
+                    return 1;
+                } else if (a[key] < b[key]) {
+                    if(direction === "DOWN") {
+                        return 1;
+                    }
+                    return -1
+                } else {
+                    return 0
+                }
+            };
 
-            if (aValue < bValue) {
-                if (direction === "DOWN") {
-                    return 1;
-                } else {
-                    return -1;
+            return customSort(a, b);
+        };
+
+        // Returns a function that sorts according to the given keys
+        let customSortWithKeys = (keys: string[]): (a: IObject, b: IObject) => number => {
+            return (a: IObject, b: IObject) => {
+                let indexOfKeyToSort = 0;
+                let result = 0;
+                let numberofKeys = keys.length;
+
+                // Try to break the tie if there is another key to sort with
+                while(result === 0 && indexOfKeyToSort < numberofKeys) {
+                    result = customSortWrapper(keys[indexOfKeyToSort], direction, a, b);
+                    indexOfKeyToSort++;
                 }
-            } else if (aValue > bValue) {
-                if (direction === "DOWN") {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else {
-                // sort by the next key on orderKeys if the values are the same
-                if (orderKeys.length > 1) {
-                    orderKeys.shift();
-                    return customSortFunction(a, b);
-                }
-                return 0;
+                return result;
             }
-        });
+        };
 
-        return unsortedResults.sort(customSortFunction);
+        return unsortedResults.sort(customSortWithKeys(orderKeys));
     };
 
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
@@ -828,7 +844,7 @@ export default class QueryController {
       if (query.AS === 'TABLE') {
         orderedResults.forEach((result: IObject) => {
           let resultObject: IObject = {};
-          translatedQueryKeys.forEach((queryKey: string) => {
+          translatedQueryKeys.forEach((translatedQueryKey: string) => {
             // copy over keys and values defined in GET
               // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to queryKey)
               if (groupKeys) {
@@ -836,14 +852,14 @@ export default class QueryController {
                   groupKeys.forEach((groupQueryKey: string) => {
                       groupQueryKeys.push(this.getQueryKey(groupQueryKey));
                   })
-                  if (groupQueryKeys.indexOf(queryKey) !== -1) {
-                      resultObject[datasetId + "_" + this.reverseKeyTranslation(queryKey)] = result[queryKey];
+                  if (groupQueryKeys.indexOf(this.reverseKeyTranslation(translatedQueryKey)) !== -1) {
+                      resultObject[datasetId + "_" + this.reverseKeyTranslation(translatedQueryKey)] = result[translatedQueryKey];
                   } else {
                       // Do not attach datasetId to custom key.
-                      resultObject[queryKey] = result[queryKey];
+                      resultObject[translatedQueryKey] = result[translatedQueryKey];
                   }
               } else {
-                  resultObject[datasetId + "_" + this.reverseKeyTranslation(queryKey)] = result[queryKey];
+                  resultObject[datasetId + "_" + this.reverseKeyTranslation(translatedQueryKey)] = result[translatedQueryKey];
               }
           });
 

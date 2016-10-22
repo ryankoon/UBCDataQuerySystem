@@ -978,8 +978,50 @@ describe("QueryController", function () {
         let expectedResults: QueryResponse;
         let result: QueryResponse;
 
+
+
+        Log.test("Test - Simple query.")
+        datasetResults = [
+            {"Avg": 3, "id": 1, "Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 1, "Professor": "HarryPotter"},
+            {"Avg": 5, "id": 1, "Professor": "HarryPotter"},
+            {"Avg": 1, "id": 1, "Professor": "Snape, Severus"}
+        ];
+
+        datasets = {
+            "asdf": {"asdf1234":{"result": datasetResults,"rank":7}}
+        };
+
+        query = {
+            "GET": ["asdf_uuid", "asdf_instructor",  "MaxAverage"],
+            "WHERE": {},
+            "GROUP": ["asdf_instructor", "asdf_uuid"],
+            "APPLY": [
+                {"MaxAverage": {"MAX": "asdf_avg"}}
+            ],
+            "ORDER": {"dir": "DOWN", "keys": ["asdf_uuid", "MaxAverage"]},
+            "AS": "TABLE"
+        };
+
+        expectedResults = {
+            "render": "TABLE",
+            "result": [
+                {"asdf_uuid": 1, "asdf_instructor": "HarryPotter", "MaxAverage": 5},
+                {"asdf_uuid": 1, "asdf_instructor": "Snape, Severus", "MaxAverage": 3}
+            ]
+        }
+
+        controller.setDataset(datasets);
+        result = controller.query(query);
+        expect(result).to.be.deep.equal(expectedResults);
+
+
+
+
+        Log.test("Test - Complex query.")
         datasetResults = [
             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
             {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
             {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
             {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
@@ -991,13 +1033,12 @@ describe("QueryController", function () {
             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
             {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
-            {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
             {"Avg": 3, "id": 11,"Professor": "HarryPotter"},
             {"Avg": 2, "id": 11,"Professor": "HarryPotter"}
         ];
 
         datasets = {
-            "asdfDatasetID": {"asdf1234":{"result": datasetResults,"rank":7}}
+            "asdf": {"asdf1234":{"result": datasetResults,"rank":7}}
         };
 
         query = {
@@ -1025,17 +1066,20 @@ describe("QueryController", function () {
         expectedResults = {
             "render": "TABLE",
             "result": [
-                {"Professor": "HarryPotter", "id": 7, "MaxAverage": 3, "minaverage": 3},
-                {"Professor": "Snape, Severus", "id": 3, "MaxAverage": 1, "minaverage": 1},
-                {"Professor": "Snape, Severus", "id": 2, "MaxAverage": 3, "minaverage": 1},
-                {"Professor": "HarryPotter", "id": 2, "MaxAverage": 2, "minaverage": 2},
-                {"Professor": "Snape, Severus", "id": 1, "MaxAverage": 3, "minaverage": 3},
-                {"Professor": "HarryPotter", "id": 1, "MaxAverage": 3, "minaverage": 3}
+                {"asdf_instructor": "HarryPotter", "asdf_uuid": 7, "MaxAverage": 3, "minaverage": 3},
+                {"asdf_instructor": "Snape, Severus", "asdf_uuid": 3, "MaxAverage": 1, "minaverage": 1},
+                {"asdf_instructor": "Snape, Severus", "asdf_uuid": 2, "MaxAverage": 3, "minaverage": 1},
+                {"asdf_instructor": "HarryPotter", "asdf_uuid": 2, "MaxAverage": 2, "minaverage": 2},
+                {"asdf_instructor": "Snape, Severus", "asdf_uuid": 1, "MaxAverage": 3, "minaverage": 3},
+                {"asdf_instructor": "HarryPotter", "asdf_uuid": 1, "MaxAverage": 3, "minaverage": 3}
             ]
         }
 
         controller.setDataset(datasets);
+        let validQuery = controller.isValid(query);
+        expect(validQuery).to.be.equal(true);
         result = controller.query(query);
         expect(result).to.be.deep.equal(expectedResults);
+
     });
 });
