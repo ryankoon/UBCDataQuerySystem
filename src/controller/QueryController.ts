@@ -6,6 +6,7 @@ import Log from "../Util";
 import {IObject} from "./IObject";
 import {IFilter, IOrderObject, IApplyObject, IMComparison, ISComparison, IApplyTokenToKey} from "./IEBNF";
 import QueryUtility from "./QueryUtility";
+import {IGroupHashMap} from "./IHashMap";
 
 
 export interface QueryRequest {
@@ -114,7 +115,7 @@ export default class QueryController {
             //Check if ORDER is string(D1) or object(D2)
             let orderType: string = typeof(query.ORDER);
             let orderKeys: string[];
-            let errorMessage: string;
+            let errorMessages: string[] = [];
 
             // store order keys in an array
             if (orderType === "string") {
@@ -126,39 +127,49 @@ export default class QueryController {
             } else if (orderType === "object") {
                 // cast to IOrderObject
                 let orderObject: IOrderObject = <IOrderObject>query.ORDER;
+
+                let validOrderDirections: string[] = ["UP", "DOWN"];
+                // validate dir value
+                if (validOrderDirections.indexOf(orderObject.dir) === -1) {
+                    errorMessages.push("Order direction must be either be 'UP' or 'DOWN'!");
+                }
+
+
                 orderKeys = orderObject.keys;
             }
 
             if (orderKeys.length === 0) {
-                errorMessage = "Order must have at least one key!"
+                errorMessages.push("Order must have at least one key!");
             } else if (orderKeys && orderKeys.length > 0) {
                 // order key needs to be among the get keys
                 // NOTE: GET should not and cannot be empty here based on the previous checks
                 let queryGETArray: string[] = query.GET;
                 orderKeys.forEach((key) => {
-                    if (errorMessage) {
+                    if (errorMessages.length > 0) {
                         return;
                     } else if (queryGETArray.indexOf(key) === -1) {
-                        errorMessage = 'The key in ORDER does not exist in GET!';
+                        errorMessages.push('The key in ORDER does not exist in GET!');
                     }
                 });
             }
 
-            if (errorMessage) {
-                return errorMessage;
+            if (errorMessages.length > 0) {
+                return errorMessages.join(" ");
             }
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
         if (whereKeys.length > 0) {
-            let invalidFilterKey: boolean = true;
+            let validFilterKeys: string[] = ["AND", "OR", "LT", "GT", "EQ", "IS", "NOT"];
+            let invalidFilterKeyFound: boolean = false;
             whereKeys.forEach((key: string) => {
-                //TODO: double-check logic here
-                if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
-                    invalidFilterKey = false;
+                if (validFilterKeys.indexOf(key) === -1) {
+                    invalidFilterKeyFound = true;
+                } else {
+                    return;
                 }
             });
-            if (invalidFilterKey) {
+            if (invalidFilterKeyFound) {
                 return "Query WHERE contains an invalid filter key!";
             }
         }
@@ -385,32 +396,66 @@ export default class QueryController {
         });
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
+        let unorderedResults = filteredResults;
+        let groupedResults: IGroupHashMap;
+        let collapsedResults: IObject[];
 
-        // 2. ORDER
+        // GROUP and APPLY if they are defined
+
+        if (query.GROUP && query.APPLY) {
+            // 2. GROUP
+
+            groupedResults = this.groupFilteredResults(filteredResults, query.GROUP);
+
+            // 3. APPLY
+
+            let groupHashKeys: string[] = Object.keys(groupedResults);
+            let collapsedResults: IObject[] = [];
+
+
+            groupHashKeys.forEach((hashKey) => {
+                // apply
+                let applyResults: IObject[] = this.executeApplyTokenOnResults(groupedResults[hashKey], query.APPLY);
+
+                //collapse
+                let collapsedResult: IObject = {};
+                let groupQueryKeys: string[] = query.GROUP;
+                let translatedGroupQueryKeys: string[] = this.translateKeys(groupQueryKeys);
+
+                //build
+                translatedGroupQueryKeys.forEach((groupQueryKey: string) => {
+                    collapsedResult[groupQueryKey] = groupedResults[hashKey][0][groupQueryKey];
+                });
+
+                applyResults.forEach((applyResult) => {
+                    let applyQueryKey = Object.keys(applyResult)[0];
+                    collapsedResult[applyQueryKey] = applyResult[applyQueryKey];
+                });
+
+                collapsedResults.push(collapsedResult);
+            });
+
+            unorderedResults = collapsedResults;
+        }
+
+        // 4. ORDER
         // determine if query.ORDER is string/object
         let orderType: string = typeof(query.ORDER);
         let orderKeys: string[] = [];
+        let orderDirection: string = "UP";
 
         if (orderType === "string") {
             orderKeys.push(<string>query.ORDER);
         } else if (orderType === "object") {
             let orderObject: IOrderObject = <IOrderObject>query.ORDER;
             orderKeys = orderKeys.concat(orderObject.keys);
+            orderDirection = orderObject.dir;
         }
-        let translatedOrderKeys: string[] = this.translateKeys(orderKeys, query.APPLY);
+        let translatedOrderKeys: string[] = this.translateKeys(orderKeys);
 
-        let orderedResults: IObject[] = this.orderResults(filteredResults, translatedOrderKeys);
+        let orderedResults: IObject[] = this.orderResults(unorderedResults, translatedOrderKeys, orderDirection);
 
-        // lets get the APPLY key.
-        // let applyKey = this.translateKey(applyQueryKey);
-        // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
-        //  should be similar to the LT GT etc case.
-        // let appliedResults: IObject[] = this.applyResults(orderedResults, appliedKey);
-
-        // 3. APPLY
-    //    let applyResults : IObject[] = this.executeApplyTokenOnResults(orderedResults, query.APPLY);
-
-        // 4. BUILD
+        // 5. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
 
         return {render: query.AS, result: finalResults};
@@ -569,6 +614,38 @@ export default class QueryController {
         return new RegExp("^" + queryWithWildcard.split("*").join(".*") + "$").test(compareToString);
     }
 
+    /**
+     * Groups/collapses filtered results into one entry based on the conditions defined in APPLY
+     * @param filteredResults
+     * @param queryApply
+     * @returns {IObject[]}
+     */
+    public groupFilteredResults(filteredResults: IObject[], queryGroup: string[]): IGroupHashMap {
+        let groupedResults: IGroupHashMap = {};
+        let groupQueryKeys: string[];
+
+        groupQueryKeys = this.translateKeys(queryGroup);
+
+        filteredResults.forEach((result) => {
+            let hash: string = "";
+
+            groupQueryKeys.forEach((key) => {
+                hash += key;
+                if (result[key]) {
+                    hash += result[key];
+                }
+            });
+
+            if (groupedResults[hash]) {
+                groupedResults[hash].push(result);
+            } else {
+                groupedResults[hash] = [result];
+            }
+        });
+
+        return groupedResults;
+    }
+
     public findMaximumValueInDataSet(valueToSearch : string, resultSet : IObject[]) : number {
         let translatedValueToSearch = this.translateKey(valueToSearch);
         let currentMaxValue: number = 0;
@@ -676,7 +753,8 @@ export default class QueryController {
             let valueOfAction : IObject = Object.keys(actionObject).map((key) => {
                 return actionObject[key];
             });
-            let actionsOutcome = this.applyActionOnDataSet(action, valueOfAction[0], resultSet);
+            let queryKey: string = this.getQueryKey(valueOfAction[0]);
+            let actionsOutcome = this.applyActionOnDataSet(action, queryKey, resultSet);
 
 
             let tempObject : IObject = {
@@ -689,51 +767,67 @@ export default class QueryController {
 
     /**
      *
-     * @param filteredResults
+     * @param unorderedResults
      * @param orderKeys
-     * @param direction - "up" (smallest to largest) is the default direction
+     * @param direction
      * @returns {IObject[]}
      */
-    public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
-      let orderedResults: IObject[] = filteredResults;
-      if (filteredResults && filteredResults.length > 1 && orderKeys) {
+    public orderResults(unorderedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
+      let orderedResults: IObject[] = unorderedResults;
+      if (unorderedResults && unorderedResults.length > 1 && orderKeys) {
         orderedResults = this.sortByQueryKey(orderedResults, orderKeys, direction);
       }
       return orderedResults;
     }
 
+    /**
+     * Adapted from: http://stackoverflow.com/questions/11379361/how-to-sort-an-array-of-objects-with-multiple-field-values-in-javascript
+     * This sorts by an array of objects based on the order of the given keys
+     * @param unsortedResults
+     * @param orderKeys
+     * @param direction
+     * @returns {IObject[]}
+     */
     public sortByQueryKey (unsortedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
-        let customSortFunction: (a:IObject, b: IObject) => number =  ((a: IObject, b: IObject) => {
-            let aValue = a[orderKeys[0]];
-            let bValue = b[orderKeys[0]];
 
-            // turn null values to empty string
-            aValue = (aValue) ? aValue : "";
-            bValue = (bValue) ? bValue : "";
+        // Given a key to sort with, it returns a number that determines how two objects should be sorted
+        let customSortWrapper = (key: string, direction: string, a:IObject, b: IObject): number => {
+            let customSort = (a: IObject, b: IObject): number => {
+                if (a[key] > b[key]){
+                    if(direction === "DOWN") {
+                        return -1;
+                    }
+                    return 1;
+                } else if (a[key] < b[key]) {
+                    if(direction === "DOWN") {
+                        return 1;
+                    }
+                    return -1
+                } else {
+                    return 0
+                }
+            };
 
-            if (aValue < bValue) {
-                if (direction === "down") {
-                    return 1;
-                } else {
-                    return -1;
+            return customSort(a, b);
+        };
+
+        // Returns a function that sorts according to the given keys
+        let customSortWithKeys = (keys: string[]): (a: IObject, b: IObject) => number => {
+            return (a: IObject, b: IObject) => {
+                let indexOfKeyToSort = 0;
+                let result = 0;
+                let numberofKeys = keys.length;
+
+                // Try to break the tie if there is another key to sort with
+                while(result === 0 && indexOfKeyToSort < numberofKeys) {
+                    result = customSortWrapper(keys[indexOfKeyToSort], direction, a, b);
+                    indexOfKeyToSort++;
                 }
-            } else if (aValue > bValue) {
-                if (direction === "down") {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else {
-                // sort by the next key on orderKeys if the values are the same
-                if (orderKeys.length > 1) {
-                    orderKeys.shift();
-                    return customSortFunction(a, b);
-                }
-                return 0;
+                return result;
             }
-        });
+        };
 
-        return unsortedResults.sort(customSortFunction);
+        return unsortedResults.sort(customSortWithKeys(orderKeys));
     };
 
     public buildResults(orderedResults: IObject[], query: QueryRequest): IObject[] {
@@ -742,22 +836,31 @@ export default class QueryController {
         let translatedQueryKeys: string[] = [];
         let datasetId: string;
         let getQueryKeysStringArray: string[] = query.GET;
+        let groupKeys: string[] = query.GROUP;
 
         datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
-        getQueryKeysStringArray.forEach((key: string) => {
-          // strip out datasetID
-          key = this.getQueryKey(key);
-          translatedQueryKeys.push(this.translateKey(key));
-
-        });
+        translatedQueryKeys = this.translateKeys(getQueryKeysStringArray);
 
       if (query.AS === 'TABLE') {
         orderedResults.forEach((result: IObject) => {
           let resultObject: IObject = {};
-          translatedQueryKeys.forEach((querykey: string) => {
+          translatedQueryKeys.forEach((translatedQueryKey: string) => {
             // copy over keys and values defined in GET
-              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to querykey)
-            resultObject[datasetId + "_" + this.reverseKeyTranslation(querykey)] = result[querykey];
+              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to queryKey)
+              if (groupKeys) {
+                  let groupQueryKeys: string[] = [];
+                  groupKeys.forEach((groupQueryKey: string) => {
+                      groupQueryKeys.push(this.getQueryKey(groupQueryKey));
+                  })
+                  if (groupQueryKeys.indexOf(this.reverseKeyTranslation(translatedQueryKey)) !== -1) {
+                      resultObject[datasetId + "_" + this.reverseKeyTranslation(translatedQueryKey)] = result[translatedQueryKey];
+                  } else {
+                      // Do not attach datasetId to custom key.
+                      resultObject[translatedQueryKey] = result[translatedQueryKey];
+                  }
+              } else {
+                  resultObject[datasetId + "_" + this.reverseKeyTranslation(translatedQueryKey)] = result[translatedQueryKey];
+              }
           });
 
           finalResults.push(resultObject);
@@ -783,32 +886,28 @@ export default class QueryController {
     }
 
     /**
-     * Translates array of query keys and custom keys to corresponding keys in the dataset
-     * @param keys
+     * Translates array of query keys and custom keys to corresponding keys in the dataset.
+     * REMOVES datasetID from query key.
+     * @param keys - query keys must be attached to a datasetID, except custom keys
      * @param applyObjects - optional but required to translate custom keys
      */
     public translateKeys(keys: string[], applyObjects?: IApplyObject[]): string[] {
-        let queryKeys: string[] = [];
-        let customKeys: string[] = [];
         let translatedKeys: string[] = [];
 
         keys.forEach((key: string) => {
             if (key.indexOf("_") === -1) {
-                customKeys.push(key);
+                if (applyObjects) {
+                    translatedKeys.push(this.translateCustomKey(applyObjects, key))
+                } else {
+                    // Cannot translate custom key without IApplyObjects
+                    // Return untranslated custom keys
+                    translatedKeys.push(key);
+                }
             } else {
-                queryKeys.push(this.getQueryKey(key));
+                let queryKey: string = this.getQueryKey(key);
+                translatedKeys.push(this.translateKey(queryKey));
             }
         });
-
-        queryKeys.forEach((queryKey: string) => {
-            translatedKeys.push(this.translateKey(queryKey));
-        });
-
-        if (applyObjects) {
-            customKeys.forEach((customKey: string) => {
-                translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
-            });
-        }
         return translatedKeys;
     }
 
