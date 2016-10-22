@@ -1156,4 +1156,21 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(expectedResults);
     });
 
+    it("Should allow APPLY to be an empty array.", function() {
+        let controller: QueryController = new QueryController();
+        let query: QueryRequest;
+
+        query = {
+            "GET": ["courses_uuid"],
+            "WHERE": {},
+            "GROUP": ["courses_uuid"],
+            "APPLY": [],
+            "ORDER": {"dir": "UP", "keys": ["courses_uuid"]},
+            "AS": "TABLE"
+        };
+
+        let result = controller.isValid(query);
+        expect(result).to.be.equal(true);
+    });
+
 });
