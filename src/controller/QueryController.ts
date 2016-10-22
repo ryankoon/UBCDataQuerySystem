@@ -398,28 +398,52 @@ export default class QueryController {
             groupedResults = this.groupFilteredResults(filteredResults, query.GROUP);
 
             // 3. APPLY
-            // lets get the APPLY key.
-            // let applyKey = this.translateKey(applyQueryKey);
-            // !!! need to know which APPLY im doing. therefore will have to update based on APPLYTOKEN
-            //  should be similar to the LT GT etc case.
 
-            //let applyResults : IObject[] = this.executeApplyTokenOnResults(groupedResult, query.APPLY);
+            let groupHashKeys: string[] = Object.keys(groupedResults);
+            let collapsedResults: IObject[] = [];
+
+
+            groupHashKeys.forEach((hashKey) => {
+                // apply
+                let applyResults: IObject[] = this.executeApplyTokenOnResults(groupedResults[hashKey], query.APPLY);
+
+                //collapse
+                let collapsedResult: IObject = {};
+                let groupQueryKeys: string[] = query.GROUP;
+                let translatedGroupQueryKeys: string[] = this.translateKeys(groupQueryKeys);
+
+                //build
+                translatedGroupQueryKeys.forEach((groupQueryKey: string) => {
+                    collapsedResult[groupQueryKey] = groupedResults[hashKey][0][groupQueryKey];
+                });
+
+                applyResults.forEach((applyResult) => {
+                    let applyQueryKey = Object.keys(applyResult)[0];
+                    collapsedResult[applyQueryKey] = applyResult[applyQueryKey];
+                });
+
+                collapsedResults.push(collapsedResult);
+            });
+
+            unorderedResults = collapsedResults;
         }
 
         // 4. ORDER
         // determine if query.ORDER is string/object
         let orderType: string = typeof(query.ORDER);
         let orderKeys: string[] = [];
+        let orderDirection: string = "up";
 
         if (orderType === "string") {
             orderKeys.push(<string>query.ORDER);
         } else if (orderType === "object") {
             let orderObject: IOrderObject = <IOrderObject>query.ORDER;
             orderKeys = orderKeys.concat(orderObject.keys);
+            orderDirection = orderObject.dir;
         }
-        let translatedOrderKeys: string[] = this.translateKeys(orderKeys, query.APPLY);
+        let translatedOrderKeys: string[] = this.translateKeys(orderKeys);
 
-        let orderedResults: IObject[] = this.orderResults(unorderedResults, translatedOrderKeys);
+        let orderedResults: IObject[] = this.orderResults(unorderedResults, translatedOrderKeys, orderDirection);
 
         // 5. BUILD
         let finalResults: IObject[] = this.buildResults(orderedResults, query);
@@ -607,7 +631,7 @@ export default class QueryController {
             } else {
                 groupedResults[hash] = [result];
             }
-        })
+        });
 
         return groupedResults;
     }
@@ -732,14 +756,14 @@ export default class QueryController {
 
     /**
      *
-     * @param filteredResults
+     * @param unorderedResults
      * @param orderKeys
      * @param direction - "up" (smallest to largest) is the default direction
      * @returns {IObject[]}
      */
-    public orderResults(filteredResults: IObject[], orderKeys: string[], direction: string = "up"): IObject[] {
-      let orderedResults: IObject[] = filteredResults;
-      if (filteredResults && filteredResults.length > 1 && orderKeys) {
+    public orderResults(unorderedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
+      let orderedResults: IObject[] = unorderedResults;
+      if (unorderedResults && unorderedResults.length > 1 && orderKeys) {
         orderedResults = this.sortByQueryKey(orderedResults, orderKeys, direction);
       }
       return orderedResults;
@@ -785,22 +809,31 @@ export default class QueryController {
         let translatedQueryKeys: string[] = [];
         let datasetId: string;
         let getQueryKeysStringArray: string[] = query.GET;
+        let groupKeys: string[] = query.GROUP;
 
         datasetId = this.getDatasetId(getQueryKeysStringArray[0]);
-        getQueryKeysStringArray.forEach((key: string) => {
-          // strip out datasetID
-          key = this.getQueryKey(key);
-          translatedQueryKeys.push(this.translateKey(key));
-
-        });
+        translatedQueryKeys = this.translateKeys(getQueryKeysStringArray);
 
       if (query.AS === 'TABLE') {
         orderedResults.forEach((result: IObject) => {
           let resultObject: IObject = {};
-          translatedQueryKeys.forEach((querykey: string) => {
+          translatedQueryKeys.forEach((queryKey: string) => {
             // copy over keys and values defined in GET
-              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to querykey)
-            resultObject[datasetId + "_" + this.reverseKeyTranslation(querykey)] = result[querykey];
+              // reverse the translation (use queryKeys instead of datasetKeys) and reattach dataset id to queryKey)
+              if (groupKeys) {
+                  let groupQueryKeys: string[] = [];
+                  groupKeys.forEach((groupQueryKey: string) => {
+                      groupQueryKeys.push(this.getQueryKey(groupQueryKey));
+                  })
+                  if (groupQueryKeys.indexOf(queryKey)) {
+                      resultObject[datasetId + "_" + this.reverseKeyTranslation(queryKey)] = result[queryKey];
+                  } else {
+                      // Do not attach datasetId to custom key.
+                      resultObject[queryKey] = result[queryKey];
+                  }
+              } else {
+                  resultObject[datasetId + "_" + this.reverseKeyTranslation(queryKey)] = result[queryKey];
+              }
           });
 
           finalResults.push(resultObject);
@@ -826,8 +859,9 @@ export default class QueryController {
     }
 
     /**
-     * Translates array of query keys and custom keys to corresponding keys in the dataset
-     * @param keys
+     * Translates array of query keys and custom keys to corresponding keys in the dataset.
+     * REMOVES datasetID from query key.
+     * @param keys - query keys must be attached to a datasetID, except custom keys
      * @param applyObjects - optional but required to translate custom keys
      */
     public translateKeys(keys: string[], applyObjects?: IApplyObject[]): string[] {
@@ -847,11 +881,15 @@ export default class QueryController {
             translatedKeys.push(this.translateKey(queryKey));
         });
 
-        if (applyObjects) {
             customKeys.forEach((customKey: string) => {
-                translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
+                if (applyObjects) {
+                    translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
+                } else {
+                    // Cannot translate custom key without IApplyObjects
+                    // Return untranslated custom keys
+                    translatedKeys.push(customKey);
+                }
             });
-        }
         return translatedKeys;
     }
 

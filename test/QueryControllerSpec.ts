@@ -179,10 +179,10 @@ describe("QueryController", function () {
 
       let controller = new QueryController({});
       let orderedResults: any[];
-      orderedResults = controller.orderResults(results, [controller.translateKey("instructor")]);
+      orderedResults = controller.orderResults(results, [controller.translateKey("instructor")], "up");
       expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
 
-      orderedResults = controller.orderResults(results, [controller.translateKey("avg")]);
+      orderedResults = controller.orderResults(results, [controller.translateKey("avg")], "up");
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
     });
@@ -301,17 +301,17 @@ describe("QueryController", function () {
 
         filteredResults = [{"Professor": "Canada"}, {"Professor": "USA"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, [sortBy]);
+        ret = controller.orderResults(filteredResults, [sortBy], "up");
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "USA"}, {"Professor": "Canada"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, [sortBy]);
+        ret = controller.orderResults(filteredResults, [sortBy], "up");
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "-"}, {"Professor": ","}];
         expectedOrder = [{"Professor": ","}, {"Professor": "-"}];
-        ret = controller.orderResults(filteredResults, [sortBy]);
+        ret = controller.orderResults(filteredResults, [sortBy], "up");
         expect(ret).to.be.deep.equal(expectedOrder);
     });
 
@@ -773,22 +773,7 @@ describe("QueryController", function () {
         let expectedResults: Object[];
         let results: Object[];
 
-        Log.test("Test - Ordering is 'up' by default.");
-        unorderedResults = [
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
-        ];
-        expectedResults = [
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
-            {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
-        ];
-
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C"]);
-        expect(results).to.be.deep.equal(expectedResults);
-
-        Log.test("Test - Ordering is 'up' by default but still works if explicitly defined.");
+        Log.test("Test - Ordering is 'up'.");
         unorderedResults = [
             {"Java": "Oracle", "JavaScript": "JS", "C": "Coffee"},
             {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"},
@@ -838,7 +823,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C"]);
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C", "up"], "up");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. Final comparisons are with strings.");
@@ -854,7 +839,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"]);
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "up");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. Final comparisons are with numbers.");
@@ -870,7 +855,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"]);
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "up");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. All values involved in comparison are the same.");
@@ -886,7 +871,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby"]);
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby"], "up");
         expect(results).to.be.deep.equal(expectedResults);
 
     });
