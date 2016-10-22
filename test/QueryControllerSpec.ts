@@ -462,7 +462,7 @@ describe("QueryController", function () {
     it ("Should determine what the max is", function (done){
         let controller = new QueryController();
         // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
-        let applyObject: Object = {}
+        let applyObject: Object = {};
         let results = [{"Professor": "Elmo", "Avg": 70, },
             {"Avg": 110, "Professor": "Bond, James"},
             {"Avg": 21, "Professor": "Vader, Darth"}];
@@ -474,7 +474,7 @@ describe("QueryController", function () {
     it ("Should determine what the min is", function (done){
         let controller = new QueryController();
         // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
-        let applyObject: Object = {}
+        let applyObject: Object = {};
         let results = [{"Avg": 70, "Professor": "Elmo"},
             {"Professor": "Bond, James", "Avg": 110},
             {"Avg": 21, "Professor": "Vader, Darth"}];
@@ -486,7 +486,7 @@ describe("QueryController", function () {
     it ("Should determine what the average is", function (done){
         let controller = new QueryController();
         // APPLY ::= '[' ( '{' string ': {' APPLYTOKEN ':' key '}}' )* '],'                 /* new */
-        let applyObject: Object = {}
+        let applyObject: Object = {};
         let results = [{"Avg": 70, "Professor": "Elmo"},
             {"Professor": "Bond, James", "Avg": 110},
             {"Professor": "Vader, Darth", "Avg": 21}];
@@ -980,7 +980,7 @@ describe("QueryController", function () {
 
 
 
-        Log.test("Test - Simple query.")
+        Log.test("Test - Simple query.");
         datasetResults = [
             {"Avg": 3, "id": 1, "Professor": "Snape, Severus"},
             {"Avg": 3, "id": 1, "Professor": "HarryPotter"},
@@ -1009,7 +1009,7 @@ describe("QueryController", function () {
                 {"asdf_uuid": 1, "asdf_instructor": "HarryPotter", "MaxAverage": 5},
                 {"asdf_uuid": 1, "asdf_instructor": "Snape, Severus", "MaxAverage": 3}
             ]
-        }
+        };
 
         controller.setDataset(datasets);
         result = controller.query(query);
@@ -1018,7 +1018,7 @@ describe("QueryController", function () {
 
 
 
-        Log.test("Test - Complex query.")
+        Log.test("Test - Complex query.");
         datasetResults = [
             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
             {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
@@ -1073,7 +1073,7 @@ describe("QueryController", function () {
                 {"asdf_instructor": "Snape, Severus", "asdf_uuid": 1, "MaxAverage": 3, "minaverage": 3},
                 {"asdf_instructor": "HarryPotter", "asdf_uuid": 1, "MaxAverage": 3, "minaverage": 3}
             ]
-        }
+        };
 
         controller.setDataset(datasets);
         let validQuery = controller.isValid(query);
@@ -1082,4 +1082,78 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(expectedResults);
 
     });
+
+    it("Should be able to order results without collapsing with APPLY.", function() {
+        let controller: QueryController = new QueryController();
+        let datasetResults: IObject[];
+        let datasets: Datasets;
+        let query: QueryRequest;
+        let expectedResults: QueryResponse;
+        let result: QueryResponse;
+
+        datasetResults = [
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
+            {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+            {"Avg": 1, "id": 11,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 11,"Professor": "Snape, Severus"},
+            {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
+            {"Avg": 3, "id": 11,"Professor": "HarryPotter"},
+            {"Avg": 2, "id": 11,"Professor": "HarryPotter"}
+        ];
+
+        datasets = {
+            "asdf": {"asdf1234":{"result": datasetResults,"rank":7}}
+        };
+
+        query = {
+            "GET": ["asdf_avg", "asdf_uuid", "asdf_instructor"],
+            "WHERE": {
+                "AND": [
+                    {"AND": [
+                        {"NOT": {"IS": {"asdf_instructor": "notAProf"}}},
+                        {"NOT": {"LT": {"asdf_avg": -10}}},
+                        {"NOT": {"EQ": {"asdf_uuid": 11}}}
+                    ]
+                    },
+                    {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
+                ]
+            },
+            "GROUP": ["asdf_instructor", "asdf_uuid"],
+            "APPLY": [],
+            "ORDER": {"dir": "UP", "keys": ["asdf_uuid", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        expectedResults = {
+            "render": "TABLE",
+            "result": [
+                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "HarryPotter"},
+                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 2, "asdf_uuid": 2,"asdf_instructor": "HarryPotter"},
+                {"Avg": 1, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 3, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 3, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 1, "asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 1, "asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
+                {"Avg": 3, "asdf_uuid": 7,"asdf_instructor": "HarryPotter"},
+                {"Avg": 3, "asdf_uuid": 7,"asdf_instructor": "HarryPotter"}
+            ]
+        };
+
+        controller.setDataset(datasets);
+        let validQuery = controller.isValid(query);
+        expect(validQuery).to.be.equal(true);
+        result = controller.query(query);
+        expect(result).to.be.deep.equal(expectedResults);
+    });
+
 });

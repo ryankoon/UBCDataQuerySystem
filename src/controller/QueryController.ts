@@ -51,8 +51,6 @@ export default class QueryController {
             return "Query GROUP must have at least one key!";
         } else if (query.GROUP && !query.APPLY || !query.GROUP && query.APPLY) {
             return "Query GROUP and APPLY must both be defined/undefined";
-        } else if (query.APPLY && query.APPLY.length === 0) {
-            return "Query APPLY cannot be empty!";
         } else if (!query.AS) {
           return "Query AS has not been defined!";
         } else if (query.AS && query.AS !== 'TABLE') {
@@ -66,7 +64,7 @@ export default class QueryController {
          */
         if (query.GET) {
             let containsCustomKeys = false;
-            let queryKeys: string[] = []
+            let queryKeys: string[] = [];
             let customKeys: string[] = [];
             let errorMessage: string;
 
@@ -186,7 +184,7 @@ export default class QueryController {
                 let applyTokenValue: string = this.getStringIndexKVByNumber(applyObject[customKey], 0)["value"];
 
                 applyQueryKeys.push(applyTokenValue);
-            })
+            });
 
             applyQueryKeys.forEach((applyQueryKey: string) => {
                 if (errorMessage) {
@@ -397,45 +395,49 @@ export default class QueryController {
 
         filteredResults = this.filterCourseResults(query.WHERE, allCourseResults);
         let unorderedResults = filteredResults;
-        let groupedResults: IGroupHashMap;
-        let collapsedResults: IObject[];
+        let groupedHashedResults: IGroupHashMap;
 
         // GROUP and APPLY if they are defined
 
         if (query.GROUP && query.APPLY) {
             // 2. GROUP
 
-            groupedResults = this.groupFilteredResults(filteredResults, query.GROUP);
+            groupedHashedResults = this.groupFilteredResults(filteredResults, query.GROUP);
 
             // 3. APPLY
 
-            let groupHashKeys: string[] = Object.keys(groupedResults);
-            let collapsedResults: IObject[] = [];
+            let groupHashKeys: string[] = Object.keys(groupedHashedResults);
+            let groupedResults: IObject[] = [];
 
 
             groupHashKeys.forEach((hashKey) => {
-                // apply
-                let applyResults: IObject[] = this.executeApplyTokenOnResults(groupedResults[hashKey], query.APPLY);
+                if (query.APPLY.length > 0) {
+                    // apply
+                    let applyResults: IObject[] = this.executeApplyTokenOnResults(groupedHashedResults[hashKey], query.APPLY);
 
-                //collapse
-                let collapsedResult: IObject = {};
-                let groupQueryKeys: string[] = query.GROUP;
-                let translatedGroupQueryKeys: string[] = this.translateKeys(groupQueryKeys);
+                    //collapse
+                    let collapsedResult: IObject = {};
+                    let groupQueryKeys: string[] = query.GROUP;
+                    let translatedGroupQueryKeys: string[] = this.translateKeys(groupQueryKeys);
 
-                //build
-                translatedGroupQueryKeys.forEach((groupQueryKey: string) => {
-                    collapsedResult[groupQueryKey] = groupedResults[hashKey][0][groupQueryKey];
-                });
+                    //build
+                    translatedGroupQueryKeys.forEach((groupQueryKey: string) => {
+                        collapsedResult[groupQueryKey] = groupedHashedResults[hashKey][0][groupQueryKey];
+                    });
 
-                applyResults.forEach((applyResult) => {
-                    let applyQueryKey = Object.keys(applyResult)[0];
-                    collapsedResult[applyQueryKey] = applyResult[applyQueryKey];
-                });
+                    applyResults.forEach((applyResult) => {
+                        let applyQueryKey = Object.keys(applyResult)[0];
+                        collapsedResult[applyQueryKey] = applyResult[applyQueryKey];
+                    });
 
-                collapsedResults.push(collapsedResult);
+                    groupedResults.push(collapsedResult);
+                } else {
+                    let groupOfResults = groupedHashedResults[hashKey];
+                    groupedResults = groupedResults.concat(groupOfResults);
+                }
             });
 
-            unorderedResults = collapsedResults;
+            unorderedResults = groupedResults;
         }
 
         // 4. ORDER
@@ -759,7 +761,7 @@ export default class QueryController {
 
             let tempObject : IObject = {
                 [customKeyToStore] : actionsOutcome
-            }
+            };
             resultArray.push(tempObject);
         });
         return resultArray;
@@ -851,7 +853,7 @@ export default class QueryController {
                   let groupQueryKeys: string[] = [];
                   groupKeys.forEach((groupQueryKey: string) => {
                       groupQueryKeys.push(this.getQueryKey(groupQueryKey));
-                  })
+                  });
                   if (groupQueryKeys.indexOf(this.reverseKeyTranslation(translatedQueryKey)) !== -1) {
                       resultObject[datasetId + "_" + this.reverseKeyTranslation(translatedQueryKey)] = result[translatedQueryKey];
                   } else {
