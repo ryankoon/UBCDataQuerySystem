@@ -11,6 +11,7 @@ import {expect} from 'chai';
 import {IApplyTokenToKey, IApplyObject} from "../src/controller/IEBNF";
 import {IObject} from "../src/controller/IObject";
 import {IGroupHashMap} from "../src/controller/IHashMap";
+import {QueryResponse} from "../src/controller/QueryController";
 describe("QueryController", function () {
 
     beforeEach(function () {
@@ -179,10 +180,10 @@ describe("QueryController", function () {
 
       let controller = new QueryController({});
       let orderedResults: any[];
-      orderedResults = controller.orderResults(results, [controller.translateKey("instructor")], "up");
+      orderedResults = controller.orderResults(results, [controller.translateKey("instructor")], "UP");
       expect(orderedResults).to.be.deep.equal(orderedResultsAlphabetically);
 
-      orderedResults = controller.orderResults(results, [controller.translateKey("avg")], "up");
+      orderedResults = controller.orderResults(results, [controller.translateKey("avg")], "UP");
       expect(orderedResults).to.be.deep.equal(orderedResultsNumerically);
 
     });
@@ -301,17 +302,17 @@ describe("QueryController", function () {
 
         filteredResults = [{"Professor": "Canada"}, {"Professor": "USA"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, [sortBy], "up");
+        ret = controller.orderResults(filteredResults, [sortBy], "UP");
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "USA"}, {"Professor": "Canada"}];
         expectedOrder = [{"Professor": "Canada"}, {"Professor": "USA"}];
-        ret = controller.orderResults(filteredResults, [sortBy], "up");
+        ret = controller.orderResults(filteredResults, [sortBy], "UP");
         expect(ret).to.be.deep.equal(expectedOrder);
 
         filteredResults = [{"Professor": "-"}, {"Professor": ","}];
         expectedOrder = [{"Professor": ","}, {"Professor": "-"}];
-        ret = controller.orderResults(filteredResults, [sortBy], "up");
+        ret = controller.orderResults(filteredResults, [sortBy], "UP");
         expect(ret).to.be.deep.equal(expectedOrder);
     });
 
@@ -533,11 +534,11 @@ describe("QueryController", function () {
             {"Avg": 21, "Professor": "Vader, Darth", "Audit" : 6 }  ];
 
         let applyToken = [
-            {"courseAvg" : { AVG : "audit" } },
-            {"maxCourseNumber" :{ MAX: "audit" }},
-            {"anotherProfCount" : { COUNT : "instructor" }},
-            {"profCount" :{ COUNT : "instructor"}},
-            {"lowestAvg" : {MIN: "avg"}}
+            {"courseAvg" : { AVG : "asdf_audit" } },
+            {"maxCourseNumber" :{ MAX: "asdf_audit" }},
+            {"anotherProfCount" : { COUNT : "asdf_instructor" }},
+            {"profCount" :{ COUNT : "asdf_instructor"}},
+            {"lowestAvg" : {MIN: "asdf_avg"}}
         ];
 
         let resultFromApplyToken = [
@@ -601,7 +602,7 @@ describe("QueryController", function () {
         query = {
             "GET": ["asdf_avg", "asdf_instructor"],
             "WHERE": {},
-            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "ORDER": {"dir": "UP", "keys": ["asdf_avg", "asdf_instructor"]},
             "AS": "TABLE"
         };
 
@@ -612,7 +613,7 @@ describe("QueryController", function () {
         query = {
             "GET": ["asdf_avg"],
             "WHERE": {},
-            "ORDER": {"dir": "up", "keys": ["asdf_avg", "asdf_instructor"]},
+            "ORDER": {"dir": "UP", "keys": ["asdf_avg", "asdf_instructor"]},
             "AS": "TABLE"
         };
 
@@ -623,7 +624,7 @@ describe("QueryController", function () {
         query = {
             "GET": ["asdf_avg"],
             "WHERE": {},
-            "ORDER": {"dir": "down", "keys": []},
+            "ORDER": {"dir": "DOWN", "keys": []},
             "AS": "TABLE"
         };
 
@@ -693,7 +694,7 @@ describe("QueryController", function () {
             "WHERE": {},
             "GROUP": ["asdf_instructor"],
             "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
-            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myMissingApplyKey"]},
+            "ORDER": {"dir": "UP", "keys": ["myCustomApplyKey", "myMissingApplyKey"]},
             "AS": "TABLE"
         };
 
@@ -707,7 +708,7 @@ describe("QueryController", function () {
             "WHERE": {},
             "GROUP": ["asdf_instructor"],
             "APPLY": [{"myCustomApplyKey": {"MAX": "asdf_avg"}}, {"myCustomApplyKey2": {"MIN": "asdf_avg"}}],
-            "ORDER": {"dir": "up", "keys": ["myCustomApplyKey", "myCustomApplyKey2"]},
+            "ORDER": {"dir": "UP", "keys": ["myCustomApplyKey", "myCustomApplyKey2"]},
             "AS": "TABLE"
         };
 
@@ -785,7 +786,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "up");
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering is 'down'.");
@@ -800,7 +801,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "JavaScript": "JS", "C": "Animal"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "down");
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "DOWN");
         expect(results).to.be.deep.equal(expectedResults);
     });
 
@@ -823,7 +824,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "JavaScript": "JS", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["JavaScript", "C", "up"], "up");
+        results = controller.orderResults(unorderedResults, ["JavaScript", "C"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. Final comparisons are with strings.");
@@ -839,7 +840,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": "Zebra"}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "up");
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. Final comparisons are with numbers.");
@@ -855,7 +856,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 8}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "up");
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby", "C"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
         Log.test("Test - Ordering with many keys. All values involved in comparison are the same.");
@@ -871,7 +872,7 @@ describe("QueryController", function () {
             {"Java": "Oracle", "Num": 3, "JavaScript": "JS", "Python": "Snake", "Ruby": "Gem", "C": 1}
         ];
 
-        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby"], "up");
+        results = controller.orderResults(unorderedResults, ["Java", "Num", "JavaScript", "Python", "Ruby"], "UP");
         expect(results).to.be.deep.equal(expectedResults);
 
     });
@@ -969,5 +970,76 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(expectedResult);
     });
 
-
+    // it("Should be able to query with GROUP and APPLY.", function() {
+    //     let controller: QueryController = new QueryController();
+    //     let datasetResults: IObject[];
+    //     let datasets: Datasets;
+    //     let query: QueryRequest;
+    //     let expectedResults: QueryResponse;
+    //     let result: QueryResponse;
+    //
+    //     datasetResults = [
+    //         {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+    //         {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+    //         {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+    //         {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+    //         {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+    //         {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+    //         {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+    //         {"Avg": 1, "id": 11,"Professor": "Snape, Severus"},
+    //         {"Avg": 3, "id": 11,"Professor": "Snape, Severus"},
+    //         {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+    //         {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+    //         {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
+    //         {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
+    //         {"Avg": 3, "id": 11,"Professor": "HarryPotter"},
+    //         {"Avg": 2, "id": 11,"Professor": "HarryPotter"}
+    //     ];
+    //
+    //     datasets = {
+    //         "asdfDatasetID": {"asdf1234":{"result": datasetResults,"rank":7}}
+    //     };
+    //
+    //     query = {
+    //         "GET": ["asdf_instructor", "asdf_uuid", "MaxAverage", "minaverage"],
+    //         "WHERE": {
+    //             "AND": [
+    //                 {"OR": [
+    //                     {"NOT": {"IS": {"asdf_uuid": "notAProf"}}},
+    //                     {"NOT": {"LT": {"asdf_avg": -10}}},
+    //                     {"NOT": {"EQ": {"asdf_avg": 101}}}
+    //                         ]
+    //                 },
+    //                 {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
+    //             ]
+    //         },
+    //         "GROUP": ["asdf_instructor", "asdf_uuid"],
+    //         "APPLY": [
+    //             {"MaxAverage": {"MAX": "asdf_avg"}},
+    //             {"minaverage": {"MIN": "asdf_avg"}}
+    //         ],
+    //         "ORDER": {"dir": "DOWN", "keys": ["asdf_uuid", "MaxAverage"]},
+    //         "AS": "TABLE"
+    //     };
+    //
+    //     expectedResults = {
+    //         "render": "TABLE",
+    //         "result": [
+    //             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+    //             {"Avg": 3, "id": 1,"Professor": "Snape, Severus"},
+    //             {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+    //             {"Avg": 1, "id": 3,"Professor": "Snape, Severus"},
+    //             {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+    //             {"Avg": 1, "id": 2,"Professor": "Snape, Severus"},
+    //             {"Avg": 3, "id": 2,"Professor": "Snape, Severus"},
+    //
+    //
+    //             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+    //             {"Avg": 3, "id": 7,"Professor": "HarryPotter"},
+    //             {"Avg": 3, "id": 1,"Professor": "HarryPotter"},
+    //             {"Avg": 2, "id": 2,"Professor": "HarryPotter"},
+    //         ]
+    //     }
+    //
+    // });
 });

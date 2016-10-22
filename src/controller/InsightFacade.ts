@@ -100,7 +100,7 @@ export default class InsightFacade implements IInsightFacade {
                 let datasetIds: string[] = [];
                 allQueryKeys.forEach((queryKey) => {
                     let datasetId = controller.getDatasetId(queryKey);
-                    if (datasetIds.indexOf(datasetId) === -1) {
+                    if (datasetId !== "" && datasetIds.indexOf(datasetId) === -1) {
                         datasetIds.push(datasetId);
                     }
                 });

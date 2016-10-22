@@ -115,7 +115,7 @@ export default class QueryController {
             //Check if ORDER is string(D1) or object(D2)
             let orderType: string = typeof(query.ORDER);
             let orderKeys: string[];
-            let errorMessage: string;
+            let errorMessages: string[] = [];
 
             // store order keys in an array
             if (orderType === "string") {
@@ -127,39 +127,49 @@ export default class QueryController {
             } else if (orderType === "object") {
                 // cast to IOrderObject
                 let orderObject: IOrderObject = <IOrderObject>query.ORDER;
+
+                let validOrderDirections: string[] = ["UP", "DOWN"];
+                // validate dir value
+                if (validOrderDirections.indexOf(orderObject.dir) === -1) {
+                    errorMessages.push("Order direction must be either be 'UP' or 'DOWN'!");
+                }
+
+
                 orderKeys = orderObject.keys;
             }
 
             if (orderKeys.length === 0) {
-                errorMessage = "Order must have at least one key!"
+                errorMessages.push("Order must have at least one key!");
             } else if (orderKeys && orderKeys.length > 0) {
                 // order key needs to be among the get keys
                 // NOTE: GET should not and cannot be empty here based on the previous checks
                 let queryGETArray: string[] = query.GET;
                 orderKeys.forEach((key) => {
-                    if (errorMessage) {
+                    if (errorMessages.length > 0) {
                         return;
                     } else if (queryGETArray.indexOf(key) === -1) {
-                        errorMessage = 'The key in ORDER does not exist in GET!';
+                        errorMessages.push('The key in ORDER does not exist in GET!');
                     }
                 });
             }
 
-            if (errorMessage) {
-                return errorMessage;
+            if (errorMessages.length > 0) {
+                return errorMessages.join(" ");
             }
         }
 
         let whereKeys: string[] = Object.keys(query.WHERE);
         if (whereKeys.length > 0) {
-            let invalidFilterKey: boolean = true;
+            let validFilterKeys: string[] = ["AND", "OR", "LT", "GT", "EQ", "IS", "NOT"];
+            let invalidFilterKeyFound: boolean = false;
             whereKeys.forEach((key: string) => {
-                //TODO: double-check logic here
-                if (key === "AND" || key === "OR" || key === "LT" || key === "GT" || key === "EQ" || key === "IS" || key === "NOT") {
-                    invalidFilterKey = false;
+                if (validFilterKeys.indexOf(key) === -1) {
+                    invalidFilterKeyFound = true;
+                } else {
+                    return;
                 }
             });
-            if (invalidFilterKey) {
+            if (invalidFilterKeyFound) {
                 return "Query WHERE contains an invalid filter key!";
             }
         }
@@ -432,7 +442,7 @@ export default class QueryController {
         // determine if query.ORDER is string/object
         let orderType: string = typeof(query.ORDER);
         let orderKeys: string[] = [];
-        let orderDirection: string = "up";
+        let orderDirection: string = "UP";
 
         if (orderType === "string") {
             orderKeys.push(<string>query.ORDER);
@@ -743,7 +753,8 @@ export default class QueryController {
             let valueOfAction : IObject = Object.keys(actionObject).map((key) => {
                 return actionObject[key];
             });
-            let actionsOutcome = this.applyActionOnDataSet(action, valueOfAction[0], resultSet);
+            let queryKey: string = this.getQueryKey(valueOfAction[0]);
+            let actionsOutcome = this.applyActionOnDataSet(action, queryKey, resultSet);
 
 
             let tempObject : IObject = {
@@ -758,7 +769,7 @@ export default class QueryController {
      *
      * @param unorderedResults
      * @param orderKeys
-     * @param direction - "up" (smallest to largest) is the default direction
+     * @param direction
      * @returns {IObject[]}
      */
     public orderResults(unorderedResults: IObject[], orderKeys: string[], direction: string): IObject[] {
@@ -779,13 +790,13 @@ export default class QueryController {
             bValue = (bValue) ? bValue : "";
 
             if (aValue < bValue) {
-                if (direction === "down") {
+                if (direction === "DOWN") {
                     return 1;
                 } else {
                     return -1;
                 }
             } else if (aValue > bValue) {
-                if (direction === "down") {
+                if (direction === "DOWN") {
                     return -1;
                 } else {
                     return 1;
@@ -825,7 +836,7 @@ export default class QueryController {
                   groupKeys.forEach((groupQueryKey: string) => {
                       groupQueryKeys.push(this.getQueryKey(groupQueryKey));
                   })
-                  if (groupQueryKeys.indexOf(queryKey)) {
+                  if (groupQueryKeys.indexOf(queryKey) !== -1) {
                       resultObject[datasetId + "_" + this.reverseKeyTranslation(queryKey)] = result[queryKey];
                   } else {
                       // Do not attach datasetId to custom key.
@@ -865,31 +876,22 @@ export default class QueryController {
      * @param applyObjects - optional but required to translate custom keys
      */
     public translateKeys(keys: string[], applyObjects?: IApplyObject[]): string[] {
-        let queryKeys: string[] = [];
-        let customKeys: string[] = [];
         let translatedKeys: string[] = [];
 
         keys.forEach((key: string) => {
             if (key.indexOf("_") === -1) {
-                customKeys.push(key);
-            } else {
-                queryKeys.push(this.getQueryKey(key));
-            }
-        });
-
-        queryKeys.forEach((queryKey: string) => {
-            translatedKeys.push(this.translateKey(queryKey));
-        });
-
-            customKeys.forEach((customKey: string) => {
                 if (applyObjects) {
-                    translatedKeys.push(this.translateCustomKey(applyObjects, customKey))
+                    translatedKeys.push(this.translateCustomKey(applyObjects, key))
                 } else {
                     // Cannot translate custom key without IApplyObjects
                     // Return untranslated custom keys
-                    translatedKeys.push(customKey);
+                    translatedKeys.push(key);
                 }
-            });
+            } else {
+                let queryKey: string = this.getQueryKey(key);
+                translatedKeys.push(this.translateKey(queryKey));
+            }
+        });
         return translatedKeys;
     }
 
