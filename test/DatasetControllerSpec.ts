@@ -8,6 +8,7 @@ import JSZip = require('jszip');
 import {expect} from 'chai';
 import fs = require('fs');
 import testGlobals from '../test/TestGlobals';
+import {Datasets} from "../src/controller/DatasetController";
 
 describe("DatasetController", function () {
     let controller = new DatasetController();
@@ -216,4 +217,17 @@ describe("DatasetController", function () {
                 done();
             });
     });
+
+    it("Should be able to load datasets into memory", (done) => {
+        let controller = new DatasetController();
+        controller.getDatasets()
+            .then(function(datasets: Datasets) {
+                expect(datasets).to.not.equal(null);
+            done();
+            }).catch(function(err) {
+                expect(err).to.not.equal(null);
+            done();
+        });
+    });
 });
+
