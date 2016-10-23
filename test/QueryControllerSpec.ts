@@ -123,12 +123,34 @@ describe("QueryController", function () {
         isValid = controller.isValid(query);
         expect(isValid).to.be.a('string');
 
-        Log.test("Invalid Query - key found in both GROUP and APPLY");
+        Log.test("Invalid Query - Custom Key in GET but APPLY is empty");
         query = {
-            "GET": ["asdf_key"],
+            "GET": ["asdf_key", "aCustomKey"],
             "WHERE": {},
             "GROUP": ["asdf_key"],
-            "APPLY": ["asdf_key"],
+            "APPLY": [],
+            "AS": "TABLE"
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Custom Key in GET but APPLY is empty");
+        query = {
+            "GET": ["asdf_key", "aBadKey"],
+            "WHERE": {},
+            "GROUP": ["asdf_key", "aBadKey"],
+            "APPLY": [{"aBadKey": {"MAX": "asdf_key2"}}, {"anotherCustomKey": {"MIN": "asdf_key3"}}],
+            "AS": "TABLE"
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Invalid APPLY token");
+        query = {
+            "GET": ["asdf_key", "aBadKey"],
+            "WHERE": {},
+            "GROUP": ["asdf_key"],
+            "APPLY": [{"aBadKey": {"RANDOM": "asdf_key2"}}],
             "AS": "TABLE"
         };
         isValid = controller.isValid(query);
@@ -394,12 +416,14 @@ describe("QueryController", function () {
                 {
                     "OR": [
                         {"GT": {"myID_avg": 30}},
+                        {"LT": {"myID_uuid": 30}},
+                        {"EQ": {"myID_pass": 12}},
                         {"IS": {"yourID_instructor": "Vader, Darth"}}
                     ]
                 }]
         };
 
-        let expectedResult: string[] = ["asdf_instructor", "myID_avg", "yourID_instructor"];
+        let expectedResult: string[] = ["asdf_instructor", "myID_avg", "myID_uuid", "myID_pass", "yourID_instructor"];
         let controller = new QueryController({});
         let ret = controller.getWhereQueryKeys(whereObject);
         expect(ret).to.be.deep.equal(expectedResult);
@@ -441,6 +465,46 @@ describe("QueryController", function () {
         expect(function () {
             controller.getWhereQueryKeys(whereObject);
         }).to.throw("NOT must have exactly one filter!");
+
+        whereObject = {
+            "LT": {"yourID_instructor": "Vader, Darth", "extraKey": "badValue"}
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("LT Comparator must have exactly one key!");
+
+        whereObject = {
+            "GT": {"yourID_instructor": "Vader, Darth", "extraKey": "badValue"}
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("GT Comparator must have exactly one key!");
+
+        whereObject = {
+            "GT": {"yourID_instructor": "Vader, Darth"}
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("GT Comparator value must be a number!");
+
+        whereObject = {
+            "EQ": {"yourID_instructor": "Vader, Darth"}
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.throw("EQ Comparator value must be a number!");
+
+        whereObject = {
+            "WRONG": {"yourID_instructor": "Vader, Darth"}
+        };
+
+        expect(function () {
+            controller.getWhereQueryKeys(whereObject);
+        }).to.not.throw();
 
         whereObject = {
             "AND": [{
@@ -579,6 +643,7 @@ describe("QueryController", function () {
         expect(out === 3).to.be.true;
         done();
     });
+
     it("Should submit and return every possible query for applyActionOnDataSet", function (done) {
         let controller = new QueryController();
         let results = [{"Avg": 70, "Professor": "Elmo"},
@@ -594,6 +659,17 @@ describe("QueryController", function () {
         expect(avg === 67.00).to.be.true;
         done();
      });
+
+    it("Should Log trace invalid APPLY Token.", function (done) {
+        let controller = new QueryController();
+        let results = [{"Avg": 70, "Professor": "Elmo"},
+            {"Avg": 110, "Professor": "Bond, James"},
+            {"Avg": 21, "Professor": "Vader, Darth"}];
+        expect(function () {
+            controller.applyActionOnDataSet('INVALID', 'avg', results);
+        }).to.not.throw();
+        done();
+    });
 
     it("Should iterate through a list of results successfully and find the outcome", (done) =>{
         let controller = new QueryController();
@@ -977,35 +1053,35 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(result);
     });
 
-    it("Should invalidate query when a key is found in both Order and Apply.", function() {
-        let controller: QueryController = new QueryController();
-        let query: QueryRequest;
-        let result: boolean | string;
-
-        Log.test("Test - Keys are found in both GROUP and APPLY");
-        query = {
-            "GET": ["asdf_keyboard", "asdf_mouse"],
-            "WHERE": {},
-            "GROUP": ["asdf_keyboard", "asdf_mouse"],
-            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_mouse"}}],
-            "AS": "TABLE"
-        };
-
-        result = controller.isValid(query);
-        expect(result).to.be.equal("A key appears in both GROUP and APPLY!");
-
-        Log.test("Test - Keys are unique beteween GROUP and APPLY");
-        query = {
-            "GET": ["asdf_keyboard", "asdf_mouse"],
-            "WHERE": {},
-            "GROUP": ["asdf_keyboard", "asdf_mouse"],
-            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_pause"}}],
-            "AS": "TABLE"
-        };
-
-        result = controller.isValid(query);
-        expect(result).to.be.equal(true);
-    });
+    // it("Should invalidate query when a key is found in both Order and Apply.", function() {
+    //     let controller: QueryController = new QueryController();
+    //     let query: QueryRequest;
+    //     let result: boolean | string;
+    //
+    //     Log.test("Test - Keys are found in both GROUP and APPLY");
+    //     query = {
+    //         "GET": ["asdf_keyboard", "asdf_mouse"],
+    //         "WHERE": {},
+    //         "GROUP": ["asdf_keyboard", "asdf_mouse"],
+    //         "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_mouse"}}],
+    //         "AS": "TABLE"
+    //     };
+    //
+    //     result = controller.isValid(query);
+    //     expect(result).to.be.equal("A key appears in both GROUP and APPLY!");
+    //
+    //     Log.test("Test - Keys are unique beteween GROUP and APPLY");
+    //     query = {
+    //         "GET": ["asdf_keyboard", "asdf_mouse"],
+    //         "WHERE": {},
+    //         "GROUP": ["asdf_keyboard", "asdf_mouse"],
+    //         "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_pause"}}],
+    //         "AS": "TABLE"
+    //     };
+    //
+    //     result = controller.isValid(query);
+    //     expect(result).to.be.equal(true);
+    // });
 
     it("Should be able to group filtered results.", function() {
         let controller: QueryController = new QueryController();
@@ -1249,5 +1325,55 @@ describe("QueryController", function () {
         let result = controller.isValid(query);
         expect(result).to.be.equal(true);
     });
+
+    it("Should return false when trying to filter a course result with an invalid filter.", function() {
+        let controller: QueryController = new QueryController();
+
+
+        let result = controller.queryACourseResult("BADFILTER", {});
+        expect(result).to.be.equal(false);
+    });
+
+    it("Should return false when trying to compare numbers with an invalid comparator.", function() {
+        let controller: QueryController = new QueryController();
+
+
+        let result = controller.numberCompare({"BADFILTER": -1}, "INVALIDOP", {});
+        expect(result).to.be.equal(false);
+    });
+
+    it("Should return false when trying to compare invalid strings.", function() {
+        let controller: QueryController = new QueryController();
+        let result: boolean;
+
+        Log.test("Test - null querykey value or datakey value.")
+        result = controller.stringCompare({"asdf_instructor": null}, "IS", {"Professor": null});
+        expect(result).to.be.equal(false);
+
+        Log.test("Test - query key value is an empty string.")
+        result = controller.stringCompare({"asdf_instructor": ""}, "IS", {"Professor": "ad"});
+        expect(result).to.be.equal(false);
+
+        Log.test("Test - data key value is an empty string.")
+        result = controller.stringCompare({"asdf_instructor": "asdf"}, "IS", {"Professor": ""});
+        expect(result).to.be.equal(false);
+
+        Log.test("Test - both query key value and data key value is an empty string.")
+        result = controller.stringCompare({"asdf_instructor": ""}, "IS", {"Professor": ""});
+        expect(result).to.be.equal(false);
+
+        Log.test("Test - valid wildcard matching.")
+        result = controller.stringCompare({"asdf_instructor": "*est"}, "IS", {"Professor": "test"});
+        expect(result).to.be.equal(true);
+
+        Log.test("Test - Invalid string comparison with wildcard matching.")
+        result = controller.stringCompare({"asdf_instructor": "*e*st*"}, "IS", {"Professor": "test"});
+        expect(result).to.be.equal(false);
+
+        Log.test("Test - String comparison with invalid comparator")
+        result = controller.stringCompare({"asdf_instructor": "*e*st*"}, "ABC", {"Professor": "test"});
+        expect(result).to.be.equal(false);
+    });
+
 
 });

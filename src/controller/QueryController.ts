@@ -84,8 +84,8 @@ export default class QueryController {
                    });
                 }
                 if (customKeys.length > 0) {
-                    if (!query.APPLY) {
-                        errorMessage = "APPLY must be defined since there are custom keys in GET!";
+                    if (!query.APPLY || query.APPLY.length == 0) {
+                        errorMessage = "APPLY must be defined and is not empty since there are custom keys in GET!";
                     } else {
                         // 2. Are customKeys (keys without "_") found in APPLY?
                         let applyObjectKeys: string[] = [];
@@ -179,16 +179,15 @@ export default class QueryController {
             // Make sure query keys only appear in either GROUP or APPLY
             let groupKeys: string[] = query.GROUP;
             let applyObjects: IApplyObject[] = query.APPLY;
-            let applyQueryKeys: string[] = [];
+            let applyCustomKeys: string[] = [];
 
             applyObjects.forEach((applyObject: IApplyObject) => {
                 let customKey: string = Object.keys(applyObject)[0];
-                let applyTokenValue: string = this.getStringIndexKVByNumber(applyObject[customKey], 0)["value"];
 
-                applyQueryKeys.push(applyTokenValue);
+                applyCustomKeys.push(customKey);
             });
 
-            applyQueryKeys.forEach((applyQueryKey: string) => {
+            applyCustomKeys.forEach((applyQueryKey: string) => {
                 if (errorMessage) {
                     return;
                 } else if (groupKeys.indexOf(applyQueryKey) > -1) {
@@ -476,16 +475,13 @@ export default class QueryController {
             queryFilterMatches = queryFilterMatches.concat(allCourseResults);
         } else {
             allCourseResults.forEach((courseResult: IObject) => {
-                let queryResult: boolean = this.queryACourseResult(queryFilter, courseResult);
+                let queryResult: boolean = false;
+                    queryResult = this.queryACourseResult(queryFilter, courseResult);
 
-                if (queryResult !== null) {
                     if (queryResult) {
                         // add courseResult to matches collection
                         queryFilterMatches.push(courseResult);
                     }
-                } else {
-                    throw new Error('No match result returned from queryResult on courseResult!')
-                }
             });
         }
 
@@ -578,15 +574,9 @@ export default class QueryController {
       switch(operation) {
 
         case "IS":
-
-            if (!queryKeyValue || !dataKeyValue) {
+            // check for null values and empty strings
+            if (!queryKeyValue || queryKeyValue.length === 0 || !dataKeyValue || dataKeyValue.length === 0) {
                 return false;
-            }
-            // check for empty strings
-            else if ((queryKeyValue.length === 0 && dataKeyValue.length > 0) || (queryKeyValue.length > 0 && dataKeyValue.length === 0)) {
-                return false;
-            } else if (queryKeyValue === "" && dataKeyValue === "") {
-                return true;
             }
             // use wildcard matching if query contains asterisk
             else if (queryKeyValue.indexOf("*") > -1 && this.validStringComparison(queryKeyValue)) {
