@@ -9,6 +9,7 @@ import {expect} from 'chai';
 import fs = require('fs');
 import testGlobals from '../test/TestGlobals';
 import {Datasets} from "../src/controller/DatasetController";
+import path = require('path');
 
 describe("DatasetController", function () {
     let controller = new DatasetController();
@@ -228,6 +229,20 @@ describe("DatasetController", function () {
                 expect(err).to.not.equal(null);
             done();
         });
+    });
+
+    it("Should be able to remove extensions", (done) => {
+        let controller = new DatasetController();
+        let result = controller.removeExtension("testFile.json");
+        expect(result).to.be.equal("testFile");
+        done();
+    });
+
+    it ("Should be able to check for files with leading dots", (done) => {
+        let controller = new DatasetController();
+        let result = controller.leadingDotCheck([".test"]);
+        expect(result).to.be.deep.equal([]);
+        done();
     });
 });
 

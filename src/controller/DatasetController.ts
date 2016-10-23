@@ -136,16 +136,16 @@ export default class DatasetController {
     /*
     @function parses out the last '.ext'.
      */
-    private removeExtension(nameWithExtension: string) : string {
+    public removeExtension(nameWithExtension: string) : string {
         let fileName:string = nameWithExtension.substr(0, nameWithExtension.lastIndexOf('.'));
         return fileName;
     }
     /*
     @function removes files that lead with dot resulting from fs usage.
      */
-    private leadingDotCheck(list : Array<any>): Array<any>{
+    public leadingDotCheck(list : Array<any>): Array<any>{
         let newList = list;
-        let leadingDotCheck : RegExp = new RegExp('/^[.]/', 'g');
+        let leadingDotCheck : RegExp = new RegExp('\^\[\.\]', 'g');
         newList.forEach( (item, index) => {
             if (leadingDotCheck.test(item)){
                 newList.splice(index, 1);
