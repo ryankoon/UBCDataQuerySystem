@@ -37,9 +37,7 @@ export default class QueryController {
     }
 
     public isValid(query: QueryRequest): boolean | string {
-        if (typeof query === 'undefined') {
-            return 'Query is undefined!';
-        } else if (query === null) {
+        if (!query) {
             return 'Query is null!';
         } else if (Object.keys(query).length === 0) {
             return 'Query is empty!';

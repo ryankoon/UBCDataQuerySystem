@@ -56,6 +56,7 @@ describe("QueryController", function () {
             "AS": "TABLE"
         };
         isValid = controller.isValid(query);
+        Log.error(<string>isValid);
         expect(isValid).to.be.a("string");
 
     });
@@ -65,7 +66,73 @@ describe("QueryController", function () {
         let dataset: Datasets = {};
         let controller = new QueryController(dataset);
         let isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
 
+        Log.test("Invalid Query - empty query");
+        query = {};
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - no get keys");
+        query = {"GET": []};
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Undefined WHERE");
+        query = {"GET": ["asdf_key"]};
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Empty GROUP");
+        query = {
+            "GET": ["asdf_key"],
+            "WHERE": {},
+            "GROUP": []
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Undefined AS");
+        query = {
+            "GET": ["asdf_key"],
+            "WHERE": {},
+            "GROUP": ["asdf_key"],
+            "APPLY": []
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - AS is not TABLE");
+        query = {
+            "GET": ["asdf_key"],
+            "WHERE": {},
+            "GROUP": ["asdf_key"],
+            "APPLY": [],
+            "AS": "CHAIR"
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - Invalid Filter");
+        query = {
+            "GET": ["asdf_key"],
+            "WHERE": {"INVALIDFILTER": "INVALID"},
+            "GROUP": ["asdf_key"],
+            "APPLY": [],
+            "AS": "TABLE"
+        };
+        isValid = controller.isValid(query);
+        expect(isValid).to.be.a('string');
+
+        Log.test("Invalid Query - key found in both GROUP and APPLY");
+        query = {
+            "GET": ["asdf_key"],
+            "WHERE": {},
+            "GROUP": ["asdf_key"],
+            "APPLY": ["asdf_key"],
+            "AS": "TABLE"
+        };
+        isValid = controller.isValid(query);
         expect(isValid).to.be.a('string');
     });
 
@@ -100,7 +167,7 @@ describe("QueryController", function () {
     });
 
     it("Should properly translate query keys to the keys used in dataset", function () {
-      // NOTE: this directly tagets translatekey function in QueryController
+      Log.info("This directly tagets translatekey function in QueryController");
       let controller = new QueryController({});
       let result: string;
       result = controller.translateKey('dept');
@@ -126,7 +193,7 @@ describe("QueryController", function () {
     });
 
     it("Should properly reverse the translation of keys used in dataset", function () {
-        // NOTE: this directly tagets translatekey function in QueryController
+        Log.info("This directly tagets translatekey function in QueryController");
         let controller = new QueryController({});
         let result: string;
         result = controller.reverseKeyTranslation('Subject');
@@ -152,6 +219,8 @@ describe("QueryController", function () {
     });
 
     it("Should properly split keys into datasetId and column names", function() {
+        new Log();
+        Log.warn("There are no datasets in this instance of QueryController.");
         let controller = new QueryController({});
         let result: string;
 
@@ -208,7 +277,7 @@ describe("QueryController", function () {
           "AS": "TABLE"
         };
 
-        let dataset: Datasets ={"asdfDatasetID": {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}}};
+        let dataset: Datasets = {"asdfDatasetID": {"asdf1234":{"result":[{"Avg":70,"Professor":"Elmo"},{"Avg":110,"Professor":"Bond, James"},{"Avg":21,"Professor":"Vader, Darth"},{"Avg":87,"Professor":"E.T."},{"Avg":37,"Professor":"Bond, James"},{"Avg":12,"Professor":"Gollum"}],"rank":7}}};
 
         let expectedResult: any = { render: 'TABLE',
           result: [
@@ -595,6 +664,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+        Log.error(<string>result);
         expect(result).to.be.a("string");
 
         //D2 implementation - an object with 'dir' and array of 'keys'
@@ -618,6 +688,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+        Log.error(<string>result);
         expect(result).to.be.a("string");
 
         Log.test("Testing when Order object keys is empty. (D2)");
@@ -629,6 +700,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+        Log.error(<string>result);
         expect(result).to.be.a("string");
 
         Log.test("Testing when Order object direction is invalid. (D2)");
@@ -640,6 +712,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+        Log.error(<string>result);
         expect(result).to.be.a("string");
     });
 
@@ -672,6 +745,7 @@ describe("QueryController", function () {
             "AS": "TABLE"
         };
         result = controller.isValid(query);
+            Log.error(<string>result);
         expect(result).to.be.a("string");
 
         Log.test("Testing - GET keys are missing in APPLY");
@@ -686,6 +760,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+            Log.error(<string>result);
         expect(result).to.be.a("string");
 
         Log.test("Testing - ORDER keys are missing in APPLY");
@@ -699,6 +774,7 @@ describe("QueryController", function () {
         };
 
         result = controller.isValid(query);
+            Log.error(<string>result);
         expect(result).to.be.a("string");
 
 
@@ -732,6 +808,7 @@ describe("QueryController", function () {
                 "AS": "TABLE"
             };
             result = controller.isValid(query);
+            Log.error(<string>result);
             expect(result).to.be.a("string");
 
             Log.test("Testing - APPLY is defined but GROUP is not.");
@@ -743,6 +820,7 @@ describe("QueryController", function () {
                 "AS": "TABLE"
             };
             result = controller.isValid(query);
+            Log.error(<string>result);
             expect(result).to.be.a("string");
 
             Log.test("Testing - Both GROUP and APPLY are defined");
