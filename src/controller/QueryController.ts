@@ -414,7 +414,6 @@ export default class QueryController {
 
 
             groupHashKeys.forEach((hashKey) => {
-                if (query.APPLY.length > 0) {
                     // apply
                     let applyResults: IObject[] = this.executeApplyTokenOnResults(groupedHashedResults[hashKey], query.APPLY);
 
@@ -434,10 +433,6 @@ export default class QueryController {
                     });
 
                     groupedResults.push(collapsedResult);
-                } else {
-                    let groupOfResults = groupedHashedResults[hashKey];
-                    groupedResults = groupedResults.concat(groupOfResults);
-                }
             });
 
             unorderedResults = groupedResults;
