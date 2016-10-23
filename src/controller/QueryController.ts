@@ -73,7 +73,7 @@ export default class QueryController {
                    queryKeys.push(getKey);
                }
 
-               if (customKeys.length > 0){
+               if (query.GROUP) {
                    // 1. Are queryKeys (keys with "_") found in GROUP?
                    queryKeys.forEach((queryKey: string) => {
                        if (errorMessage) {
@@ -82,24 +82,28 @@ export default class QueryController {
                             errorMessage = "Query key (key with '_') not found in GROUP!";
                        }
                    });
+                }
+                if (customKeys.length > 0) {
+                    if (!query.APPLY) {
+                        errorMessage = "APPLY must be defined since there are custom keys in GET!";
+                    } else {
+                        // 2. Are customKeys (keys without "_") found in APPLY?
+                        let applyObjectKeys: string[] = [];
+                        // get apply object keys (not the query key, the one without "_")
+                        query.APPLY.forEach((applyObject: IApplyObject) => {
+                            let applyObjectKey = Object.keys(applyObject)[0];
+                            applyObjectKeys.push(applyObjectKey);
+                        });
 
-
-                   // 2. Are customKeys (keys without "_") found in APPLY?
-                   let applyObjectKeys: string[] = [];
-                   // get apply object keys (not the query key, the one without "_")
-                   query.APPLY.forEach((applyObject: IApplyObject) => {
-                       let applyObjectKey = this.getStringIndexKVByNumber(applyObject, 0)["key"];
-                       applyObjectKeys.push(applyObjectKey);
-                   });
-
-                    customKeys.forEach((cKey) => {
-                       if (errorMessage) {
-                           return;
-                       } else if (applyObjectKeys.indexOf(cKey) === -1) {
-                           errorMessage = "Custom key (key without '_') not found in APPLY Object!";
-                       }
-                    });
-               }
+                        customKeys.forEach((cKey) => {
+                            if (errorMessage) {
+                                return;
+                            } else if (applyObjectKeys.indexOf(cKey) === -1) {
+                                errorMessage = "Custom key: " + cKey + "(key without '_') not found in APPLY Object!";
+                            }
+                        });
+                    }
+                }
             });
             if (errorMessage) {
                 return errorMessage;

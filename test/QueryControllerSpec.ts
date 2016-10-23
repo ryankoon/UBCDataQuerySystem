@@ -58,7 +58,6 @@ describe("QueryController", function () {
         isValid = controller.isValid(query);
         Log.error(<string>isValid);
         expect(isValid).to.be.a("string");
-
     });
 
     it("Should be able to invalidate an invalid query", function () {
@@ -1192,7 +1191,7 @@ describe("QueryController", function () {
         };
 
         query = {
-            "GET": ["asdf_avg", "asdf_uuid", "asdf_instructor"],
+            "GET": ["asdf_uuid", "asdf_instructor"],
             "WHERE": {
                 "AND": [
                     {"AND": [
@@ -1213,17 +1212,17 @@ describe("QueryController", function () {
         expectedResults = {
             "render": "TABLE",
             "result": [
-                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "HarryPotter"},
-                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 3, "asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 2, "asdf_uuid": 2,"asdf_instructor": "HarryPotter"},
-                {"Avg": 1, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 3, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 3, "asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 1, "asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 1, "asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
-                {"Avg": 3, "asdf_uuid": 7,"asdf_instructor": "HarryPotter"},
-                {"Avg": 3, "asdf_uuid": 7,"asdf_instructor": "HarryPotter"}
+                {"asdf_uuid": 1,"asdf_instructor": "HarryPotter"},
+                {"asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 2,"asdf_instructor": "HarryPotter"},
+                {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
+                {"asdf_uuid": 7,"asdf_instructor": "HarryPotter"},
+                {"asdf_uuid": 7,"asdf_instructor": "HarryPotter"}
             ]
         };
 
