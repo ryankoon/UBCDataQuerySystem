@@ -1236,7 +1236,7 @@ describe("QueryController", function () {
 
     });
 
-    it("Should be able to order results without collapsing with APPLY.", function() {
+    it("Should be able to query with empty APPLY.", function() {
         let controller: QueryController = new QueryController();
         let datasetResults: IObject[];
         let datasets: Datasets;
@@ -1290,14 +1290,9 @@ describe("QueryController", function () {
             "result": [
                 {"asdf_uuid": 1,"asdf_instructor": "HarryPotter"},
                 {"asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
-                {"asdf_uuid": 1,"asdf_instructor": "Snape, Severus"},
                 {"asdf_uuid": 2,"asdf_instructor": "HarryPotter"},
                 {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
-                {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
-                {"asdf_uuid": 2,"asdf_instructor": "Snape, Severus"},
                 {"asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
-                {"asdf_uuid": 3,"asdf_instructor": "Snape, Severus"},
-                {"asdf_uuid": 7,"asdf_instructor": "HarryPotter"},
                 {"asdf_uuid": 7,"asdf_instructor": "HarryPotter"}
             ]
         };
