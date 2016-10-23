@@ -179,15 +179,17 @@ export default class QueryController {
             // Make sure query keys only appear in either GROUP or APPLY
             let groupKeys: string[] = query.GROUP;
             let applyObjects: IApplyObject[] = query.APPLY;
-            let applyCustomKeys: string[] = [];
+            let applyCustomandQueryKeys: string[] = [];
 
             applyObjects.forEach((applyObject: IApplyObject) => {
                 let customKey: string = Object.keys(applyObject)[0];
+                let applyQueryKey: string = this.getStringIndexKVByNumber(applyObject[customKey], 0)["value"];
 
-                applyCustomKeys.push(customKey);
+                applyCustomandQueryKeys.push(customKey);
+                applyCustomandQueryKeys.push(applyQueryKey);
             });
 
-            applyCustomKeys.forEach((applyQueryKey: string) => {
+            applyCustomandQueryKeys.forEach((applyQueryKey: string) => {
                 if (errorMessage) {
                     return;
                 } else if (groupKeys.indexOf(applyQueryKey) > -1) {

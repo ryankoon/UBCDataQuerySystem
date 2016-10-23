@@ -1053,35 +1053,35 @@ describe("QueryController", function () {
         expect(result).to.be.deep.equal(result);
     });
 
-    // it("Should invalidate query when a key is found in both Order and Apply.", function() {
-    //     let controller: QueryController = new QueryController();
-    //     let query: QueryRequest;
-    //     let result: boolean | string;
-    //
-    //     Log.test("Test - Keys are found in both GROUP and APPLY");
-    //     query = {
-    //         "GET": ["asdf_keyboard", "asdf_mouse"],
-    //         "WHERE": {},
-    //         "GROUP": ["asdf_keyboard", "asdf_mouse"],
-    //         "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_mouse"}}],
-    //         "AS": "TABLE"
-    //     };
-    //
-    //     result = controller.isValid(query);
-    //     expect(result).to.be.equal("A key appears in both GROUP and APPLY!");
-    //
-    //     Log.test("Test - Keys are unique beteween GROUP and APPLY");
-    //     query = {
-    //         "GET": ["asdf_keyboard", "asdf_mouse"],
-    //         "WHERE": {},
-    //         "GROUP": ["asdf_keyboard", "asdf_mouse"],
-    //         "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_pause"}}],
-    //         "AS": "TABLE"
-    //     };
-    //
-    //     result = controller.isValid(query);
-    //     expect(result).to.be.equal(true);
-    // });
+    it("Should invalidate query when a key is found in both Order and Apply.", function() {
+        let controller: QueryController = new QueryController();
+        let query: QueryRequest;
+        let result: boolean | string;
+
+        Log.test("Test - Keys are found in both GROUP and APPLY");
+        query = {
+            "GET": ["asdf_keyboard", "asdf_mouse"],
+            "WHERE": {},
+            "GROUP": ["asdf_keyboard", "asdf_mouse"],
+            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_mouse"}}],
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.equal("A key appears in both GROUP and APPLY!");
+
+        Log.test("Test - Keys are unique beteween GROUP and APPLY");
+        query = {
+            "GET": ["asdf_keyboard", "asdf_mouse"],
+            "WHERE": {},
+            "GROUP": ["asdf_keyboard", "asdf_mouse"],
+            "APPLY": [{"powerButton": {"MAX": "asdf_volume"}}, {"restartButton": {"COUNT": "asdf_pause"}}],
+            "AS": "TABLE"
+        };
+
+        result = controller.isValid(query);
+        expect(result).to.be.equal(true);
+    });
 
     it("Should be able to group filtered results.", function() {
         let controller: QueryController = new QueryController();
