@@ -216,4 +216,15 @@ describe("DatasetController", function () {
                 done();
             });
     });
+
+    it("Should be able to load datasets into memory", (done) => {
+        let controller = new DatasetController();
+        controller.getDatasets()
+            .then(function() {
+            done();
+            }).catch(function() {
+            done();
+        });
+    });
 });
+

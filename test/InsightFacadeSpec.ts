@@ -171,5 +171,43 @@ describe('InsightFacade', () => {
             })
         })
     });
+    it('processQuery invalid query', (done) => {
+        let failQuery: any = {
+            "GET": ["asdf_avg", "asdf_instructor"],
+            "AS": "TABLE"
+        };
+        InsightFacadeController.performQuery(failQuery).then(function(result) {
+            expect(false).to.be.true;
+            done();
+        }).catch(function (result) {
+            expect(result.code === 400).to.be.true;
+            Log.test(result.body.error.message);
+            expect(result.body.error.length > 0).to.be.true;
+            done();
+        });
+    });
 
+
+    it('addDataSet fail!', (done) => {
+        let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
+        let content1 = {'Batmanvs': 'Superman'};
+        let content2 = {'job': 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('rootThatShouldBeDeleted', JSON.stringify(content0));
+        zip.file('item1ThatShouldExist', JSON.stringify(content1));
+        zip.file('item2ThatShouldExist', JSON.stringify(content2));
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            return InsightFacadeController.addDataset('#()$*&@#)(^@#)(*&@#', data);
+        }).then( function() {
+            Log.test("DONE");
+            done();
+        }).catch(function (err){
+            Log.test('InsightFacade : ' + err);
+            done();
+        });
+    });
 });
