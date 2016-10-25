@@ -1,5 +1,8 @@
 <h2> Aleks Contribution for D2: </h2>
 
+Autotest coverage: 100%
+testing coverage: 95.56%
+
 D2 workload allocated to myself included:
 
 <h3> Code contributions: </h3>
