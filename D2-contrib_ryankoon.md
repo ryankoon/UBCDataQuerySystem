@@ -1,5 +1,5 @@
 AutoTest: 100%
-Test Coverage: 95.65%
+Test Coverage: 95.56% (Statements)
 
 <h2> D2 Contributions - Ryan Koon </h2>
 
