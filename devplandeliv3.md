@@ -9,14 +9,14 @@ We made tickets, and put it on our scrum board.
 
 The tickets involve:
 
-(1) One ticket to research parse5.
-- One ticket to generate the nodes to parse.
+(1) One ticket to research parse5. (Ryan will also research and provide support)
+- One ticket to generate the nodes to parse. (Alek)
 - One ticket to take information and store in object/interface that we will make.
-- One ticket to create tests for parsed information (this way we can parallelize).
+- One ticket to create tests for parsed information (this way we can parallelize). (Alek)
 
-(2) Improve valid key coverage with new keys.
+(2) Improve valid key coverage with new keys with tests. (Ryan)
 
-(3) One ticket to create send/receieve geocode request.
+(3) One ticket to create send/receieve geocode request. (Ryan)
 - Also need to include mocked service request with this.
 - Can be run in parallel to anything else since we can check the functionality via the tests.
 
