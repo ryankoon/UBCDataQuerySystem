@@ -31,9 +31,10 @@ export default class HtmlParserUtility {
         // needs to iterate for TD, needs to skip TH.
         let tempArray:Array<string>;
 
-        let out: Array<String> = that.iterateNodeList('class', '.views-field-title', document, tempArray);
-        console.log(out);
-
+      //  let table: ASTNode = that.recurseToFindASTNode('tbody', document);
+        let validArray : Array<string> = [];
+        that.recursivelySearchAndBuildValidIdList(document, 'views-field views-field-field-building-code', validArray);
+        console.log(validArray);
         // basically how this is going to work:
         // (1) We need to find all keys for each childNode, then iterate through them
         // (2) at each level of iteration we need to check for attributes.
@@ -57,31 +58,45 @@ export default class HtmlParserUtility {
     /*
         TODO: Finds the value of a node that has a certain html id/class
      */
-    public iterateNodeList(id: string, value: string, nodeList: ASTNode, tempArray : Array<string>) : Array<string> {
-
-        if (!nodeList.childNodes && !nodeList.attrs) {
-            return tempArray;
-        }
-
-        if (nodeList.attrs && nodeList.attrs.length > 0){
-            // check all the attributes. if I find one lets push it on the stack.
-            // if attrs is zero and children are zero, return?
-            let numberOfAttributeObjects = nodeList.attrs.length;
-            for (var i=0 ; i <numberOfAttributeObjects; i++){
-                console.log(nodeList.attrs[i].name === "class");
-                console.log(nodeList.attrs[i].value === "views-field-field-building-code");
-                if (nodeList.attrs[i].name === "class" && nodeList.attrs[i].value.indexOf('views-field-field-building-code') > -1){
-                    console.log('hurrah');
-                    // now if we take the child Node and take its text values etc, we get a singular value.
-                    // problem now: How do we take this concept and iterate over the entire tree for all levels?
+    public recurseToFindASTNode(id: string, nodeList : ASTNode) : ASTNode {
+        if (nodeList.childNodes && nodeList.childNodes.length > 0) {
+            let lengthOfChildNodes = nodeList.childNodes.length;
+            for (var i=0; i < lengthOfChildNodes; i ++){
+                if (nodeList && nodeList.nodeName === id) {
+                    return nodeList;
+                }
+                else {
+                    this.recurseToFindASTNode(id, nodeList.childNodes[i]);
                 }
             }
         }
-        if (nodeList.childNodes && nodeList.childNodes.length > 0){
-            let lengthOfChildNodes = nodeList.childNodes.length;
-            for (var i=0; i <lengthOfChildNodes ; i++){
-                this.iterateNodeList(id, value, nodeList.childNodes[i], tempArray);
+        else{
+            return null;
+        }
+    }
+    /*
+        TODO : Building valid buildings list
+     */
+    public recursivelySearchAndBuildValidIdList(nodeList : ASTNode, id: string, validArray : Array<string>) : Array<string>{
+        if (nodeList && nodeList.childNodes && nodeList.childNodes.length) {
+            var childCount = nodeList.childNodes.length;
+            for (var i = 0; i < childCount; i++) {
+                console.log('how many');
+                if (nodeList.childNodes[i] && nodeList.childNodes[i].attrs && nodeList.childNodes[i].attrs.length > 0) {
+                    for (var j = 0; j < nodeList.childNodes[i].attrs.length; j++) {
+                        if (nodeList.childNodes[i].attrs[j] && nodeList.childNodes[i].attrs[j].value === id) {
+                            console.log(id);
+                            // should just be able to access the child and add the code?
+                            validArray.push(nodeList.childNodes[i].childNodes[0].value.trim());
+                        }
+                    }
+
+                }
+                this.recursivelySearchAndBuildValidIdList(nodeList.childNodes[i], id, validArray);
             }
+        }
+        else{
+            return validArray;  // should return the final value.
         }
     }
     /*
