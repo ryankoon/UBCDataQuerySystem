@@ -12,6 +12,7 @@ import {IApplyTokenToKey, IApplyObject} from "../src/controller/IEBNF";
 import {IObject} from "../src/controller/IObject";
 import {IGroupHashMap} from "../src/controller/IHashMap";
 import {QueryResponse} from "../src/controller/QueryController";
+import {IBuilding, IRoom} from "../src/controller/IBuilding";
 describe("QueryController", function () {
 
     beforeEach(function () {
@@ -210,7 +211,7 @@ describe("QueryController", function () {
       result = controller.translateKey('audit');
       expect(result).to.be.equal('Audit');
       result = controller.translateKey('MacOrWindows');
-      expect(result).to.be.equal('unknownKey');
+      expect(result).to.be.equal('MacOrWindows');
     });
 
     it("Should properly reverse the translation of keys used in dataset", function () {
@@ -236,7 +237,7 @@ describe("QueryController", function () {
         result = controller.reverseKeyTranslation('Audit');
         expect(result).to.be.equal('audit');
         result = controller.reverseKeyTranslation('MacOrWindows');
-        expect(result).to.be.equal('unknownKey');
+        expect(result).to.be.equal('MacOrWindows');
     });
 
     it("Should properly split keys into datasetId and column names", function() {
@@ -1370,5 +1371,174 @@ describe("QueryController", function () {
         expect(result).to.be.equal(false);
     });
 
+    // Testing rooms keys
+
+    it("Should be able to query with rooms keys.", function () {
+        let aRoom: IRoom = {
+            fullname: "BumbleBee",
+            shortname: "BB",
+            number: "123",
+            name: "BB_123",
+            address: "1 Monopoly Street ABC DEF",
+            lat: 111,
+            lon: 222,
+            seats: 1000000,
+            type: "Airport Size",
+            furniture: "Teleportation Modules",
+            href: "http://thelinktothefutureairportbumblebee.future/Monopoly"
+        };
+
+        let aBuilding: IBuilding = {
+            result: [aRoom]
+        };
+
+        let roomsDataset: Datasets = {
+            "testRooms": [aBuilding]
+        };
+
+        let controller: QueryController = new QueryController(roomsDataset);
+        let query: QueryRequest;
+
+        query = {
+            "GET": ["rooms_fullname",
+                    "rooms_shortname",
+                    "rooms_number",
+                    "rooms_name",
+                    "rooms_address",
+                    "rooms_lat",
+                    "rooms_lon",
+                    "rooms_seats",
+                    "rooms_type",
+                    "rooms_furniture",
+                    "rooms_href"],
+            "WHERE": {},
+            "AS": "TABLE"
+        };
+
+        let expectedRoom = {
+            rooms_fullname: "BumbleBee",
+            rooms_shortname: "BB",
+            rooms_number: "123",
+            rooms_name: "BB_123",
+            rooms_address: "1 Monopoly Street ABC DEF",
+            rooms_lat: 111,
+            rooms_lon: 222,
+            rooms_seats: 1000000,
+            rooms_type: "Airport Size",
+            rooms_furniture: "Teleportation Modules",
+            rooms_href: "http://thelinktothefutureairportbumblebee.future/Monopoly"
+        };
+
+        let expectedResult = {
+            render: "TABLE",
+            result: [expectedRoom]
+        }
+
+        let result = controller.isValid(query);
+        expect(result).to.be.equal(true);
+        let queryResult = controller.query(query);
+        expect(queryResult).to.be.deep.equal(expectedResult)
+    });
+
+    it("Should be able to query with rooms keys. More than one room and building", function () {
+        let aRoom: IRoom = {
+            fullname: "BumbleBee",
+            shortname: "BB",
+            number: "123",
+            name: "BB_123",
+            address: "1 Monopoly Street ABC DEF",
+            lat: 111,
+            lon: 222,
+            seats: 1000000,
+            type: "Airport Size",
+            furniture: "Teleportation Modules",
+            href: "http://thelinktothefutureairportbumblebee.future/Monopoly"
+        };
+
+        let bRoom: IRoom = {
+            fullname: "Apple",
+            shortname: "AA",
+            number: "321",
+            name: "AA_123",
+            address: "9 Shrek Street QWE RTY",
+            lat: 999,
+            lon: -999,
+            seats: 90,
+            type: "Fiona",
+            furniture: "Swamp",
+            href: "http://farfaraway.welcome/palace"
+        };
+
+        let cRoom: IRoom = {
+            fullname: "MapleTree",
+            shortname: "MT",
+            number: "888",
+            name: "MT_888",
+            address: "456 Earth Drive NAT URE",
+            lat: 8531.5,
+            lon: -864.554,
+            seats: 90,
+            type: "Bush",
+            furniture: "Flowers",
+            href: "http://mothernaturearth.soil/trees"
+        };
+
+        let aBuilding: IBuilding = {
+            result: [aRoom, bRoom]
+        };
+
+        let bBuilding: IBuilding = {
+            result: [cRoom]
+        };
+
+        let roomsDataset: Datasets = {
+            "testRooms": [aBuilding, bBuilding]
+        };
+
+        let controller: QueryController = new QueryController(roomsDataset);
+        let query: QueryRequest;
+
+        query = {
+            "GET": ["rooms_fullname",
+                    "rooms_address",
+                    "rooms_href",
+                    "rooms_lat",
+                    "rooms_lon"],
+            "WHERE": {
+                "AND": [
+                    {"GT": {"rooms_seats": 0}},
+                    {"GT": {"rooms_lat": 900}},
+                    {"LT": {"rooms_lon": -100}}
+                ]
+            },
+            "AS": "TABLE"
+        };
+
+        let expectedRooms = [{
+            rooms_fullname: "Apple",
+
+            rooms_address: "9 Shrek Street QWE RTY",
+            rooms_href: "http://farfaraway.welcome/palace",
+            rooms_lat: 999,
+            rooms_lon: -999,
+            },
+            {
+            rooms_fullname: "MapleTree",
+            rooms_address: "456 Earth Drive NAT URE",
+            rooms_href: "http://mothernaturearth.soil/trees",
+            rooms_lat: 8531.5,
+            rooms_lon: -864.554
+            }];
+
+        let expectedResult = {
+            render: "TABLE",
+            result: expectedRooms
+        }
+
+        let result = controller.isValid(query);
+        expect(result).to.be.equal(true);
+        let queryResult = controller.query(query);
+        expect(queryResult).to.be.deep.equal(expectedResult)
+    });
 
 });

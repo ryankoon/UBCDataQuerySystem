@@ -949,7 +949,7 @@ export default class QueryController {
           break;
 
         default:
-          result = 'unknownKey';
+          result = queryKey;
           break;
       }
 
@@ -1017,7 +1017,7 @@ export default class QueryController {
                 break;
 
             default:
-                result = 'unknownKey';
+                result = queryKey;
                 break
         }
 
