@@ -15,7 +15,7 @@ export default class GeoService{
      * Given an address, makes a webservice call that returns a GeoResponse Object
      * Adapted from: https://nodejs.org/api/http.html#http_http_get_options_callback
      * @param address - E.g. 6245 Agronomy Road V6T 1Z4 (Note: address does not have city or province)
-     * @returns {Promise<T>}
+     * @returns {Promise<GeoResponse>}
      */
     public getGeoInfo(address: string): Promise<GeoResponse> {
         let http = require('http');
@@ -53,7 +53,7 @@ export default class GeoService{
 
 
     /**
-     * Given a URL-endoded version of an address, returns API URL to call to get a GeoResponse
+     * Given a URL-encoded version of an address, returns API URL to call to get a GeoResponse
      * @param address
      * @returns {string}
      */
