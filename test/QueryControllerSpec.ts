@@ -210,6 +210,8 @@ describe("QueryController", function () {
       expect(result).to.be.equal('Fail');
       result = controller.translateKey('audit');
       expect(result).to.be.equal('Audit');
+        result = controller.translateKey('year');
+        expect(result).to.be.equal('Year');
       result = controller.translateKey('MacOrWindows');
       expect(result).to.be.equal('MacOrWindows');
     });
@@ -236,6 +238,8 @@ describe("QueryController", function () {
         expect(result).to.be.equal('fail');
         result = controller.reverseKeyTranslation('Audit');
         expect(result).to.be.equal('audit');
+        result = controller.reverseKeyTranslation('Year');
+        expect(result).to.be.equal('year');
         result = controller.reverseKeyTranslation('MacOrWindows');
         expect(result).to.be.equal('MacOrWindows');
     });
