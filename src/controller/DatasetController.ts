@@ -266,7 +266,10 @@ export default class DatasetController {
                         // Means were not doing our normal promise resolution.
                         // need to parse the data and create a series of promises to store the data.
                         zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
-                           let buildingList : Array<string> = htmlParsingUtility.determineValidBuildingList(data);
+                            let buildingCodeList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-code');
+                            let buildingAddressList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-address');
+                            let buildingFullName : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-title', 'a');
+                           // htmlParsingUtility.generateBuildingObjects(buildingList, zip);
                         });
                     }
                     else {
