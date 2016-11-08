@@ -266,11 +266,8 @@ export default class DatasetController {
                         // Means were not doing our normal promise resolution.
                         // need to parse the data and create a series of promises to store the data.
                         zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
-                           htmlParsingUtility.determineValidBuildingList(data);
+                           let buildingList : Array<string> = htmlParsingUtility.determineValidBuildingList(data);
                         });
-                    // need to call index.htm[data] and
-                   //     fs.readFile()
-                   //     htmlParsingUtility.determineValidBuildingList(indexHtml);
                     }
                     else {
                         delete zipObject[rootFolder]; // may not satisfy D3.
