@@ -6,6 +6,7 @@ import Log from "../Util";
 import JSZip = require('jszip');
 import fs = require('fs');
 import path = require('path');
+import HtmlParserUtility from './HtmlParserUtility';
 
 /**
  * In memory representation of all datasets.
@@ -18,6 +19,8 @@ interface responseObject {
     status : Number;
     error : Error;
 }
+let htmlParsingUtility = new HtmlParserUtility();
+
 export default class DatasetController {
 
     private datasets: Datasets = {};
@@ -246,78 +249,87 @@ export default class DatasetController {
       var that = this;
       return new Promise(function (fulfill, reject) {
         try {
-          let myZip = new JSZip();
-          myZip.loadAsync(data, {base64: true})
-          .then(function processZipFile(zip: JSZip) {
-              let processedDataset : {[key:string]:string}  = {};
-              Log.trace('DatasetController::process(..) - unzipped');
-              var fileKeys = Object.keys(zip.files);
-              if (fileKeys.length <= 1) {
-                  reject('Error this zip has no content in it');
-              }
-              let zipObject  = zip.files;
-              let rootFolder:string = Object.keys(zipObject)[0];
-              delete zipObject[rootFolder]
-              let filePromises: Promise<any>[] = [];
+            let myZip = new JSZip();
+            myZip.loadAsync(data, {base64: true})
+                .then(function processZipFile(zip: JSZip) {
+                    let processedDataset: {[key: string]: string} = {};
+                    Log.trace('DatasetController::process(..) - unzipped');
+                    var fileKeys = Object.keys(zip.files);
+                    if (fileKeys.length <= 1) {
+                        reject('Error this zip has no content in it');
+                    }
+                    let zipObject = zip.files;
+                    let rootFolder: string = Object.keys(zipObject)[0];
+                    let filePromises: Promise<any>[] = [];
+                    if (fileKeys.indexOf('index.htm') > -1) {
+                        // TODO: Implement the data parsing for HTML files.
+                        // Means were not doing our normal promise resolution.
+                        // need to parse the data and create a series of promises to store the data.
+                        zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
+                           let buildingList : Array<string> = htmlParsingUtility.determineValidBuildingList(data);
+                        });
+                    }
+                    else {
+                        delete zipObject[rootFolder]; // may not satisfy D3.
+                        for (let filePath in zipObject) {
+                            var fileName: string;
+                            var splitPath: Array<string>;
+                            var parsedFileName: string;
 
-              for (let filePath in zipObject){
-                var fileName:string;
-                var splitPath:Array<string>;
-                var parsedFileName:string;
+                            splitPath = zipObject[filePath]['name'].split(rootFolder);
+                            // only remove root folder path if file is not in root folder
+                            // e.g. list_courses is not in the courses folder
+                            if (splitPath[0] == rootFolder) {
+                                delete splitPath[0];
+                            }
 
-                splitPath = zipObject[filePath]['name'].split(rootFolder);
-                // only remove root folder path if file is not in root folder
-                // e.g. list_courses is not in the courses folder
-                if (splitPath[0] == rootFolder) {
-                  delete splitPath[0];
-                }
+                            parsedFileName = splitPath.join("");
 
-                parsedFileName = splitPath.join("");
+                            let filePromise: Promise<any> = new Promise((yes, reject) => {
+                                let file = parsedFileName;
+                                zipObject[filePath].async('string')
+                                    .then(function storeDataFromFilesInDictionary(data) {
+                                        try {
+                                            processedDataset[file] = JSON.parse(data); // we parse it into json... will succeed
+                                            yes();
+                                        }
+                                        catch (err) {
+                                            Log.error('Error for the parsing of JSON in Process: ' + err.message);
+                                            err.message = 'Error for the parsing of JSON in Process: ' + err.message;
+                                            reject(400);
+                                        }
+                                        // file can now be accessed in dictionary
+                                    })
+                                    .catch(function errorFromFailingToStoreInDict(err) {
+                                        Log.error('Error! : ' + err);
+                                        reject(false);
+                                    });
+                            });
 
-                let filePromise: Promise<any> = new Promise((yes, reject) => {
-                    let file = parsedFileName;
-                    zipObject[filePath].async('string')
-                  .then(function storeDataFromFilesInDictionary(data) {
-                      try {
-                          processedDataset[file] = JSON.parse(data); // we parse it into json... will succeed
-                          yes();
-                      }
-                      catch(err) {
-                          Log.error('Error for the parsing of JSON in Process: ' + err.message);
-                          err.message = 'Error for the parsing of JSON in Process: ' + err.message;
-                          reject(400);
-                      }
-                    // file can now be accessed in dictionary
-                  })
-                  .catch(function errorFromFailingToStoreInDict(err) {
-                    Log.error('Error! : ' + err);
-                    reject(false);
-                  });
+                            filePromises.push(filePromise);
+                        }
+                    }
+                    // i dont think this has to wait.... does it?
+
+                    // wait until all files have been processed and stored in dictionary
+                    Promise.all(filePromises)
+                        .then(() => {
+                            return that.createDataDirectory();
+                        })
+                        .then(() => {
+                            return that.save(id, processedDataset);
+                        }).then((data: Number) => {
+                        fulfill(data);
+                    }).catch((err) => {
+                        Log.error('Error resolving filepromises... ' + err);
+                        reject(400);
+
+                    });
+                })
+                .catch(function (err) {
+                    Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
+                    reject(err);
                 });
-
-                filePromises.push(filePromise);
-              }
-              // i dont think this has to wait.... does it?
-
-              // wait until all files have been processed and stored in dictionary
-              Promise.all(filePromises)
-                  .then(() =>{
-                      return that.createDataDirectory();
-                  })
-                  .then(() => {
-                    return that.save(id, processedDataset);
-                  }).then((data : Number) => {
-                      fulfill(data);
-                  }).catch((err) => {
-                      Log.error('Error resolving filepromises... ' + err);
-                      reject(400);
-
-                  });
-            })
-            .catch(function (err) {
-              Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
-              reject(err);
-            });
           }
         catch (err) {
             Log.trace('DatasetController::process(..) - ERROR: ' + err);
