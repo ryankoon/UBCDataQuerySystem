@@ -7,6 +7,7 @@ import JSZip = require('jszip');
 import fs = require('fs');
 import path = require('path');
 import HtmlParserUtility from './HtmlParserUtility';
+import {ASTNode} from "parse5";
 
 /**
  * In memory representation of all datasets.
@@ -266,10 +267,19 @@ export default class DatasetController {
                         // Means were not doing our normal promise resolution.
                         // need to parse the data and create a series of promises to store the data.
                         zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
-                            let buildingCodeList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-code');
-                            let buildingAddressList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-address');
-                            let buildingFullName : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-title', 'a');
+                      //      let buildingCodeList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-code');
+                            //let buildingAddressList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-address');
+                    //        let buildingFullName : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-title', 'a');
                            // htmlParsingUtility.generateBuildingObjects(buildingList, zip);
+                           let output : Array<ASTNode> = htmlParsingUtility.generateASTNodeRows(data);
+                            let validCodeArray : Array<string> = [];
+                            htmlParsingUtility.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-code', 'class', '', validCodeArray);
+                            let validBuildingNameArray : Array<string> = [];
+                            htmlParsingUtility.buildSetOfStringsFromRow(output,'views-field views-field-title', 'class', 'a', validBuildingNameArray );
+                            //let validHrefArray : Array<string> = [];
+                          //  let regexForHref = new Regex
+                          //  htmlParsingUtility.buildSetOfStringsFromRow(output,'', 'href', validHrefArray );
+
                         });
                     }
                     else {

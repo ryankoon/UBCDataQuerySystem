@@ -58,6 +58,73 @@ export default class HtmlParserUtility {
         return '';
     }
 
+    public generateASTNodeRows(json : string) :Array<ASTNode> {
+        const document: ASTNode = parse5.parse(json);
+        let tableArray : Array<ASTNode> = [];
+        this.recursivelyBuildASTRows(document, tableArray);
+        return tableArray;
+    }
+
+    public recursivelyBuildASTRows(nodeList : ASTNode, tableRows :Array<ASTNode>) {
+        if (nodeList && nodeList.childNodes && nodeList.childNodes.length) {
+            var childCount = nodeList.childNodes.length;
+            for (var i = 0; i < childCount; i++) {
+                if (nodeList.childNodes[i] && nodeList.childNodes[i].nodeName && nodeList.childNodes[i].nodeName == "tr" && nodeList.childNodes[i].parentNode.nodeName != "thead") {
+                    tableRows.push(nodeList.childNodes[i]);
+                }
+                this.recursivelyBuildASTRows(nodeList.childNodes[i], tableRows);
+            }
+        }
+    }
+    public buildSetOfStringsFromRow(rows : Array<ASTNode>, target : string, element : string ,nameTarget : string, validKeyArray : Array<string>) : Array<String>{
+        for (var i=0; i < rows.length; i ++){
+            const nodeObject : ASTNode= rows[i];
+            if (nodeObject) {
+                this.recurseOnASTNode(nodeObject, target, element, nameTarget, validKeyArray);
+            }
+        }
+        return validKeyArray;
+    }
+    public recurseOnASTNode(nodeList : ASTNode, target : string, element : string, nameTarget : string, validKeyArray : Array<string>) : Array<String> {
+        if (nodeList && nodeList.childNodes) {
+            for (var i = 0; i < nodeList.childNodes.length; i++) {
+                if (nodeList && nodeList.attrs && nodeList.attrs.length > 0) {
+                    for (var k = 0; k < nodeList.attrs.length; k++) {
+                        if (nodeList.attrs[k].value === target && nodeList.attrs[k].name === element) {
+                            let output = this.findResultWithNameTarget(nodeList.childNodes[i], nameTarget);
+                            if (output !== undefined) {
+                                validKeyArray.push(output);
+                            }
+                        }
+                    }
+                }
+                let nextASTNode = nodeList.childNodes[i];
+                this.recurseOnASTNode(nextASTNode, target, element, nameTarget, validKeyArray);
+            }
+        }
+        else {
+            return validKeyArray;
+        }
+    }
+    /*
+        Finds the value of the name target
+     */
+    public findResultWithNameTarget(childNode : ASTNode, nameTarget : string) : string {
+            switch(nameTarget) {
+                case 'a' : // this 'a' component is getting called recursively somehow its not the loop...
+                    if (childNode.childNodes) {
+                            if (childNode.childNodes[0].value !== undefined) {
+                                return childNode.childNodes[0].value;
+                            }
+                        }
+                    break;
+                default:
+                    if (childNode.value.trim() !== "") {
+                            return childNode.value.trim();
+                        }
+                    break;
+            }
+    }
 
     /*
         When an html file is passed into the datasetcontroller, determineValidBuildingList will parse that file and create
@@ -93,9 +160,9 @@ export default class HtmlParserUtility {
                            if (element !== undefined)  {
                                for (var z =0; z < nodeList.childNodes[i].childNodes.length; z++){
                                    // need to look for the element now.
-                                   if (nodeList.childNodes[i].childNodes[z] && nodeList.childNodes[i].attrs.length > 0  && nodeList.childNodes[i].attrs[j].value) {
-                                       console.log(nodeList.childNodes[i].childNodes[z].attrs[j].value === element);
-                                   }
+                                   //if (nodeList.childNodes[i].childNodes[z] && nodeList.childNodes[i].attrs.length > 0  && nodeList.childNodes[i].attrs[j].value) {
+                                    //   console.log(nodeList.childNodes[i].childNodes[z].attrs[j].value === element);
+                                  // }
                                }
                                 console.log("hello");
                             }
