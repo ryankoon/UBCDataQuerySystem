@@ -389,7 +389,7 @@ export default class QueryController {
 
         courses.forEach((course) => {
           // combine results of all courses
-          let courseResults: IObject;
+          let courseResults: IObject[];
           courseResults = this.getStringIndexKVByNumber(this.datasets, 0)["value"][course]["result"];
           if (courseResults) {
               allCourseResults = allCourseResults.concat(courseResults);
@@ -948,8 +948,12 @@ export default class QueryController {
           result = 'Audit';
           break;
 
+          case 'year':
+            result = 'Year';
+            break;
+
         default:
-          result = 'unknownKey';
+          result = queryKey;
           break;
       }
 
@@ -1016,8 +1020,12 @@ export default class QueryController {
                 result = 'audit';
                 break;
 
+            case 'Year':
+                result = 'year';
+                break;
+
             default:
-                result = 'unknownKey';
+                result = queryKey;
                 break
         }
 

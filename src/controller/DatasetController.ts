@@ -7,6 +7,7 @@ import JSZip = require('jszip');
 import fs = require('fs');
 import path = require('path');
 import HtmlParserUtility from './HtmlParserUtility';
+import {ASTNode} from "parse5";
 
 /**
  * In memory representation of all datasets.
@@ -266,10 +267,11 @@ export default class DatasetController {
                         // Means were not doing our normal promise resolution.
                         // need to parse the data and create a series of promises to store the data.
                         zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
-                            let buildingCodeList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-code');
-                            let buildingAddressList : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-field-building-address');
-                            let buildingFullName : Array<string> = htmlParsingUtility.determineValidBuildingList(data, 'views-field views-field-title', 'a');
-                           // htmlParsingUtility.generateBuildingObjects(buildingList, zip);
+                            htmlParsingUtility.intializeHtmlDataStorage(data, zip).then( data => {
+                               // will need to handle data in order to pass it to save.
+                               console.log('data');
+                            });
+
                         });
                     }
                     else {
@@ -293,7 +295,7 @@ export default class DatasetController {
                                 zipObject[filePath].async('string')
                                     .then(function storeDataFromFilesInDictionary(data) {
                                         try {
-                                            processedDataset[file] = JSON.parse(data); // we parse it into json... will succeed
+                                            processedDataset[file] = JSON.parse(data);
                                             yes();
                                         }
                                         catch (err) {
@@ -312,8 +314,6 @@ export default class DatasetController {
                             filePromises.push(filePromise);
                         }
                     }
-                    // i dont think this has to wait.... does it?
-
                     // wait until all files have been processed and stored in dictionary
                     Promise.all(filePromises)
                         .then(() => {
