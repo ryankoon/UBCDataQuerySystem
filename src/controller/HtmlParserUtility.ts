@@ -30,7 +30,7 @@ export default class HtmlParserUtility {
     Assumes order and sizes of array will remain the same.
     If this changes, we can construct object sooner to overcome this.
     */
-    public intializeHtmlDataStorage(data : string, zipObject : JSZip) : IBuilding {
+    public intializeHtmlDataStorage(data : string, zipObject : JSZip) : Promise<IBuilding> {
         return new Promise( (fulfill, reject) => {
             let validCodeArray : Array<string> = [];
             let validBuildingNameArray : Array<string> = [];
@@ -73,7 +73,7 @@ export default class HtmlParserUtility {
 
     }
 
-    public constructRoomObjects(validFieldPaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : IBuilding {
+    public constructRoomObjects(validFieldPaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : Promise<IBuilding> {
         let zipObject = zip.files;
         let mTableArray = mainTableArray;
         let promiseArray : Array<Promise<Array<IRoom>>> ;
@@ -128,8 +128,9 @@ export default class HtmlParserUtility {
         }
         // !!! issue is returning the ibuilding currently
         let b = Promise.all(promiseArray).then(data => {
+            let singleArrayofRooms: IRoom[] = [].concat.apply([], data);
             let out : IBuilding = {
-                result : data
+                result : singleArrayofRooms
             }
             return out;
         });
