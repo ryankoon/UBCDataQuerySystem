@@ -50,6 +50,7 @@ export default class HtmlParserUtility {
             /*
             For every
              */
+
             return this.constructRoomObjects(validFilePaths, zipObject, tempMainTableObject)
         });
     }
@@ -76,15 +77,15 @@ export default class HtmlParserUtility {
     public constructRoomObjects(validFieldPaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : Promise<IBuilding> {
         let zipObject = zip.files;
         let mTableArray = mainTableArray;
-        let promiseArray : Array<Promise<Array<IRoom>>> ;
+        let promiseArray : Array<Promise<Array<IRoom>>> =[];
         for (var i=0 ; i < validFieldPaths.length; i ++){
             let promiseForRoom : Promise<Array<IRoom>>;
            promiseForRoom  = new Promise( (fulfill, reject) => {
-                zipObject[validFieldPaths[i]].async('string').then(result => {
+                zipObject[validFieldPaths[i]].async('string')
+                    .then(result => {
                     let roomArray : Array<IRoom> = [];
                     // generate the table
                     let output: Array<ASTNode> = this.generateASTNodeRows(result);
-                    // how do we know who is who?
 
                     let roomNumberArray: Array<string> = [];
                     let capacityNumberArray: Array<string> = [];
@@ -120,13 +121,16 @@ export default class HtmlParserUtility {
                         roomArray.push(temp);
                     }
                     // roomArray is Array<IRoom>
-                    fulfill(roomArray);
-                });
+                    // Some kind of issue is occurring with the promises.....
+                        fulfill(roomArray);
+                }).catch( err => {
+                    Log.error('Error with promises constructing room objects');
+                   reject(err);
+               });
             });
             // promiseArray is Array<Promise<Array<IRoom>>>
             promiseArray.push(promiseForRoom);
         }
-        // !!! issue is returning the ibuilding currently
         let b = Promise.all(promiseArray).then(data => {
             let singleArrayofRooms: IRoom[] = [].concat.apply([], data);
             let out : IBuilding = {
@@ -142,7 +146,7 @@ export default class HtmlParserUtility {
         let files = zip.files;
         let keyPaths : Array<string> = Object.keys(files);
         let pathsToRead : Array<string> = [];
-        let path = "campus/discover/buildings-and-classrooms/"
+        let path = "campus/discover/buildings-and-classrooms/";
         validCodeArray.forEach( (item, index) => {
             let tempFilePath =  path + item;
            if (keyPaths.indexOf(tempFilePath) > -1){
@@ -153,7 +157,6 @@ export default class HtmlParserUtility {
 
         return pathsToRead;
     }
-
 
     public generateASTNodeRows(json : string) :Array<ASTNode> {
         const document: ASTNode = parse5.parse(json);

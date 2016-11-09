@@ -19,7 +19,8 @@ describe("HTML Parsing Utility for Deliverable 3", () => {
                 Log.test('uhoh mock data error : ' + err);
             }
             let controller = new htmlParserUtility();
-           // let out = controller(data.toString(), 'views-field views-field-field-building-code');
+            let myZip = new JSZip();
+            let out = controller.intializeHtmlDataStorage(data.toString(), myZip);
             // expect(out.length === 74).to.be.true;
             done();
         });
