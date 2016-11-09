@@ -6,11 +6,14 @@ import Log from "../src/Util";
 import JSZip = require('jszip');
 import {expect} from 'chai';
 import fs = require('fs');
-import testGlobals from '../test/TestGlobals';
-import {Datasets} from "../src/controller/DatasetController";
 import parse5 = require('parse5');
 import path = require('path');
 import {mainTableInfo} from "../src/controller/HtmlParserUtility";
+import {roomPageTableInfo} from "../src/controller/HtmlParserUtility";
+import {IRoom} from "../src/controller/IBuilding";
+import {ASTNode} from 'parse5';
+
+
 describe("HTML Parsing Utility for Deliverable 3", () => {
     it('it initializes a list of rows and grabs the valid keys', done => {
         let html = '<html><head></head><body><table> ' +
@@ -90,6 +93,48 @@ describe("HTML Parsing Utility for Deliverable 3", () => {
         expect(out[2].code === 'GWB').to.be.true;
         expect(out[2].buildingName === 'cardboard box').to.be.true;
         expect(out[2].address === 'Aleks backyard').to.be.true;
+        done();
+    });
+    it('collapses a report of rooms together into a series of objects', done => {
+        let html = '<html><head></head><body><table> ' +
+            '<thead>' +
+            '<tr>' +
+            '<th class="views-field views-field-field-building-code">TH</th> ' +
+            '</tr>' +
+            '</thead>' +
+            ' <tbody>' +
+            '<tr class="odds views-rows-first"> ' +
+            '<td class="views-field views-field-field-room-number"><a>123</a></td>' +
+            '<td class="views-field views-field-field-room-capacity">13</td>' +
+            '<td class="views-field views-field-field-room-furniture">someFurntype</td>' +
+            '<td class="views-field views-field-field-room-type">someRoomType</td>' +
+            '</tr>' +
+            '<tr class="evens views-rows-first"> ' +
+            '<td class="views-field views-field-field-room-number"><a>1</a></td>' +
+            '<td class="views-field views-field-field-room-capacity">3</td>' +
+            '<td class="views-field views-field-field-room-furniture">anotherFurntype</td>' +
+            '<td class="views-field views-field-field-room-type">anotherRoomType</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>' +
+            '</body>' +
+            '</html>';
+        let controller = new htmlParserUtility();
+        let nodeList : Array<ASTNode> = controller.generateASTNodeRows(html);
+
+        let mainTableInfo : mainTableInfo= {
+            address : 'some_address',
+            code : 'AEIOU',
+            buildingName : 'somewhere'
+        };
+        let currentRoomsValues : Array<roomPageTableInfo> =  controller.generateTempRoomPageTableInfoArray(nodeList);
+
+        // !!! to fix: this
+
+        // we should expect the output from this.
+      //  let out : Array<IRoom> = controller.generateIRoomArray(mainTableInfo, currentRoomsValues);
+        // now we need to expect the output from this.
+      //  expect(out.length === 2).to.be.true;
         done();
     });
 });

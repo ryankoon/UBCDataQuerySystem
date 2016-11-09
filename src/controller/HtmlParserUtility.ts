@@ -113,7 +113,7 @@ export default class HtmlParserUtility {
         // TODO: update latitude and longitude.
         // TODO: update parser for href. constructing it is lazy.
         let iRoomArray : Array<IRoom> = [];
-        let longestColumnLength = roomsInfo[0].roomNumber;
+        let longestColumnLength = roomsInfo[0].length;
 
         for (var j = 0; j < longestColumnLength.length; j++) {
             let shortname = mainTableObject.code + '_' + longestColumnLength[j];
