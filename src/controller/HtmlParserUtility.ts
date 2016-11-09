@@ -16,6 +16,13 @@ export interface mainTableInfo {
     code : string;
     buildingName : string;
 }
+export interface roomPageTableInfo {
+    roomNumber: string,
+    capacityNumber : number,
+    roomType : string,
+    furnitureType : string
+}
+
 
 export default class HtmlParserUtility {
     /*
@@ -38,6 +45,7 @@ export default class HtmlParserUtility {
 
             let output : Array<ASTNode> = this.generateASTNodeRows(data);
             // call build on each proroperty to generate its array.
+
             this.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-code', 'class', '', validCodeArray);
             this.buildSetOfStringsFromRow(output,'views-field views-field-title', 'class', 'a', validBuildingNameArray );
             this.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-address', 'class', '', validAddressArray);
@@ -61,7 +69,6 @@ export default class HtmlParserUtility {
         let length = address.length;
         let output : Array<mainTableInfo> = [];
 
-
         for (var i=0; i < length; i ++){
             let temp : mainTableInfo = {
                 'address' : address[i],
@@ -69,8 +76,65 @@ export default class HtmlParserUtility {
                 'buildingName' : building[i]
             }
             output.push(temp);
-    }
+        }
         return output;
+    }
+
+    public generateTempRoomPageTableInfoArray (input : Array<ASTNode>) : Array<roomPageTableInfo> {
+        let roomNumberArray: Array<string> = [];
+        let capacityNumberArray: Array<string> = [];
+        let furnitureTypeArray: Array<string> = [];
+        let roomTypeArray: Array<string> = [];
+
+        let outputArray : Array<roomPageTableInfo> = [];
+
+        this.buildSetOfStringsFromRow(input, 'views-field views-field-field-room-number', 'class', 'a', roomNumberArray);
+        this.buildSetOfStringsFromRow(input, 'views-field views-field-field-room-capacity', 'class', '', capacityNumberArray);
+        this.buildSetOfStringsFromRow(input, 'views-field views-field-field-room-furniture', 'class', '', furnitureTypeArray);
+        this.buildSetOfStringsFromRow(input, 'views-field views-field-field-room-type', 'class', '', roomTypeArray);
+        let collapsedArray : Array<roomPageTableInfo> = [];
+
+        for (var i=0; i < roomNumberArray.length; i++){
+            let temp : roomPageTableInfo = {
+                'roomNumber' : roomNumberArray[i],
+                'capacityNumber' : parseInt(capacityNumberArray[i]),
+                'furnitureType' : furnitureTypeArray[i],
+                'roomType' : roomTypeArray[i]
+            }
+            outputArray.push(temp);
+        }
+        return outputArray;
+
+    }
+
+    public generateIRoomArray(mainTableObject : mainTableInfo, roomsInfo : Array<roomPageTableInfo>) : Array<IRoom> {
+
+        // ASSUMES: no empty entries in a table.
+        // TODO: update latitude and longitude.
+        // TODO: update parser for href. constructing it is lazy.
+        let iRoomArray : Array<IRoom> = [];
+        let longestColumnLength = roomsInfo[0].roomNumber;
+
+        for (var j = 0; j < longestColumnLength.length; j++) {
+            let shortname = mainTableObject.code + '_' + longestColumnLength[j];
+            let hrefExtension: string = mainTableObject.code + '-' + longestColumnLength[j];
+            let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
+            let temp: IRoom = {
+                fullname: mainTableObject.buildingName,
+                shortname: mainTableObject.code,
+                number: roomsInfo[j].roomNumber,
+                name: shortname,
+                address: mainTableObject.address,
+                lat: 123131,
+                lon: 1231231,
+                seats: roomsInfo[j].capacityNumber,
+                type: roomsInfo[j].roomType,
+                furniture: roomsInfo[j].furnitureType,
+                href: href
+            }
+            iRoomArray.push(temp);
+        }
+        return iRoomArray;
 
     }
 
@@ -82,55 +146,13 @@ export default class HtmlParserUtility {
            promiseForRoom  = new Promise( (fulfill, reject) => {
                zipObject[validFieldPaths[i]].async('string')
                     .then(result => {
-                        let mTableArray = mainTableArray;
                         let roomArray : Array<IRoom> = [];
                     // generate the table
                     let output: Array<ASTNode> = this.generateASTNodeRows(result);
-
-                    let roomNumberArray: Array<string> = [];
-                    let capacityNumberArray: Array<string> = [];
-                    let furnitureTypeArray: Array<string> = [];
-                    let roomTypeArray: Array<string> = [];
-                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-number', 'class', 'a', roomNumberArray);
-                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-capacity', 'class', '', capacityNumberArray);
-                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-furniture', 'class', '', furnitureTypeArray);
-                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-type', 'class', '', roomTypeArray);
-
-                    // ASSUMES: no empty entries in a table.
-                    // TODO: update latitude and longitude.
-                    // TODO: update parser for href. constructing it is lazy.
-                        console.log(i);
-                        for (var j = 0; j < roomNumberArray.length; j++) {
-                      if (mainTableArray[i] === undefined){
-                          console.log(i);
-                          console.log('break here');
-                          console.log(mainTableArray[i]);
-                      }
-
-                        let shortname = mTableArray[i].code + '_' + roomNumberArray[j];
-                        let hrefExtension: string = mTableArray[i].code + '-' + roomNumberArray[j];
-                        let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
-                        let temp: IRoom;
-                        temp = {
-                            fullname: mTableArray[i].buildingName,
-                            shortname: mTableArray[i].code,
-                            number: roomNumberArray[j],
-                            name: shortname,
-                            address: mTableArray[i].address,
-                            lat: 123131,
-                            lon: 1231231,
-                            seats: parseInt(capacityNumberArray[j]),
-                            type: roomTypeArray[j],
-                            furniture: furnitureTypeArray[j],
-                            href: href
-                        }
-                        // temp is Iroom
-                        roomArray.push(temp);
-                    }
-                    // roomArray is Array<IRoom>
-                    // Some kind of issue is occurring with the promises.....
-                        fulfill(roomArray);
-                }).catch( err => {
+                    let currentRoomsValues : Array<roomPageTableInfo> =  this.generateTempRoomPageTableInfoArray(output);
+                    let tempRoomArray : Array<IRoom>  = this.generateIRoomArray(mainTableArray[i], currentRoomsValues);
+                    fulfill(tempRoomArray);
+                    }).catch( err => {
                     Log.error('Error with promises constructing room objects');
                    reject(err);
                });
