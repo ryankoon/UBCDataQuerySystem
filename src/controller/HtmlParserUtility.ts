@@ -11,7 +11,7 @@ import Log from "../Util";
 import fs = require('fs');
 
 
-interface mainTableInfo {
+export interface mainTableInfo {
     address : string;
     code : string;
     buildingName : string;
@@ -76,14 +76,14 @@ export default class HtmlParserUtility {
 
     public constructRoomObjects(validFieldPaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : Promise<IBuilding> {
         let zipObject = zip.files;
-        let mTableArray = mainTableArray;
         let promiseArray : Array<Promise<Array<IRoom>>> =[];
-        for (var i=0 ; i < validFieldPaths.length; i ++){
+        for (var i=0; i < validFieldPaths.length - 1; i++){
             let promiseForRoom : Promise<Array<IRoom>>;
            promiseForRoom  = new Promise( (fulfill, reject) => {
-                zipObject[validFieldPaths[i]].async('string')
+               zipObject[validFieldPaths[i]].async('string')
                     .then(result => {
-                    let roomArray : Array<IRoom> = [];
+                        let mTableArray = mainTableArray;
+                        let roomArray : Array<IRoom> = [];
                     // generate the table
                     let output: Array<ASTNode> = this.generateASTNodeRows(result);
 
@@ -99,7 +99,14 @@ export default class HtmlParserUtility {
                     // ASSUMES: no empty entries in a table.
                     // TODO: update latitude and longitude.
                     // TODO: update parser for href. constructing it is lazy.
-                    for (var j = 0; j < roomNumberArray.length; j++) {
+                        console.log(i);
+                        for (var j = 0; j < roomNumberArray.length; j++) {
+                      if (mainTableArray[i] === undefined){
+                          console.log(i);
+                          console.log('break here');
+                          console.log(mainTableArray[i]);
+                      }
+
                         let shortname = mTableArray[i].code + '_' + roomNumberArray[j];
                         let hrefExtension: string = mTableArray[i].code + '-' + roomNumberArray[j];
                         let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;

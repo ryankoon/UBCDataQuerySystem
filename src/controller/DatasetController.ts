@@ -271,7 +271,8 @@ export default class DatasetController {
                                // will need to handle data in order to pass it to save.
                                console.log('data');
                             });
-
+                        }).then(result => {
+                           console.log(result);
                         });
                     }
                     else {
