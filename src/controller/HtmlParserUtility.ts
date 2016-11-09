@@ -6,8 +6,9 @@ import {ASTNode} from "parse5";
 
 var parse5 = require('parse5');
 import JSZip = require('jszip');
-import {IBuilding} from "./IBuilding";
+import {IBuilding, IRoom} from "./IBuilding";
 import Log from "../Util";
+import fs = require('fs');
 
 
 interface mainTableInfo {
@@ -29,12 +30,11 @@ export default class HtmlParserUtility {
     Assumes order and sizes of array will remain the same.
     If this changes, we can construct object sooner to overcome this.
     */
-    public intializeHtmlDataStorage(data : string, zipObject : JSZip) : Promise<string> {
+    public intializeHtmlDataStorage(data : string, zipObject : JSZip) : IBuilding {
         return new Promise( (fulfill, reject) => {
             let validCodeArray : Array<string> = [];
             let validBuildingNameArray : Array<string> = [];
             let validAddressArray : Array<string> = [];
-            let validFilePaths : Array<string> = [];
 
             let output : Array<ASTNode> = this.generateASTNodeRows(data);
             // call build on each proroperty to generate its array.
@@ -43,16 +43,14 @@ export default class HtmlParserUtility {
             this.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-address', 'class', '', validAddressArray);
 
             let tempMainTableObject : Array<mainTableInfo> = this.createMainTableInfoObject(validAddressArray, validCodeArray, validBuildingNameArray);
-            console.log(tempMainTableObject);
             /*
             every room gets a IRoom object.
              */
-
-            validFilePaths = this.readValidBuildingHtml(validCodeArray, zipObject);
-
-           // this.constructRoomObjects(validFilePaths, validCodeArray, validBuildingNameArray, validAddressArray, validFilePaths);
-
-
+            let validFilePaths  : Array<string>= this.readValidBuildingHtml(validCodeArray, zipObject);
+            /*
+            For every
+             */
+            return this.constructRoomObjects(validFilePaths, zipObject, tempMainTableObject)
         });
     }
     public createMainTableInfoObject (address : Array<string>, code : Array<string>, building : Array<string>) : Array<mainTableInfo> {
@@ -70,13 +68,72 @@ export default class HtmlParserUtility {
                 'buildingName' : building[i]
             }
             output.push(temp);
-        }
+    }
         return output;
 
     }
 
-    public constructRoomObjects(validFieldPaths : Array<string>) {
-        return ['12313'];
+    public constructRoomObjects(validFieldPaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : IBuilding {
+        let zipObject = zip.files;
+        let mTableArray = mainTableArray;
+        let promiseArray : Array<Promise<Array<IRoom>>> ;
+        for (var i=0 ; i < validFieldPaths.length; i ++){
+            let promiseForRoom : Promise<Array<IRoom>>;
+           promiseForRoom  = new Promise( (fulfill, reject) => {
+                zipObject[validFieldPaths[i]].async('string').then(result => {
+                    let roomArray : Array<IRoom> = [];
+                    // generate the table
+                    let output: Array<ASTNode> = this.generateASTNodeRows(result);
+                    // how do we know who is who?
+
+                    let roomNumberArray: Array<string> = [];
+                    let capacityNumberArray: Array<string> = [];
+                    let furnitureTypeArray: Array<string> = [];
+                    let roomTypeArray: Array<string> = [];
+                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-number', 'class', 'a', roomNumberArray);
+                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-capacity', 'class', '', capacityNumberArray);
+                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-furniture', 'class', '', furnitureTypeArray);
+                    this.buildSetOfStringsFromRow(output, 'views-field views-field-field-room-type', 'class', '', roomTypeArray);
+
+                    // ASSUMES: no empty entries in a table.
+                    // TODO: update latitude and longitude.
+                    // TODO: update parser for href. constructing it is lazy.
+                    for (var j = 0; j < roomNumberArray.length; j++) {
+                        let shortname = mTableArray[i].code + '_' + roomNumberArray[j];
+                        let hrefExtension: string = mTableArray[i].code + '-' + roomNumberArray[j];
+                        let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
+                        let temp: IRoom;
+                        temp = {
+                            fullname: mTableArray[i].buildingName,
+                            shortname: mTableArray[i].code,
+                            number: roomNumberArray[j],
+                            name: shortname,
+                            address: mTableArray[i].address,
+                            lat: 123131,
+                            lon: 1231231,
+                            seats: parseInt(capacityNumberArray[j]),
+                            type: roomTypeArray[j],
+                            furniture: furnitureTypeArray[j],
+                            href: href
+                        }
+                        // temp is Iroom
+                        roomArray.push(temp);
+                    }
+                    // roomArray is Array<IRoom>
+                    fulfill(roomArray);
+                });
+            });
+            // promiseArray is Array<Promise<Array<IRoom>>>
+            promiseArray.push(promiseForRoom);
+        }
+        // !!! issue is returning the ibuilding currently
+        let b = Promise.all(promiseArray).then(data => {
+            let out : IBuilding = {
+                result : data
+            }
+            return out;
+        });
+        return b;
     }
 
     public readValidBuildingHtml(validCodeArray : Array<string>, zip : JSZip) : Array<string>  {
@@ -96,28 +153,6 @@ export default class HtmlParserUtility {
         return pathsToRead;
     }
 
-    public storeIndividualBuildingObject(document : ASTNode, id : string, storage : Object) : string {
-        /*
-        Needs a series of cases. We need to make multiple searches for each and every key
-         rooms_fullname: string; Full building name (e.g., "Hugh Dempster Pavilion").
-         rooms_shortname: string; Short building name (e.g., "DMP").
-         rooms_number: string; The room number. Not always a number, so represented as a string.
-         rooms_name: string; The room id; should be rooms_shortname+"_"+rooms_number.
-         rooms_address: string; The building address. (e.g., "6245 Agronomy Road V6T 1Z4").
-         rooms_lat: number; The latitude of the building. Instructions for getting this field are below.
-         rooms_lon: number; The latitude of the building. Instructions for getting this field are below.
-         rooms_seats: number; The number of seats in the room.
-         rooms_type: string; The room type (e.g., "Small Group").
-         rooms_furniture: string; The room type (e.g., "Classroom-Movable Tables & Chairs").
-         rooms_href: string; The link to full details online (e.g., "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/DMP-201").
-         */
-        // search for file
-        // read file.
-        // use recursivelySearchAndBuildListFromTable to build keys
-        // for file.
-    //    let fullName = this.determineBuildingFullName(document);
-        return '';
-    }
 
     public generateASTNodeRows(json : string) :Array<ASTNode> {
         const document: ASTNode = parse5.parse(json);
@@ -144,19 +179,12 @@ export default class HtmlParserUtility {
         }
         return validKeyArray;
     }
-    // !!! differences is that I need to find the 'name' and 'value' and if its an href or a tag i need to diverge.
     public recurseOnASTNode(nodeList : ASTNode, target : string, element : string, nameTarget : string, validKeyArray : Array<string>) : Array<String> {
         if (nodeList && nodeList.childNodes) {
             for (var i = 0; i < nodeList.childNodes.length; i++) {
                 if (nodeList && nodeList.attrs && nodeList.attrs.length > 0) {
                     for (var k = 0; k < nodeList.attrs.length; k++) {
-                        console.log(nodeList.attrs[k].value);
-                        console.log(target);
-                        console.log(nodeList.attrs[k].name);
-                        console.log(element);
-
                         if (nodeList.attrs[k].value === target && nodeList.attrs[k].name === element) {
-                            console.log(nodeList.attrs[k].value);
                             {
                                 let output = this.findResultWithNameTarget(nodeList.childNodes[i], nameTarget);
                                 if (output !== undefined) {
@@ -192,32 +220,5 @@ export default class HtmlParserUtility {
                         }
                     break;
             }
-    }
-    /*
-        TODO: Returns buildings shortname
-     */
-    public determineBuildingShortName() : String {
-        return '1';
-    }
-
-    /*
-       TODO: Returns boolean as to whether there is a room table.
-     */
-    public checkIfBuildingHasRoomTable() : boolean {
-           return false;
-    }
-
-    /*
-       TODO: Returns a single instance of a room number.
-     */
-    public determineRoomNumber() : String {
-        return '1';
-    }
-
-    /*
-        TODO: Returns a single instance of a buildings fullname.
-     */
-    public determineBuildingFullName() : String {
-        return '1';
     }
 }
