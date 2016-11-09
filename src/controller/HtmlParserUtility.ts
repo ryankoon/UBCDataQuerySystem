@@ -6,6 +6,15 @@ import {ASTNode} from "parse5";
 
 var parse5 = require('parse5');
 import JSZip = require('jszip');
+import {IBuilding} from "./IBuilding";
+import Log from "../Util";
+
+
+interface mainTableInfo {
+    address : string;
+    code : string;
+    buildingName : string;
+}
 
 export default class HtmlParserUtility {
     /*
@@ -15,27 +24,82 @@ export default class HtmlParserUtility {
       */
 
     /*
-        Returns a list of building objects filled with parsed information
-    */
-    public generateBuildingObjects(idList : Array<string>, buildingList : Array<string>, addressList : Array<string>, zip : JSZip) : string {
-        let genericZipObjectIndex = 'campus/discover/buildings-and-classrooms/';
-        let zipFileObject = zip.files;
-        /*
-        !!! TODO: iterate on this for all elements. start with 1 initially.
-         */
-        zipFileObject[genericZipObjectIndex + idList[0]].async('string').then( data => {
-            const document:ASTNode = parse5.parse(data);
-            let tempObject : Object;
-            this.storeIndividualBuildingObject(document, idList[0], tempObject);
-        });
-        return 'json';
+    Promises to return a JSON string once all valid buildings are successfully read from file.
 
+    Assumes order and sizes of array will remain the same.
+    If this changes, we can construct object sooner to overcome this.
+    */
+    public intializeHtmlDataStorage(data : string, zipObject : JSZip) : Promise<string> {
+        return new Promise( (fulfill, reject) => {
+            let validCodeArray : Array<string> = [];
+            let validBuildingNameArray : Array<string> = [];
+            let validAddressArray : Array<string> = [];
+            let validFilePaths : Array<string> = [];
+
+            let output : Array<ASTNode> = this.generateASTNodeRows(data);
+            // call build on each proroperty to generate its array.
+            this.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-code', 'class', '', validCodeArray);
+            this.buildSetOfStringsFromRow(output,'views-field views-field-title', 'class', 'a', validBuildingNameArray );
+            this.buildSetOfStringsFromRow(output, 'views-field views-field-field-building-address', 'class', '', validAddressArray);
+
+            let tempMainTableObject : Array<mainTableInfo> = this.createMainTableInfoObject(validAddressArray, validCodeArray, validBuildingNameArray);
+            console.log(tempMainTableObject);
+            /*
+            every room gets a IRoom object.
+             */
+
+            validFilePaths = this.readValidBuildingHtml(validCodeArray, zipObject);
+
+           // this.constructRoomObjects(validFilePaths, validCodeArray, validBuildingNameArray, validAddressArray, validFilePaths);
+
+
+        });
+    }
+    public createMainTableInfoObject (address : Array<string>, code : Array<string>, building : Array<string>) : Array<mainTableInfo> {
+        if (address.length !== code.length || code.length !== building.length || building.length !== address.length){
+            Log.error("We have an error, the length of the object should be identical");
+        }
+        let length = address.length;
+        let output : Array<mainTableInfo> = [];
+
+
+        for (var i=0; i < length; i ++){
+            let temp : mainTableInfo = {
+                'address' : address[i],
+                'code' : code[i],
+                'buildingName' : building[i]
+            }
+            output.push(temp);
+        }
+        return output;
+
+    }
+
+    public constructRoomObjects(validFieldPaths : Array<string>) {
+        return ['12313'];
+    }
+
+    public readValidBuildingHtml(validCodeArray : Array<string>, zip : JSZip) : Array<string>  {
+
+        let files = zip.files;
+        let keyPaths : Array<string> = Object.keys(files);
+        let pathsToRead : Array<string> = [];
+        let path = "campus/discover/buildings-and-classrooms/"
+        validCodeArray.forEach( (item, index) => {
+            let tempFilePath =  path + item;
+           if (keyPaths.indexOf(tempFilePath) > -1){
+               // we found a match!
+               pathsToRead.push(tempFilePath);
+           }
+        });
+
+        return pathsToRead;
     }
 
     public storeIndividualBuildingObject(document : ASTNode, id : string, storage : Object) : string {
         /*
         Needs a series of cases. We need to make multiple searches for each and every key
-         ooms_fullname: string; Full building name (e.g., "Hugh Dempster Pavilion").
+         rooms_fullname: string; Full building name (e.g., "Hugh Dempster Pavilion").
          rooms_shortname: string; Short building name (e.g., "DMP").
          rooms_number: string; The room number. Not always a number, so represented as a string.
          rooms_name: string; The room id; should be rooms_shortname+"_"+rooms_number.
@@ -52,9 +116,6 @@ export default class HtmlParserUtility {
         // use recursivelySearchAndBuildListFromTable to build keys
         // for file.
     //    let fullName = this.determineBuildingFullName(document);
-        storage = {
-            'rooms_fullname': '12313231'
-        };
         return '';
     }
 
@@ -78,28 +139,35 @@ export default class HtmlParserUtility {
     }
     public buildSetOfStringsFromRow(rows : Array<ASTNode>, target : string, element : string ,nameTarget : string, validKeyArray : Array<string>) : Array<String>{
         for (var i=0; i < rows.length; i ++){
-            const nodeObject : ASTNode= rows[i];
-            if (nodeObject) {
-                this.recurseOnASTNode(nodeObject, target, element, nameTarget, validKeyArray);
-            }
+            const nodeObject : ASTNode = rows[i];
+            this.recurseOnASTNode(nodeObject, target, element, nameTarget, validKeyArray);
         }
         return validKeyArray;
     }
+    // !!! differences is that I need to find the 'name' and 'value' and if its an href or a tag i need to diverge.
     public recurseOnASTNode(nodeList : ASTNode, target : string, element : string, nameTarget : string, validKeyArray : Array<string>) : Array<String> {
         if (nodeList && nodeList.childNodes) {
             for (var i = 0; i < nodeList.childNodes.length; i++) {
                 if (nodeList && nodeList.attrs && nodeList.attrs.length > 0) {
                     for (var k = 0; k < nodeList.attrs.length; k++) {
+                        console.log(nodeList.attrs[k].value);
+                        console.log(target);
+                        console.log(nodeList.attrs[k].name);
+                        console.log(element);
+
                         if (nodeList.attrs[k].value === target && nodeList.attrs[k].name === element) {
-                            let output = this.findResultWithNameTarget(nodeList.childNodes[i], nameTarget);
-                            if (output !== undefined) {
-                                validKeyArray.push(output);
+                            console.log(nodeList.attrs[k].value);
+                            {
+                                let output = this.findResultWithNameTarget(nodeList.childNodes[i], nameTarget);
+                                if (output !== undefined) {
+                                    validKeyArray.push(output);
+                                }
                             }
                         }
                     }
+                    let nextASTNode = nodeList.childNodes[i];
+                    this.recurseOnASTNode(nextASTNode, target, element, nameTarget, validKeyArray);
                 }
-                let nextASTNode = nodeList.childNodes[i];
-                this.recurseOnASTNode(nextASTNode, target, element, nameTarget, validKeyArray);
             }
         }
         else {
@@ -125,64 +193,6 @@ export default class HtmlParserUtility {
                     break;
             }
     }
-
-    /*
-        When an html file is passed into the datasetcontroller, determineValidBuildingList will parse that file and create
-        a list of valid buildings using their shortname.
-    */
-    public determineValidBuildingList(json: string, htmlCode : string, element?: string): Array<string> {
-
-        let that = this;
-        const document:ASTNode = parse5.parse(json, {locatinInfo : true});
-        let tempArray:Array<string>;
-
-        let validArray : Array<string> = [];
-        that.recursivelySearchAndBuildListFromTable(document, htmlCode, validArray, element );
-        return validArray;
-    }
-    /*
-        Builds a list of item based on an ID from a table body.
-     */
-    public recursivelySearchAndBuildListFromTable(nodeList : ASTNode, id: string, validArray : Array<string>, element?: string) : Array<string>{
-        if (nodeList && nodeList.childNodes && nodeList.childNodes.length) {
-            var childCount = nodeList.childNodes.length;
-            for (var i = 0; i < childCount; i++) {
-                if (nodeList.childNodes[i] && nodeList.childNodes[i].attrs && nodeList.childNodes[i].attrs.length > 0) {
-                    for (var j = 0; j < nodeList.childNodes[i].attrs.length; j++) {
-                        if (nodeList.childNodes[i].attrs[j] && nodeList.childNodes[i].attrs[j].value === id  && nodeList.childNodes[i].nodeName !== "th") { // we may need another parameter. nodeList.childnodes[i].nodename == element
-
-                           /*
-                           The problem Im having now is this function here. This needs to iterate over every child of the child and check if 'element' exists. If it does, we need to use that, otherwise do normal.
-                           Could make element optional for this to work.
-
-                           Other option is to split this into more AST's and make it a simpler problem.
-                            */
-                           if (element !== undefined)  {
-                               for (var z =0; z < nodeList.childNodes[i].childNodes.length; z++){
-                                   // need to look for the element now.
-                                   //if (nodeList.childNodes[i].childNodes[z] && nodeList.childNodes[i].attrs.length > 0  && nodeList.childNodes[i].attrs[j].value) {
-                                    //   console.log(nodeList.childNodes[i].childNodes[z].attrs[j].value === element);
-                                  // }
-                               }
-                                console.log("hello");
-                            }
-                            else {
-                                validArray.push(nodeList.childNodes[i].childNodes[0].value.trim());
-                            }
-                        }
-                    }
-                }
-                // TODO: Can i recurse with optional parameters..?
-                this.recursivelySearchAndBuildListFromTable(nodeList.childNodes[i], id, validArray, element);
-            }
-        }
-        else{
-            return validArray;  // should return the final value.
-        }
-    }
-
-    // there's a one off... the href and the  full name associated with it.
-
     /*
         TODO: Returns buildings shortname
      */
