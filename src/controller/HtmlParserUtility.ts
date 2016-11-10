@@ -113,11 +113,11 @@ export default class HtmlParserUtility {
         // TODO: update latitude and longitude.
         // TODO: update parser for href. constructing it is lazy.
         let iRoomArray : Array<IRoom> = [];
-        let longestColumnLength = roomsInfo[0].length;
+        let elementLengthOfRoom = roomsInfo.length;
 
-        for (var j = 0; j < longestColumnLength.length; j++) {
-            let shortname = mainTableObject.code + '_' + longestColumnLength[j];
-            let hrefExtension: string = mainTableObject.code + '-' + longestColumnLength[j];
+        for (var j = 0; j < elementLengthOfRoom; j++) {
+            let shortname = mainTableObject.code + '_' + roomsInfo[j].roomNumber;
+            let hrefExtension: string = mainTableObject.code + '-' + roomsInfo[j].roomNumber;
             let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
             let temp: IRoom = {
                 fullname: mainTableObject.buildingName,
