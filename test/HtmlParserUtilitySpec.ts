@@ -128,13 +128,21 @@ describe("HTML Parsing Utility for Deliverable 3", () => {
             buildingName : 'somewhere'
         };
         let currentRoomsValues : Array<roomPageTableInfo> =  controller.generateTempRoomPageTableInfoArray(nodeList);
-
-        // !!! to fix: this
-
-        // we should expect the output from this.
-      //  let out : Array<IRoom> = controller.generateIRoomArray(mainTableInfo, currentRoomsValues);
-        // now we need to expect the output from this.
-      //  expect(out.length === 2).to.be.true;
+        done();
+    });
+    it('successfully creates valid file paths', done => {
+//            let validFilePaths  : Array<string>= this.readValidBuildingHtml(validCodeArray, zipObject);
+        let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
+        let content1 = {'Batmanvs': 'Superman'};
+        let content2 = {'job': 'AtSomeCompanyIHope'};
+        let zip = new JSZip();
+        zip.file('campus/discover/buildings-and-classrooms/LUKE', JSON.stringify(content0));
+        zip.file('campus/discover/buildings-and-classrooms/C3P0', JSON.stringify(content1));
+        zip.file('campus/discover/buildings-and-classrooms/R2D2', JSON.stringify(content2));
+        let validCodeArray : Array<string> = ['LUKE', 'C3P0', 'R2D2'];
+        let controller = new htmlParserUtility();
+        let out = controller.readValidBuildingHtml(validCodeArray, zip);
+        expect(out.length === 3).to.be.true;
         done();
     });
 });
