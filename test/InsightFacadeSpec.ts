@@ -42,6 +42,7 @@ describe('InsightFacade', () => {
             done()
         }).catch(function (err){
             Log.test('InsightFacade : ' + err);
+            done();
         });
     });
     it('removeDataSet success', (done) => {
@@ -187,7 +188,6 @@ describe('InsightFacade', () => {
         });
     });
 
-
     it('addDataSet fail!', (done) => {
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
         let content1 = {'Batmanvs': 'Superman'};
@@ -208,6 +208,67 @@ describe('InsightFacade', () => {
         }).catch(function (err){
             Log.test('InsightFacade : ' + err);
             done();
+        });
+    });
+
+    it('addDataSet html success!', (done) => {
+
+        let roomHtml = '<html><head></head><body><table> ' +
+            '<thead>' +
+            '<tr>' +
+            '<th class="views-field views-field-field-building-code">TH</th> ' +
+            '</tr>' +
+            '</thead>' +
+            ' <tbody>' +
+            '<tr class="odds views-rows-first"> ' +
+            '<td class="views-field views-field-field-room-number"><a>201</a></td>' +
+            '<td class="views-field views-field-field-room-capacity">13</td>' +
+            '<td class="views-field views-field-field-room-furniture">someFurntype</td>' +
+            '<td class="views-field views-field-field-room-type">someRoomType</td>' +
+            '</tr>' +
+            '<tr class="evens views-rows-first"> ' +
+            '<td class="views-field views-field-field-room-number"><a>201</a></td>' +
+            '<td class="views-field views-field-field-room-capacity">3</td>' +
+            '<td class="views-field views-field-field-room-furniture">anotherFurntype</td>' +
+            '<td class="views-field views-field-field-room-type">anotherRoomType</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>' +
+            '</body>' +
+            '</html>';
+        let campusFIle = {'campus/discovery/buildings-and-classrooms/WOOD' : roomHtml };
+
+        let zip = new JSZip();
+        let html = '<html><head></head><body><table> ' +
+            '<thead>' +
+            '<tr>' +
+            '<th class="views-field views-field-field-building-code">TH</th> ' +
+            '</tr>' +
+            '</thead>' +
+            ' <tbody>' +
+            '<tr class="odds views-rows-first"> ' +
+            '<td class="views-field views-field-field-building-code">DMP</td>' +
+            '</tr>' +
+            '</tbody>' +
+            '</table>' +
+            '</body>' +
+            '</html>';
+        zip.file('index.htm', html);
+        zip.file('campus/discovery/buildings-and-classrooms/DMP', roomHtml);
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then(function (data) {
+            return InsightFacadeController.addDataset('testingFacade', data);
+        }).then(function (result) {
+            Log.test('Dataset processed; result: ' + result);
+            expect(result.code === 204).to.be.true;
+            expect(result.body.message === 'Success!').to.be.true;
+            done();
+        }).catch(function (err){
+            Log.test('InsightFacade : ' + err);
+
+            done()
         });
     });
 });
