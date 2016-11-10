@@ -175,7 +175,7 @@ export default class HtmlParserUtility {
                             }
                         })
                         .catch(err => {
-                            console.error("Error with getGeoInfo: " + err);
+                           reject("Error with getGeoInfo: " + err);
                         });
                 });
                 iRoomPromises.push(iRoomPromise);
@@ -219,9 +219,12 @@ export default class HtmlParserUtility {
                                 let buildingCode = this.getBuildingCodeFromFilePath(validFilePaths[savedCount]);
                                 tempBuilding[buildingCode] = {"result" : tempRoomArray};
                                 fulfill(tempBuilding);
+                            }).catch(err => {
+                                Log.error('Error with generateIRoomArray.');
+                                reject(err);
                             });
                     }).catch( err => {
-                        Log.error('Error with promises constructing room objects');
+                        Log.error('Error with promises constructing room objects.');
                         reject(err);
                     });
             });
