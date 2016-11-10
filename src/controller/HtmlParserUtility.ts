@@ -212,7 +212,7 @@ export default class HtmlParserUtility {
                     let roomArray : Array<IRoom> = [];
                     // Generate the table
                     let output: Array<ASTNode> = this.generateASTNodeRows(result);
-                    let currentRoomsValues : Array<roomPageTableInfo> =  this.generateTempRoomPageTableInfoArray(output);
+                    let currentRoomsValues  : Array<roomPageTableInfo> =  this.generateTempRoomPageTableInfoArray(output);
                         this.generateIRoomArray(mainTableArray[savedCount], currentRoomsValues)
                             .then((tempRoomArray: IRoom[]) => {
                                 let tempBuilding: IObject = {};
