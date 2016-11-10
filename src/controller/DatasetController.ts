@@ -8,7 +8,7 @@ import fs = require('fs');
 import path = require('path');
 import HtmlParserUtility from './HtmlParserUtility';
 import {ASTNode} from "parse5";
-import {IBuilding} from "./IBuilding";
+import {IBuilding, IRoom} from "./IBuilding";
 
 /**
  * In memory representation of all datasets.
@@ -272,7 +272,6 @@ export default class DatasetController {
                                 let buildingPromise: Promise<IBuilding>;
                                 buildingPromise = htmlParsingUtility.intializeHtmlDataStorage(data, zip);
                                 return buildingPromise;
-                                // !!! DIES HERE... Whyyyy
                             }).then(result => {
                                that.save(id, result);
                             }).catch(err => {

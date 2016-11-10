@@ -59,7 +59,7 @@ export default class HtmlParserUtility {
             For every
              */
             let out = this.constructRoomObjects(validFilePaths, zipObject, tempMainTableObject);
-            return out;
+            fulfill(out);
         });
     }
     public createMainTableInfoObject (address : Array<string>, code : Array<string>, building : Array<string>) : Array<mainTableInfo> {
@@ -160,14 +160,15 @@ export default class HtmlParserUtility {
             // promiseArray is Array<Promise<Array<IRoom>>>
             promiseArray.push(promiseForRoom);
         }
-        let b  = Promise.all(promiseArray).then(data => {
+        // fuck i found the issue... when we resolve the promise... its out of order.. race condition
+
+        return Promise.all(promiseArray).then(data => {
             let singleArrayofRooms: IRoom[] = [].concat.apply([], data);
             let out : IBuilding = {
                 result : singleArrayofRooms
             }
             return out;
         });
-        return b;
     }
 
     public readValidBuildingHtml(validCodeArray : Array<string>, zip : JSZip) : Array<string>  {
