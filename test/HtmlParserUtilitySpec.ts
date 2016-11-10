@@ -12,6 +12,7 @@ import {mainTableInfo} from "../src/controller/HtmlParserUtility";
 import {roomPageTableInfo} from "../src/controller/HtmlParserUtility";
 import {IRoom} from "../src/controller/IBuilding";
 import {ASTNode} from 'parse5';
+import {IObject} from "../src/controller/IObject";
 
 
 describe("HTML Parsing Utility for Deliverable 3", () => {
@@ -144,5 +145,45 @@ describe("HTML Parsing Utility for Deliverable 3", () => {
         let out = controller.readValidBuildingHtml(validCodeArray, zip);
         expect(out.length === 3).to.be.true;
         done();
+    });
+
+    it("Should be able to concatenate Objects", function(){
+        let util = new htmlParserUtility();
+        let objects: IObject[] = [];
+        let object: IObject;
+
+        object = {
+            "a": "aa"
+        };
+        objects.push(object);
+
+        object = {
+            "b": 123
+        };
+        objects.push(object);
+
+        object = {
+            "c_de": "cde"
+        };
+        objects.push(object);
+
+        let expectedResult: IObject = {
+            "a": "aa",
+            "b": 123,
+            "c_de": "cde"
+        }
+
+
+        let result: IObject = util.concatenateObjects(objects);
+        expect(result).to.be.deep.equal(expectedResult);
+    });
+
+    it("Should be able to get building code from file path", function() {
+        let util = new htmlParserUtility();
+        let filePath = "campus/discover/buildings-and-classrooms/AUDI";
+        let result = util.getBuildingCodeFromFilePath(filePath);
+
+        expect(result).to.be.equal("AUDI");
+
     });
 });
