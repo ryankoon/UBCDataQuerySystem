@@ -9,6 +9,8 @@ import JSZip = require('jszip');
 import {IBuilding, IRoom} from "./IBuilding";
 import Log from "../Util";
 import fs = require('fs');
+import GeoService from "./GeoService";
+import {GeoResponse} from "./GeoService";
 
 
 export interface mainTableInfo {
@@ -133,35 +135,58 @@ export default class HtmlParserUtility {
      * @param roomsInfo
      * @returns {Array<IRoom>}
      */
-    public generateIRoomArray(mainTableObject : mainTableInfo, roomsInfo : Array<roomPageTableInfo>) : Array<IRoom> {
+    public generateIRoomArray(mainTableObject : mainTableInfo, roomsInfo : Array<roomPageTableInfo>): Promise<IRoom[]> {
+            // ASSUMES: no empty entries in a table.
+            // TODO: update parser for href. constructing it is lazy.
 
-        // ASSUMES: no empty entries in a table.
-        // TODO: update latitude and longitude.
-        // TODO: update parser for href. constructing it is lazy.
-        let iRoomArray : Array<IRoom> = [];
-        let elementLengthOfRoom = roomsInfo.length;
+        return new Promise((resolve, reject) => {
+            let iRoomPromises: Promise<IRoom>[] = [];
+            let iRoomPromise: Promise<IRoom>;
+            let elementLengthOfRoom = roomsInfo.length;
 
-        for (var j = 0; j < elementLengthOfRoom; j++) {
-            let shortname = mainTableObject.code + '_' + roomsInfo[j].roomNumber;
-            let hrefExtension: string = mainTableObject.code + '-' + roomsInfo[j].roomNumber;
-            let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
-            let temp: IRoom = {
-                fullname: mainTableObject.buildingName,
-                shortname: mainTableObject.code,
-                number: roomsInfo[j].roomNumber,
-                name: shortname,
-                address: mainTableObject.address,
-                lat: 123131,
-                lon: 1231231,
-                seats: roomsInfo[j].capacityNumber,
-                type: roomsInfo[j].roomType,
-                furniture: roomsInfo[j].furnitureType,
-                href: href
+            for (var j = 0; j < elementLengthOfRoom; j++) {
+                let shortname = mainTableObject.code + '_' + roomsInfo[j].roomNumber;
+                let hrefExtension: string = mainTableObject.code + '-' + roomsInfo[j].roomNumber;
+                let href: string = "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/" + hrefExtension;
+
+                let geoService = new GeoService();
+                iRoomPromise = new Promise((fulfill, reject) => {
+                    let savedCount = j;
+                    geoService.getGeoInfo(mainTableObject.address)
+                        .then((buildingAddress: GeoResponse) => {
+                            if (buildingAddress.error) {
+                                reject("Error in GeoResponse: " + buildingAddress.error);
+                            } else {
+                                let temp: IRoom = {
+                                    fullname: mainTableObject.buildingName,
+                                    shortname: mainTableObject.code,
+                                    number: roomsInfo[savedCount].roomNumber,
+                                    name: shortname,
+                                    address: mainTableObject.address,
+                                    lat: buildingAddress.lat,
+                                    lon: buildingAddress.lon,
+                                    seats: roomsInfo[savedCount].capacityNumber,
+                                    type: roomsInfo[savedCount].roomType,
+                                    furniture: roomsInfo[savedCount].furnitureType,
+                                    href: href
+                                };
+                                fulfill(temp);
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error with getGeoInfo: " + err);
+                        });
+                });
+                iRoomPromises.push(iRoomPromise);
             }
-            iRoomArray.push(temp);
-        }
-        return iRoomArray;
-
+            Promise.all(iRoomPromises)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(err => {
+                    reject(err);
+                })
+        });
     }
 
     /**
@@ -174,24 +199,26 @@ export default class HtmlParserUtility {
      */
     public constructRoomObjects(validFilePaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : Promise<IBuilding> {
         let zipObject = zip.files;
-        let promiseArray : Array<Promise<Array<IRoom>>> =[];
+        let promiseArray : Array<Promise<Array<IRoom>>> = [];
         for (var i=0; i < validFilePaths.length; i++){
             let promiseForRoom : Promise<Array<IRoom>>;
            promiseForRoom = new Promise((fulfill, reject) => {
                // Save the value of i before async to ensure we are working with the same i value after async call
                let savedCount = i;
                zipObject[validFilePaths[savedCount]].async('string')
-                    .then(result => {
-                        let roomArray : Array<IRoom> = [];
+                   .then(result => {
+                    let roomArray : Array<IRoom> = [];
                     // Generate the table
                     let output: Array<ASTNode> = this.generateASTNodeRows(result);
                     let currentRoomsValues : Array<roomPageTableInfo> =  this.generateTempRoomPageTableInfoArray(output);
-                    let tempRoomArray : Array<IRoom>  = this.generateIRoomArray(mainTableArray[savedCount], currentRoomsValues);
-                    fulfill(tempRoomArray);
+                        this.generateIRoomArray(mainTableArray[savedCount], currentRoomsValues)
+                            .then((tempRoomArray: IRoom[]) => {
+                                fulfill(tempRoomArray);
+                            });
                     }).catch( err => {
-                    Log.error('Error with promises constructing room objects');
-                   reject(err);
-               });
+                        Log.error('Error with promises constructing room objects');
+                        reject(err);
+                    });
             });
             // promiseArray is Array<Promise<Array<IRoom>>>
             promiseArray.push(promiseForRoom);
