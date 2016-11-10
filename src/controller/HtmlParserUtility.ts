@@ -58,8 +58,8 @@ export default class HtmlParserUtility {
             /*
             For every
              */
-
-            return this.constructRoomObjects(validFilePaths, zipObject, tempMainTableObject)
+            let out = this.constructRoomObjects(validFilePaths, zipObject, tempMainTableObject);
+            return out;
         });
     }
     public createMainTableInfoObject (address : Array<string>, code : Array<string>, building : Array<string>) : Array<mainTableInfo> {
@@ -160,7 +160,7 @@ export default class HtmlParserUtility {
             // promiseArray is Array<Promise<Array<IRoom>>>
             promiseArray.push(promiseForRoom);
         }
-        let b = Promise.all(promiseArray).then(data => {
+        let b  = Promise.all(promiseArray).then(data => {
             let singleArrayofRooms: IRoom[] = [].concat.apply([], data);
             let out : IBuilding = {
                 result : singleArrayofRooms

@@ -8,6 +8,7 @@ import fs = require('fs');
 import path = require('path');
 import HtmlParserUtility from './HtmlParserUtility';
 import {ASTNode} from "parse5";
+import {IBuilding} from "./IBuilding";
 
 /**
  * In memory representation of all datasets.
@@ -266,13 +267,16 @@ export default class DatasetController {
                         // TODO: Implement the data parsing for HTML files.
                         // Means were not doing our normal promise resolution.
                         // need to parse the data and create a series of promises to store the data.
-                        zipObject['index.htm'].async('string').then(function passHtmlToValidCheck(data){
-                            htmlParsingUtility.intializeHtmlDataStorage(data, zip).then( data => {
-                               // will need to handle data in order to pass it to save.
-                               console.log('data');
-                            });
-                        }).then(result => {
-                           console.log(result);
+                        zipObject['index.htm'].async('string')
+                            .then(data => {
+                                let buildingPromise: Promise<IBuilding>;
+                                buildingPromise = htmlParsingUtility.intializeHtmlDataStorage(data, zip);
+                                return buildingPromise;
+                                // !!! DIES HERE... Whyyyy
+                            }).then(result => {
+                               that.save(id, result);
+                            }).catch(err => {
+                            Log.error('Error handling building promise on save : ' + err);
                         });
                     }
                     else {
@@ -314,21 +318,21 @@ export default class DatasetController {
 
                             filePromises.push(filePromise);
                         }
-                    }
-                    // wait until all files have been processed and stored in dictionary
-                    Promise.all(filePromises)
-                        .then(() => {
-                            return that.createDataDirectory();
-                        })
-                        .then(() => {
-                            return that.save(id, processedDataset);
-                        }).then((data: Number) => {
-                        fulfill(data);
-                    }).catch((err) => {
-                        Log.error('Error resolving filepromises... ' + err);
-                        reject(400);
+                        // wait until all files have been processed and stored in dictionary
+                        Promise.all(filePromises)
+                            .then(() => {
+                                return that.createDataDirectory();
+                            })
+                            .then(() => {
+                                return that.save(id, processedDataset);
+                            }).then((data: Number) => {
+                            fulfill(data);
+                        }).catch((err) => {
+                            Log.error('Error resolving filepromises... ' + err);
+                            reject(400);
 
-                    });
+                        });
+                    }
                 })
                 .catch(function (err) {
                     Log.trace('DatasetController::process(..) - unzip ERROR: ' + err.message);
