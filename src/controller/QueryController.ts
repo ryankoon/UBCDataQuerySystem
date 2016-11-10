@@ -230,6 +230,10 @@ export default class QueryController {
         return true;
     }
 
+    /**
+     * Given an array of query keys, throws an error if they do not all have the same dataset ID
+     * @param queryKeys
+     */
     public invalidateMultipleDatasets(queryKeys: string[]) {
         if (queryKeys && queryKeys.length > 0) {
             let datasetId = this.getDatasetId(queryKeys[0]);
@@ -242,6 +246,12 @@ export default class QueryController {
         }
     }
 
+    /**
+     * Given a query, returns an array of unique query keys found in the query.
+     * This does not include custom keys (keys without a dataset ID)
+     * @param query
+     * @returns {string[]}
+     */
     public getAllQueryKeys(query: QueryRequest): string[] {
         let queryKeys: string[] = [];
         let nonWhereKeys: string[] = this.getKeysOutsideOfWhere(query);
@@ -255,6 +265,11 @@ export default class QueryController {
         return queryKeys;
     }
 
+    /**
+     * Given a query, returns an array of all query keys not in WHERE including duplicates
+     * @param query
+     * @returns {string[]}
+     */
     public getKeysOutsideOfWhere(query: QueryRequest): string[] {
         let queryKeys: string[] = [];
         let getKeys: string[] = [];
@@ -284,6 +299,11 @@ export default class QueryController {
         return queryKeys;
     }
 
+    /**
+     * Given an array of apply objects, returns an array of query keys found including duplicates.
+     * @param applyObjects
+     * @returns {string[]}
+     */
     public getApplyQueryKeys(applyObjects: IApplyObject[]): string[] {
         let result: string[] = [];
         if (applyObjects && applyObjects.length > 0) {
@@ -299,6 +319,11 @@ export default class QueryController {
         return result;
     }
 
+    /**
+     * Given the value of order used in a query, return the query keys found.
+     * @param orderValue
+     * @returns {string[]}
+     */
     public getOrderQueryKeys(orderValue: string|IOrderObject) {
         let orderKeys: string[] = [];
 
@@ -321,7 +346,12 @@ export default class QueryController {
         return orderKeys;
     }
 
-    // returns all the querykeys in WHERE
+    /**
+     * Given a query, returns an array of query keys found in WHERE including duplicates.
+     * Validates the IFilters and values and throws an error if it is invalid.
+     * @param query
+     * @returns {string[]}
+     */
     public getWhereQueryKeys (query: IFilter): string[] {
         let whereQueryKeys: string[] = [];
 
