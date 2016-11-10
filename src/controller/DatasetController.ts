@@ -272,10 +272,19 @@ export default class DatasetController {
                                 let buildingPromise: Promise<IBuilding>;
                                 buildingPromise = htmlParsingUtility.intializeHtmlDataStorage(data, zip);
                                 return buildingPromise;
-                            }).then(result => {
-                               that.save(id, result);
-                            }).catch(err => {
+                            })
+                            .then(result => {
+                                return that.createDataDirectory()
+                                    .then(()=> {
+                                        return that.save(id, result);
+                                    });
+                            })
+                            .then((data: Number) => {
+                                fulfill(data);
+                            })
+                            .catch(err => {
                             Log.error('Error handling building promise on save : ' + err);
+                            reject(400);
                         });
                     }
                     else {

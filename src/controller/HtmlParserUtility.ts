@@ -11,6 +11,7 @@ import Log from "../Util";
 import fs = require('fs');
 import GeoService from "./GeoService";
 import {GeoResponse} from "./GeoService";
+import {IObject} from "./IObject";
 
 
 export interface mainTableInfo {
@@ -174,7 +175,7 @@ export default class HtmlParserUtility {
                             }
                         })
                         .catch(err => {
-                            console.error("Error with getGeoInfo: " + err);
+                           reject("Error with getGeoInfo: " + err);
                         });
                 });
                 iRoomPromises.push(iRoomPromise);
@@ -195,14 +196,15 @@ export default class HtmlParserUtility {
      * @param validFilePaths
      * @param zip
      * @param mainTableArray
-     * @returns {PromiseLike<IBuilding>|Promise<IBuilding>}
+     * @returns {PromiseLike<IObject>|Promise<IObject>}
      */
-    public constructRoomObjects(validFilePaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>  ) : Promise<IBuilding> {
+    public constructRoomObjects(validFilePaths : Array<string>, zip : JSZip, mainTableArray : Array<mainTableInfo>): Promise<IObject> {
         let zipObject = zip.files;
-        let promiseArray : Array<Promise<Array<IRoom>>> = [];
+        let promiseArray : Promise<IObject[]>[] = [];
+
         for (var i=0; i < validFilePaths.length; i++){
-            let promiseForRoom : Promise<Array<IRoom>>;
-           promiseForRoom = new Promise((fulfill, reject) => {
+            let promiseForRoomsInBuilding : Promise<Array<IRoom>>;
+           promiseForRoomsInBuilding = new Promise((fulfill, reject) => {
                // Save the value of i before async to ensure we are working with the same i value after async call
                let savedCount = i;
                zipObject[validFilePaths[savedCount]].async('string')
@@ -213,24 +215,54 @@ export default class HtmlParserUtility {
                     let currentRoomsValues : Array<roomPageTableInfo> =  this.generateTempRoomPageTableInfoArray(output);
                         this.generateIRoomArray(mainTableArray[savedCount], currentRoomsValues)
                             .then((tempRoomArray: IRoom[]) => {
-                                fulfill(tempRoomArray);
+                                let tempBuilding: IObject = {};
+                                let buildingCode = this.getBuildingCodeFromFilePath(validFilePaths[savedCount]);
+                                tempBuilding[buildingCode] = {"result" : tempRoomArray};
+                                fulfill(tempBuilding);
+                            }).catch(err => {
+                                Log.error('Error with generateIRoomArray.');
+                                reject(err);
                             });
                     }).catch( err => {
-                        Log.error('Error with promises constructing room objects');
+                        Log.error('Error with promises constructing room objects.');
                         reject(err);
                     });
             });
             // promiseArray is Array<Promise<Array<IRoom>>>
-            promiseArray.push(promiseForRoom);
+            promiseArray.push(promiseForRoomsInBuilding);
         }
 
         return Promise.all(promiseArray).then(data => {
-            let singleArrayofRooms: IRoom[] = [].concat.apply([], data);
-            let out : IBuilding = {
-                result : singleArrayofRooms
+            let result: IObject = {};
+            if (data && data.length > 0) {
+                result = this.concatenateObjects(data);
             }
-            return out;
+            console.log(JSON.stringify(result));
+            return result;
         });
+    }
+
+    public getBuildingCodeFromFilePath(filePath: string): string {
+       let result: string = "";
+        let parts: string[] = filePath.split("campus/discover/buildings-and-classrooms/");
+        if (parts && parts.length > 0) {
+            result = parts[1];
+        }
+        return result;
+    }
+
+    /**
+     * Concatenates the given array of objects
+     * @param objects
+     * @returns {IObject}
+     */
+    public concatenateObjects(objects: IObject[]): IObject {
+        let result: IObject = {};
+            objects.forEach((object) => {
+                let key = Object.keys(object)[0];
+                result[key] = object[key];
+            });
+        return result;
     }
 
     /**
