@@ -230,6 +230,97 @@ export default class QueryController {
         return true;
     }
 
+    public invalidateMultipleDatasets(queryKeys: string[]) {
+        if (queryKeys && queryKeys.length > 0) {
+            let datasetId = this.getDatasetId(queryKeys[0]);
+            queryKeys.forEach(key => {
+                let keyDatasetId = this.getDatasetId(key);
+                if (datasetId !== keyDatasetId){
+                    throw new Error("Querying multiple datasets is not supported.");
+                }
+            });
+        }
+    }
+
+    public getAllQueryKeys(query: QueryRequest): string[] {
+        let queryKeys: string[] = [];
+        let nonWhereKeys: string[] = this.getKeysOutsideOfWhere(query);
+        let whereKeys: string[] = this.getWhereQueryKeys(query.WHERE);
+
+        queryKeys = queryKeys.concat(nonWhereKeys, whereKeys);
+
+        let queryUtility: QueryUtility = new QueryUtility();
+        queryKeys = queryUtility.removeDuplicatesInArray(queryKeys);
+
+        return queryKeys;
+    }
+
+    public getKeysOutsideOfWhere(query: QueryRequest): string[] {
+        let queryKeys: string[] = [];
+        let getKeys: string[] = [];
+        let groupKeys: string[] = [];
+        let applyKeys: string[] = [];
+        let orderKeys: string[] = [];
+
+        if (query.GET){
+            query.GET.forEach((getKey) => {
+                if (getKey.indexOf("_") !== -1) {
+                    getKeys.push(getKey);
+                }
+            });
+        }
+        if (query.GROUP){
+            groupKeys = query.GROUP;
+        }
+        if (this.getApplyQueryKeys(query.APPLY)){
+            applyKeys = this.getApplyQueryKeys(query.APPLY);
+        }
+        if (this.getOrderQueryKeys(query.ORDER)){
+            orderKeys = this.getOrderQueryKeys(query.ORDER);
+        }
+
+        queryKeys = queryKeys.concat(getKeys, groupKeys, applyKeys, orderKeys);
+
+        return queryKeys;
+    }
+
+    public getApplyQueryKeys(applyObjects: IApplyObject[]): string[] {
+        let result: string[] = [];
+        if (applyObjects && applyObjects.length > 0) {
+            applyObjects.forEach(applyObject => {
+                //assuming there is only one key
+                let applyTokenToKeyObject: IApplyTokenToKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+                if (applyTokenToKeyObject !== "") {
+                    let queryKey: string = this.getStringIndexKVByNumber(applyTokenToKeyObject, 0)["value"];
+                    result.push(queryKey);
+                }
+            });
+        }
+        return result;
+    }
+
+    public getOrderQueryKeys(orderValue: string|IOrderObject) {
+        let orderKeys: string[] = [];
+
+        if (orderValue) {
+            let orderType: string = typeof(orderValue);
+            if (orderType === "string") {
+                // cast to string
+                let orderString: string = <string>orderValue;
+                if (orderString.length > 0) {
+                    orderKeys.push(orderString);
+                }
+            } else if (orderType === "object") {
+                // cast to IOrderObject
+                let orderObject: IOrderObject = <IOrderObject>orderValue;
+                if (orderObject["keys"]) {
+                    orderKeys = orderKeys.concat(orderObject["keys"]);
+                }
+            }
+        }
+        return orderKeys;
+    }
+
     // returns all the querykeys in WHERE
     public getWhereQueryKeys (query: IFilter): string[] {
         let whereQueryKeys: string[] = [];

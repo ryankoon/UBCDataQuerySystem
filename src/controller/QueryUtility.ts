@@ -1,4 +1,5 @@
 import {IApplyObject} from "./IEBNF";
+import {IObject} from "./IObject";
 /**
  * Created by alekhrycaiko on 2016-10-20.
  */
@@ -21,5 +22,14 @@ export default class QueryUtility{
             }
         }
         return false;
+    }
+
+    public removeDuplicatesInArray(items: any[]) {
+        let keyHashMap: IObject = {};
+        items.forEach(item => {
+            keyHashMap[item] = item;
+        });
+
+       return Object.keys(keyHashMap);
     }
 }
