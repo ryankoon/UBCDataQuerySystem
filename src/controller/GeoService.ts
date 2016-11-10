@@ -1,4 +1,5 @@
 import {IObject} from "./IObject";
+import Log from "../Util";
 /**
  * Created by Ryan on 11/7/2016.
  */
@@ -24,7 +25,7 @@ export default class GeoService{
                    resolve(response);
                })
                .catch(err => {
-                   console.warn("May have failed to resolve api address. Retrying...")
+                   Log.warn("May have failed to resolve api address. Retrying...");
                    this.makeGetRequest(webServiceURL)
                        .then(response => {
                            resolve(response);
