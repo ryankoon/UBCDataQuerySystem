@@ -175,7 +175,7 @@ export default class HtmlParserUtility {
                             }
                         })
                         .catch(err => {
-                           reject("Error with getGeoInfo: " + err);
+                            reject("Error with getGeoInfo: " + err);
                         });
                 });
                 iRoomPromises.push(iRoomPromise);
@@ -237,7 +237,6 @@ export default class HtmlParserUtility {
             if (data && data.length > 0) {
                 result = this.concatenateObjects(data);
             }
-            console.log(JSON.stringify(result));
             return result;
         });
     }
