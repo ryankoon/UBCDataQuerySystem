@@ -84,10 +84,10 @@ export default class InsightFacade implements IInsightFacade {
             let isValidResult: boolean | string = controller.isValid(query);
 
             if (isValidResult === true) {
-                let allQueryKeys: string[] = [];
-                allQueryKeys = allQueryKeys.concat(query.GET);
+                let allQueryKeys: string[];
                 try {
-                    allQueryKeys = allQueryKeys.concat(controller.getWhereQueryKeys(query.WHERE));
+                    allQueryKeys = controller.getAllQueryKeys(query);
+                    controller.invalidateMultipleDatasets(allQueryKeys);
                 }
                 catch (err) {
                     let errBody = {
