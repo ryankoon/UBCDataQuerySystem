@@ -99,7 +99,7 @@ describe('InsightFacade', () => {
             done();
         }).catch(function (result) {
             expect(result.code === 400).to.be.true;
-            expect(result.body.error.message.length > 0).to.be.true;
+            expect(result.body.error).to.not.be.null;
             done();
         });
     });
