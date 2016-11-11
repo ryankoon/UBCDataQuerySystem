@@ -204,9 +204,11 @@ describe('InsightFacade', () => {
             return InsightFacadeController.addDataset('#()$*&@#)(^@#)(*&@#', data);
         }).then( function() {
             Log.test("DONE");
+            InsightFacadeController.removeDataset('#()$*&@#)(^@#)(*&@#');
             done();
         }).catch(function (err){
             Log.test('InsightFacade : ' + err);
+            InsightFacadeController.removeDataset('#()$*&@#)(^@#)(*&@#');
             done();
         });
     });

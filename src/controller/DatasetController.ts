@@ -264,9 +264,6 @@ export default class DatasetController {
                     let rootFolder: string = Object.keys(zipObject)[0];
                     let filePromises: Promise<any>[] = [];
                     if (fileKeys.indexOf('index.htm') > -1) {
-                        // TODO: Implement the data parsing for HTML files.
-                        // Means were not doing our normal promise resolution.
-                        // need to parse the data and create a series of promises to store the data.
                         zipObject['index.htm'].async('string')
                             .then(data => {
                                 let buildingPromise: Promise<IBuilding>;

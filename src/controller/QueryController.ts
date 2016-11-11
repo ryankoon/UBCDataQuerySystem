@@ -230,7 +230,128 @@ export default class QueryController {
         return true;
     }
 
-    // returns all the querykeys in WHERE
+    /**
+     * Given an array of query keys, throws an error if they do not all have the same dataset ID
+     * @param queryKeys
+     */
+    public invalidateMultipleDatasets(queryKeys: string[]) {
+        if (queryKeys && queryKeys.length > 0) {
+            let datasetId = this.getDatasetId(queryKeys[0]);
+            queryKeys.forEach(key => {
+                let keyDatasetId = this.getDatasetId(key);
+                if (datasetId !== keyDatasetId){
+                    throw new Error("Querying multiple datasets is not supported.");
+                }
+            });
+        }
+    }
+
+    /**
+     * Given a query, returns an array of unique query keys found in the query.
+     * This does not include custom keys (keys without a dataset ID)
+     * @param query
+     * @returns {string[]}
+     */
+    public getAllQueryKeys(query: QueryRequest): string[] {
+        let queryKeys: string[] = [];
+        let nonWhereKeys: string[] = this.getKeysOutsideOfWhere(query);
+        let whereKeys: string[] = this.getWhereQueryKeys(query.WHERE);
+
+        queryKeys = queryKeys.concat(nonWhereKeys, whereKeys);
+
+        let queryUtility: QueryUtility = new QueryUtility();
+        queryKeys = queryUtility.removeDuplicatesInArray(queryKeys);
+
+        return queryKeys;
+    }
+
+    /**
+     * Given a query, returns an array of all query keys not in WHERE including duplicates
+     * @param query
+     * @returns {string[]}
+     */
+    public getKeysOutsideOfWhere(query: QueryRequest): string[] {
+        let queryKeys: string[] = [];
+        let getKeys: string[] = [];
+        let groupKeys: string[] = [];
+        let applyKeys: string[] = [];
+        let orderKeys: string[] = [];
+
+        if (query.GET){
+            query.GET.forEach((getKey) => {
+                if (getKey.indexOf("_") !== -1) {
+                    getKeys.push(getKey);
+                }
+            });
+        }
+        if (query.GROUP){
+            groupKeys = query.GROUP;
+        }
+        if (this.getApplyQueryKeys(query.APPLY)){
+            applyKeys = this.getApplyQueryKeys(query.APPLY);
+        }
+        if (this.getOrderQueryKeys(query.ORDER)){
+            orderKeys = this.getOrderQueryKeys(query.ORDER);
+        }
+
+        queryKeys = queryKeys.concat(getKeys, groupKeys, applyKeys, orderKeys);
+
+        return queryKeys;
+    }
+
+    /**
+     * Given an array of apply objects, returns an array of query keys found including duplicates.
+     * @param applyObjects
+     * @returns {string[]}
+     */
+    public getApplyQueryKeys(applyObjects: IApplyObject[]): string[] {
+        let result: string[] = [];
+        if (applyObjects && applyObjects.length > 0) {
+            applyObjects.forEach(applyObject => {
+                //assuming there is only one key
+                let applyTokenToKeyObject: IApplyTokenToKey = this.getStringIndexKVByNumber(applyObject, 0)["value"];
+                if (applyTokenToKeyObject !== "") {
+                    let queryKey: string = this.getStringIndexKVByNumber(applyTokenToKeyObject, 0)["value"];
+                    result.push(queryKey);
+                }
+            });
+        }
+        return result;
+    }
+
+    /**
+     * Given the value of order used in a query, return the query keys found.
+     * @param orderValue
+     * @returns {string[]}
+     */
+    public getOrderQueryKeys(orderValue: string|IOrderObject) {
+        let orderKeys: string[] = [];
+
+        if (orderValue) {
+            let orderType: string = typeof(orderValue);
+            if (orderType === "string") {
+                // cast to string
+                let orderString: string = <string>orderValue;
+                if (orderString.length > 0) {
+                    orderKeys.push(orderString);
+                }
+            } else if (orderType === "object") {
+                // cast to IOrderObject
+                let orderObject: IOrderObject = <IOrderObject>orderValue;
+                if (orderObject["keys"]) {
+                    orderKeys = orderKeys.concat(orderObject["keys"]);
+                }
+            }
+        }
+        return orderKeys;
+    }
+
+    /**
+     * Given a query, returns an array of query keys found in WHERE including duplicates.
+     * Validates the IFilters and values and throws an error if it is invalid.
+     * @param query
+     * @returns {string[]}
+     */
     public getWhereQueryKeys (query: IFilter): string[] {
         let whereQueryKeys: string[] = [];
 

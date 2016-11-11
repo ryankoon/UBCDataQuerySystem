@@ -1545,4 +1545,35 @@ describe("QueryController", function () {
         expect(queryResult).to.be.deep.equal(expectedResult)
     });
 
+    it("Should invalidate queries with multiple datasets.", function() {
+        let controller = new QueryController();
+        let query: QueryRequest = {
+            "GET": ["asdf_uuid", "asdf_instructor", "aBadKey"],
+            "WHERE": {
+                "AND": [
+                    {"AND": [
+                        {"NOT": {"IS": {"asdf_instructor": "notAProf"}}},
+                        {"NOT": {"LT": {"other_avg": -10}}},
+                        {"NOT": {"EQ": {"asdf_uuid": 11}}}
+                    ]
+                    },
+                    {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
+                ]
+            },
+            "GROUP": ["asdf_instructor", "asdf_uuid"],
+            "APPLY": [{"aBadKey": {"MAX": "asdf_key2"}}, {"anotherCustomKey": {"MIN": "asdf_key3"}}],
+            "ORDER": {"dir": "UP", "keys": ["asdf_uuid", "asdf_instructor"]},
+            "AS": "TABLE"
+        };
+
+        let allkeys = controller.getAllQueryKeys(query);
+
+        let expectedKeys: string[] = ["asdf_instructor", "other_avg", "asdf_uuid", "asdf_key2", "asdf_key3"];
+
+        expect(allkeys).to.be.have.members(expectedKeys);
+        expect(() => {
+            controller.invalidateMultipleDatasets(allkeys);
+        }).to.throw("Querying multiple datasets is not supported.");
+    });
+
 });

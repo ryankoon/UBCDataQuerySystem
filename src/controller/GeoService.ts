@@ -1,4 +1,5 @@
 import {IObject} from "./IObject";
+import Log from "../Util";
 /**
  * Created by Ryan on 11/7/2016.
  */
@@ -10,7 +11,6 @@ export interface GeoResponse {
 }
 
 export default class GeoService{
-
     /**
      * Given an address, makes a webservice call that returns a GeoResponse Object
      * Adapted from: https://nodejs.org/api/http.html#http_http_get_options_callback
@@ -18,10 +18,28 @@ export default class GeoService{
      * @returns {Promise<GeoResponse>}
      */
     public getGeoInfo(address: string): Promise<GeoResponse> {
-        let http = require('http');
         let webServiceURL = this.getWebServiceURL(address);
         return new Promise((resolve, reject) => {
+           this.makeGetRequest(webServiceURL)
+               .then(response => {
+                   resolve(response);
+               })
+               .catch(err => {
+                   Log.warn("May have failed to resolve api address. Retrying...");
+                   this.makeGetRequest(webServiceURL)
+                       .then(response => {
+                           resolve(response);
+                       })
+                       .catch(err => {
+                        reject(err);
+                       });
+               });
+        });
+    }
 
+    public makeGetRequest(webServiceURL: string): Promise<GeoResponse> {
+        let http = require('http');
+        return new Promise((resolve, reject) => {
             http.get(webServiceURL, (res: any) => {
                 const statusCode = res["statusCode"];
 
@@ -50,7 +68,6 @@ export default class GeoService{
             });
         });
     }
-
 
     /**
      * Given a URL-encoded version of an address, returns API URL to call to get a GeoResponse
