@@ -78,7 +78,7 @@ export default class InsightFacade implements IInsightFacade {
 
     public performQuery(query: QueryRequest): Promise<InsightResponse> {
         Log.trace('InsightFacade:performQuery(..): query: ' + query);
-        return new Promise( (fulfill, reject) => {
+        return new Promise((fulfill, reject) => {
             // let query: QueryRequest = req.params;
             var controller: QueryController = new QueryController();
             let isValidResult: boolean | string = controller.isValid(query);
@@ -91,10 +91,11 @@ export default class InsightFacade implements IInsightFacade {
                 }
                 catch (err) {
                     let errBody = {
-                            error: err
+                            error: err.message
                     };
                     let errorResponseObject : InsightResponse = new ResponseObject(400, errBody);
                     reject(errorResponseObject);
+                    return;
                 }
                 // get all dataset ids
                 let datasetIds: string[] = [];
@@ -156,7 +157,6 @@ export default class InsightFacade implements IInsightFacade {
                         400, {error: isValidResult});
                 reject(errObj);
             }
-        })
+        });
     }
-
 }
