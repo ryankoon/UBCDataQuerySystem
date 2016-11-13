@@ -24,7 +24,7 @@ interface responseObject {
 let htmlParsingUtility = new HtmlParserUtility();
 
 export default class DatasetController {
-
+    public testFlag = 0;
     private datasets: Datasets = {};
 
     constructor() {
@@ -33,20 +33,24 @@ export default class DatasetController {
     /*
         Loads data into memory from disk
      */
-    private loadDataIntoMemory(id : string) : any{
-        var that = this;
-        return new Promise(function (fulfill, reject){
+    private loadDataIntoMemory(id : string): any {
+        return new Promise((fulfill, reject) => {
+            var that = this;
             let pathname:string = path.resolve(__dirname, '..', '..','data',id + '.json');
             fs.readFile(pathname, (err, data) => {
-                if (err) {
+                if (err || that.testFlag === 1) {
                     reject(err);
                 }
                 try {
-                    // we have a buffer here..sad story
-                    // Uint8Array[67]
-                    let out = JSON.parse(data.toString('utf8'));
-                    that.datasets[id] = out;
-                    fulfill(that.datasets[id]);
+                    if (that.testFlag === 2) {
+                        throw new Error("testFlag set to 2!")
+                    } else {
+                        // we have a buffer here..sad story
+                        // Uint8Array[67]
+                        let out = JSON.parse(data.toString('utf8'));
+                        that.datasets[id] = out;
+                        fulfill(that.datasets[id]);
+                    }
                 }
                 catch(err){
                     reject('Error : ' + err);
@@ -71,8 +75,8 @@ export default class DatasetController {
         //let path:string = __dirname + '/../../data';
           let pathName:string = path.resolve(__dirname, '..', '..', 'data');
         fs.readdir(pathName, (err, files) => {
-          if (err){
-            reject(err);
+          if (err || that.testFlag === 1){
+            reject("TestFlag: " + that.testFlag + " Error: " + err);
           }
           if (files.indexOf(id + '.json') === -1){
             fulfill(null);
@@ -80,10 +84,14 @@ export default class DatasetController {
           else {
               that.loadDataIntoMemory(id)
                   .then(function (data: any) {
-                      fulfill(data);
+                      if (that.testFlag === 2) {
+                          throw new Error("testFlag set to 2!")
+                      } else {
+                          fulfill(data);
+                      }
                   })
                   .catch(function (err: any) {
-                      reject(err);
+                      reject("TestFlag: " + that.testFlag + " Error: " + err);
                   });
           }
         });
@@ -94,25 +102,26 @@ export default class DatasetController {
     * @param none
     * @returns Promise<any>
      */
-    private createDataDirectory() : Promise<boolean> {
-        return new Promise(function (fulfill,reject) {
+    public createDataDirectory() : Promise<boolean> {
+        return new Promise((fulfill,reject) =>{
+            let that = this;
             let pathName: string = path.resolve(__dirname, "..", "..", "data");
             fs.stat(pathName, (err, stats) => {
                 // if the pathname doesnt exist, stats will be undefined and an error will be passed.
                 // annoyingly enough we can't determine more.
-                if (err || !stats) {
+                if (err || !stats || that.testFlag === 1) {
                     fs.mkdir(pathName, (err) => {
-                        if (err) {
+                        if (err || that.testFlag === 1) {
                             reject(false);
                             Log.error('Error creating the data directory: ' + err);
                         }
                         fulfill(true);
                     })
                 }
-                else if (stats && (stats.isDirectory() || stats.isFile())){
+                else if (that.testFlag === 0 && stats && (stats.isDirectory() || stats.isFile())){
                     fulfill(true);
                 }
-                else{
+                else {
                     reject(false);
                 }
             });
@@ -172,9 +181,9 @@ export default class DatasetController {
                 let pathName:string = path.resolve(__dirname, '..', '..', 'data');
                 // changed from ./data
                 fs.readdir(pathName, (err, files) => {
-                    if (err) {
+                    if (err || that.testFlag === 1) {
                         Log.error('oh noes an err: ' + err);
-                        reject(err);
+                        reject("TestFlag: " + that.testFlag + " Error: " + err);
                     }
                     var promiseArray = new Array();
                     files = that.leadingDotCheck(files);
@@ -186,7 +195,11 @@ export default class DatasetController {
                     });
                     Promise.all(promiseArray)
                         .then(() => {
-                            fulfill(that.datasets);
+                            if (that.testFlag === 2) {
+                                throw new Error("testFlag set to 2!")
+                            } else {
+                                fulfill(that.datasets);
+                            }
                         })
                         .catch((err) => {
                             Log.error('Uhoh promise array failed to resolve: ' + err);
@@ -251,9 +264,15 @@ export default class DatasetController {
       var that = this;
       return new Promise(function (fulfill, reject) {
         try {
+            if (that.testFlag === 5) {
+                throw new Error("testFlag set to 5!")
+            }
             let myZip = new JSZip();
             myZip.loadAsync(data, {base64: true})
                 .then(function processZipFile(zip: JSZip) {
+                    if (that.testFlag === 4) {
+                        throw new Error("testFlag set to 4!")
+                    }
                     let processedDataset: {[key: string]: string} = {};
                     Log.trace('DatasetController::process(..) - unzipped');
                     var fileKeys = Object.keys(zip.files);
@@ -277,7 +296,11 @@ export default class DatasetController {
                                     });
                             })
                             .then((data: Number) => {
-                                fulfill(data);
+                                if (that.testFlag === 1) {
+                                    throw new Error("testFlag set to 1!")
+                                } else {
+                                    fulfill(data);
+                                }
                             })
                             .catch(err => {
                             Log.error('Error handling building promise on save : ' + err);
@@ -304,9 +327,16 @@ export default class DatasetController {
                                 let file = parsedFileName;
                                 zipObject[filePath].async('string')
                                     .then(function storeDataFromFilesInDictionary(data) {
+                                        if (that.testFlag === 2) {
+                                            throw new Error("testFlag set to 2!")
+                                        }
                                         try {
-                                            processedDataset[file] = JSON.parse(data);
-                                            yes();
+                                            if (that.testFlag === 3) {
+                                                throw new Error("testFlag set to 3!")
+                                            } else {
+                                                processedDataset[file] = JSON.parse(data);
+                                                yes();
+                                            }
                                         }
                                         catch (err) {
                                             Log.error('Error for the parsing of JSON in Process: ' + err.message);
@@ -364,7 +394,7 @@ export default class DatasetController {
         return new Promise(function (fulfill, reject) {
             let jsonData:string;
             try {
-                jsonData = JSON.stringify(processedDataset);
+                    jsonData = JSON.stringify(processedDataset);
             }
             catch(err){
                 err.message = 'DatasetController save - stringify error : ' + err.message;
@@ -373,27 +403,25 @@ export default class DatasetController {
             var dataPath = path.resolve(__dirname, '..', '..','data',id + '.json');
             that.isDataOnDisk(id, dataPath)
             .then(function (isFileOnDisk) {
-                fs.writeFile(dataPath, jsonData, (err) => {
-                    if (err) {
-                        Log.trace('Writefile error! ' + err);
-                        reject(err);
-                    }
-                    // if in memory, OR, not on DISK, return 204
-                    // if not in memory OR not on disk, return 201
-                    if (Object.keys(that.datasets).indexOf(id) === -1 && !isFileOnDisk) {
-                        that.datasets[id] = processedDataset;
-                        fulfill(204);
-                    }
-                    else {
-                        that.datasets[id] = processedDataset;
-                        fulfill(201);
-                    }
-
-                });
+                    fs.writeFile(dataPath, jsonData, (err) => {
+                        if (err) {
+                            Log.trace('Writefile error! ' + err);
+                            reject(err);
+                        }
+                        // if in memory, OR, not on DISK, return 204
+                        // if not in memory OR not on disk, return 201
+                        if (Object.keys(that.datasets).indexOf(id) === -1 && !isFileOnDisk) {
+                            that.datasets[id] = processedDataset;
+                            fulfill(204);
+                        }
+                        else {
+                            that.datasets[id] = processedDataset;
+                            fulfill(201);
+                        }
+                    });
             }).catch (function (err){
                 Log.error('Ruhoh! AN ERROR SHAGGY! ' + err);
             });
-
         });
     }
   }
