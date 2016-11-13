@@ -10,7 +10,12 @@ import {QueryRequest} from "../src/controller/QueryController";
 
 
 describe('InsightFacade', () => {
-
+    after((done) => {
+        InsightFacadeController.removeDataset('testingFacade').then(function (result){
+            expect(result.code === 204).to.be.true;
+            done();
+        });
+    });
     let InsightFacadeController = new InsightFacade();
     it('addDataSet success!', (done) => {
         let content0 = {'DonkeyLandThemeParkRide': 'RollerCoaster'};
@@ -53,7 +58,10 @@ describe('InsightFacade', () => {
     });
     it('removeDataSet fail', (done) => {
         InsightFacadeController.removeDataset('testingFacade').then(function (result) {
-            expect(false).to.be.true;
+            expect(() => {
+                expect(false).to.be.true;
+            }).to.throw();
+            done(new Error("Removing dataset did not return an error."));
         }).catch((result) => {
             expect(result.code === 404).to.be.true;
             done();
@@ -110,7 +118,7 @@ describe('InsightFacade', () => {
                     expect(result.code === 204).to.be.true;
                     done();
                 });
-        })
+        });
         let content0 = {
             "asdf1234": {
                 "result": [{"Avg": 70, "Professor": "Elmo"}, {
@@ -169,8 +177,8 @@ describe('InsightFacade', () => {
             }).catch(function (err) {
                 expect(false).to.be.true;
                 done();
-            })
-        })
+            });
+        });
     });
     it('processQuery invalid query', (done) => {
         let failQuery: any = {
@@ -270,7 +278,164 @@ describe('InsightFacade', () => {
         }).catch(function (err){
             Log.test('InsightFacade : ' + err);
 
-            done()
+            done();
+        });
+    });
+
+    it("424 for dataset not been PUT.", function(done) {
+        after((done) => {
+            InsightFacadeController.removeDataset('asdf1111').then(function (result){
+                expect(result.code === 204).to.be.true;
+                done();
+            });
+        });
+        let content1111 = {
+            "asdf1111": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
+        let content2222 = {
+            "asdf2222": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
+        let zip = new JSZip();
+        zip.file('asdf1111', JSON.stringify(content1111));
+        zip.file('asdf2222', JSON.stringify(content2222));
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then((data) => {
+            return InsightFacadeController.addDataset('asdf1111', data);
+        }).then((result) => {
+            Log.test('Dataset processed; result: ' + result);
+            let query: QueryRequest = {
+                "GET": ["asdf1111_avg", "asdf1111_instructor"],
+                "WHERE": {
+                    "AND": [{
+                        "NOT": {
+                            "IS": {"asdf3333_instructor": "Bond, James"}
+                        }
+                    },
+                        {
+                            "OR": [
+                                {"GT": {"asdf1111_avg": 30}},
+                                {"IS": {"asdf1111_instructor": "Vader, Darth"}}
+                            ]
+                        }]
+                },
+                "ORDER": "asdf1111_instructor",
+                "AS": "TABLE"
+            };
+            InsightFacadeController.performQuery(query).then((result) => {
+                expect(() => {
+                    expect(false).to.be.true;
+                }).to.throw();
+                done(new Error("Query did not return an error."));
+            }).catch((err) =>{
+                expect(err.code).to.be.equal(424);
+                done();
+            });
+        }).catch(err => {
+            Log.test("unexpected error in test: 424 for dataset not been PUT.");
+            done(err);
+        });
+    });
+
+    it("400 for multiple datasets in query that have been PUT.", function(done) {
+        after((done) => {
+            InsightFacadeController.removeDataset('asdf1234').then(function (result){
+                expect(result.code === 204).to.be.true;
+                InsightFacadeController.removeDataset('asdf2222').then(function (result){
+                    expect(result.code === 204).to.be.true;
+                    done();
+                });
+            });
+        });
+        let content1111 = {
+            "asdf1234": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
+        let content2222 = {
+            "asdf2222": {
+                "result": [{"Avg": 70, "Professor": "Elmo"}, {
+                    "Avg": 110,
+                    "Professor": "Bond, James"
+                }, {"Avg": 21, "Professor": "Vader, Darth"}, {"Avg": 87, "Professor": "E.T."}, {
+                    "Avg": 37,
+                    "Professor": "Bond, James"
+                }, {"Avg": 12, "Professor": "Gollum"}], "rank": 7
+            }
+        };
+        let zip = new JSZip();
+        zip.file('asdf1234', JSON.stringify(content1111));
+        zip.file('asdf2222', JSON.stringify(content2222));
+
+        const opts = {
+            compression: 'deflate', compressionOptions: {level: 2}, type: 'base64'
+        };
+        return zip.generateAsync(opts).then((data) => {
+            return InsightFacadeController.addDataset('asdf1234', data);
+        }).then((result) => {
+            let zip2 = new JSZip();
+            zip2.file('asdf1234', JSON.stringify(content1111));
+            zip2.file('asdf2222', JSON.stringify(content2222));
+            return zip2.generateAsync(opts).then((data) => {
+                return InsightFacadeController.addDataset('asdf2222', data);
+            }).then((result) => {
+                Log.test('Dataset processed; result: ' + result);
+                let query: QueryRequest = {
+                    "GET": ["asdf1234_avg", "asdf1234_instructor"],
+                    "WHERE": {
+                        "AND": [{
+                            "NOT": {
+                                "IS": {"asdf2222_instructor": "Bond, James"}
+                            }
+                        },
+                            {
+                                "OR": [
+                                    {"GT": {"asdf1234_avg": 30}},
+                                    {"IS": {"asdf1234_instructor": "Vader, Darth"}}
+                                ]
+                            }]
+                    },
+                    "ORDER": "asdf1234_instructor",
+                    "AS": "TABLE"
+                };
+                InsightFacadeController.performQuery(query).then((result) => {
+                    expect(() => {
+                        expect(false).to.be.true;
+                    }).to.throw();
+                    done(new Error("Query did not return an error."));
+                    done(result);
+                }).catch((err) => {
+                    expect(err.code === 400).to.be.true;
+                    done();
+                });
+            });
+        }).catch(err => {
+            Log.test("unexpected error in test: 400 for multiple datasets in query that have been PUT.");
+            done(err);
         });
     });
 });

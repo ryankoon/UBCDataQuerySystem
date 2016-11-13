@@ -14,13 +14,6 @@ import {IGroupHashMap} from "../src/controller/IHashMap";
 import {QueryResponse} from "../src/controller/QueryController";
 import {IBuilding, IRoom} from "../src/controller/IBuilding";
 describe("QueryController", function () {
-
-    beforeEach(function () {
-    });
-
-    afterEach(function () {
-    });
-
     it("Should be able to validate a valid query", function () {
         Log.test("Test - A valid query.");
         let query: QueryRequest = {
