@@ -346,10 +346,8 @@ describe('InsightFacade', () => {
                 }).to.throw();
                 done(new Error("Query did not return an error."));
             }).catch((err) =>{
-                expect(() => {
-                expect(result.code).to.be.equal(424);
-                }).to.throw();
-                done(new Error("Expected a 424. Actual: " + result.code));
+                expect(err.code).to.be.equal(424);
+                done();
             });
         }).catch(err => {
             Log.test("unexpected error in test: 424 for dataset not been PUT.");
