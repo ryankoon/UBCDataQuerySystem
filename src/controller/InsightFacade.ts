@@ -87,6 +87,7 @@ export default class InsightFacade implements IInsightFacade {
                 let allQueryKeys: string[];
                 try {
                     allQueryKeys = controller.getAllQueryKeys(query);
+                    controller.invalidateMultipleDatasets(allQueryKeys);
                 }
                 catch (err) {
                     let errBody = {
@@ -130,7 +131,6 @@ export default class InsightFacade implements IInsightFacade {
                 Promise.all(getDatasetPromises)
                     .then(() => {
                         if (missingDatasets.length === 0) {
-                            controller.invalidateMultipleDatasets(allQueryKeys);
                             controller.setDataset(recievedDatasets);
                             let result = controller.query(query);
                             let successObject : InsightResponse = new ResponseObject(200, result);
