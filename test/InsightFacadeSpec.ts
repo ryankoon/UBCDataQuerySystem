@@ -110,7 +110,7 @@ describe('InsightFacade', () => {
                     expect(result.code === 204).to.be.true;
                     done();
                 });
-        })
+        });
         let content0 = {
             "asdf1234": {
                 "result": [{"Avg": 70, "Professor": "Elmo"}, {
@@ -214,7 +214,12 @@ describe('InsightFacade', () => {
     });
 
     it('addDataSet html success!', (done) => {
-
+        after((done) => {
+            InsightFacadeController.removeDataset('testingFacade').then(function (result){
+                expect(result.code === 204).to.be.true;
+                done();
+            });
+        })
         let roomHtml = '<html><head></head><body><table> ' +
             '<thead>' +
             '<tr>' +
