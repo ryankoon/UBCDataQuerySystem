@@ -11,7 +11,7 @@ These branches represent key contributions more than a single commit would in ou
 https://github.com/CS310-2016Fall/cpsc310project_team52/pulls?q=is%3Apr+is%3Aclosed+author%3Aryankoon+milestone%3AD3
 
 To parallelize the tasks, I focused on the (non-parsing) parts and converged with Alek's implementation of the HTML 
-parser.  
+parser. Tests are written at the same time as the feature is being developed and is part of each feature branch.  
 
 1. Support new keys and design new building and room interfaces to ensure minimal changes required in queryController to
 support the rooms dataset.  
