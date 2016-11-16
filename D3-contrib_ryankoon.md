@@ -13,7 +13,7 @@ https://github.com/CS310-2016Fall/cpsc310project_team52/pulls?q=is%3Apr+is%3Aclo
 To parallelize the tasks, I focused on the (non-parsing) parts and converged with Alek's implementation of the HTML 
 parser. Tests are written at the same time as the feature is being developed and is part of each feature branch.  
 
-1. Support new keys and design new building and room interfaces to ensure minimal changes required in queryController to
+1. Support new keys and design new building and room interfaces to ensure minimal changes required in Query Controller to
 support the rooms dataset.  
 https://github.com/CS310-2016Fall/cpsc310project_team52/pull/51
 
@@ -46,7 +46,7 @@ https://github.com/CS310-2016Fall/cpsc310project_team52/pull/62
 <h3> Non-Code Contributions </h3>
 
 Documentation
-- documented the methods in the parser class to understand the implementation before wiring up my pieces and to help 
+- Documented the methods in the parser class to understand the implementation before wiring up my pieces and to help 
 debug the code
 
 Managing the board
