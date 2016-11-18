@@ -44,27 +44,36 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
-	var React = __webpack_require__(1);
-	var ReactDOM = __webpack_require__(2);
-	var Hello_1 = __webpack_require__(3);
-	ReactDOM.render(React.createElement(Hello_1.Hello, {compiler: "TypeScript", framework: "React"}), document.getElementById("example"));
+	__webpack_require__(1);
+	(function webpackMissingModule() { throw new Error("Cannot find module \"run\""); }());
+	(function webpackMissingModule() { throw new Error("Cannot find module \"server\""); }());
 
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = React;
+	"use strict";
+	var React = __webpack_require__(2);
+	var ReactDOM = __webpack_require__(3);
+	var Hello_1 = __webpack_require__(4);
+	ReactDOM.render(React.createElement(Hello_1.Hello, {compiler: "TypeScript", framework: "React"}), document.getElementById("example"));
+
 
 /***/ },
 /* 2 */
 /***/ function(module, exports) {
 
-	module.exports = ReactDOM;
+	module.exports = React;
 
 /***/ },
 /* 3 */
+/***/ function(module, exports) {
+
+	module.exports = ReactDOM;
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -73,7 +82,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var React = __webpack_require__(1);
+	var React = __webpack_require__(2);
 	var Hello = (function (_super) {
 	    __extends(Hello, _super);
 	    function Hello() {
