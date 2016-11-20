@@ -19,9 +19,5 @@
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
     "react-global": "registry:dt/react-global#0.14.0+20160316155526",
     "restify": "registry:dt/restify#2.0.0+20160602145247"
-  },
-  "dependencies": {
-    "react": "registry:npm/react#15.0.1+20160601175240",
-    "react-dom": "registry:npm/react-dom#15.0.1+20160826174104"
   }
 }
