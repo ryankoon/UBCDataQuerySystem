@@ -47,6 +47,20 @@ export default class RouteHandler {
         });
     }
 
+    public static getUIPage(req : restify.Request, res: restify.Response, next: restify.Next){
+        Log.trace('RouteHandler::getUIPage(..)');
+        fs.readFile('./src/rest/views/ui.html', 'utf8', function (err: Error, file: Buffer) {
+           if (err){
+               res.send(500);
+               Log.error(JSON.stringify(err));
+               return next();
+           }
+           res.write(file);
+            res.end();
+            return next();
+        });
+    }
+
 
     public static putDataset(req: restify.Request, res: restify.Response, next: restify.Next) {
         Log.trace('RouteHandler::postDataset(..) - params: ' + JSON.stringify(req.params));

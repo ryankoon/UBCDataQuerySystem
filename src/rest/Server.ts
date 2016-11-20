@@ -57,6 +57,7 @@ export default class Server {
 		that.rest.get("/public/.*", restify.serveStatic({
 		    directory: __dirname
 		}));
+        that.rest.get('/scheduler', RouteHandler.getUIPage);
 
                 // Loads the homepage.
                 // curl -is  http://localhost:4321/
@@ -68,7 +69,6 @@ export default class Server {
 
                 // Deletes a datset.
                 that.rest.del('/dataset/:id', RouteHandler.deleteDataset);
-
 
                 // Receives queries. Although these queries never change the server (and thus could be GETs)
                 // they are formed by sending JSON bodies, which is not standard for normal GET requests.
