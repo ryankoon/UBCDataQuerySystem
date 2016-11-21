@@ -57,12 +57,11 @@ export default class Server {
 		that.rest.get("/public/.*", restify.serveStatic({
 		    directory: __dirname
 		}));
-        that.rest.get('/scheduler', RouteHandler.getUIPage);
+                that.rest.get('/scheduler', RouteHandler.getUIPage);
 
                 // Loads the homepage.
-                // curl -is  http://localhost:4321/
+        // curl -is  http://localhost:4321/
 		that.rest.get('/', RouteHandler.getHomepage);
-
                 // Sends a dataset. Is idempotent and can create or update a dataset id.
                 // curl localhost:4321/dataset/test --upload-file FNAME.zip
                 that.rest.put('/dataset/:id', RouteHandler.putDataset);
@@ -90,6 +89,8 @@ export default class Server {
                 Log.error('Server::start() - ERROR: ' + err);
                 reject(err);
             }
+
         });
+
     }
 }
