@@ -1,8 +1,11 @@
+#Setup webpack:
+- install webpack globally 
+- Run the command 'webpack' to generate a new bundle.js
+
 # CPSC Lab 2
 
 We have a scrum board with proper user stories implemented. Stew should have access to it at:
 https://alekhrycaiko-310.visualstudio.com/alek-ryan-cpsc310/alek-ryan-cpsc310%20Team/_backlogs
-
 
 # CPSC 310 Project Repository
 
