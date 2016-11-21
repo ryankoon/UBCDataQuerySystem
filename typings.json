@@ -18,6 +18,7 @@
     "react-addons-update": "registry:dt/react-addons-update#0.14.0+20160316155526",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
     "react-global": "registry:dt/react-global#0.14.0+20160316155526",
+    "react-tabs": "registry:dt/react-tabs#0.5.3+20160818023510",
     "restify": "registry:dt/restify#2.0.0+20160602145247"
   }
 }

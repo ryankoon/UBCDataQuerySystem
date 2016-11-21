@@ -1,44 +1,35 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import SingleTab from './SingleTab.tsx';
-import {TabsContainer} from "./TabsContainer";
-import {ContainerContent} from "./ContainerContent";
-
-//TODO: this should pull together the tab container with the appropriate values.
-/*
-Setup Tab properties
- */
-var tabProperties = [
-    {value : 0, name : 'Course Explorer'},
-    {value : 1, name : 'Room Explorer'},
-    {value : 2, name : 'Course Scheduler'}
-    ]
+import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
 export class App extends React.Component<any, any> {
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            tabProperties: tabProperties,
-            tabSelected: 0
-        }
+    handleSelect(index : any, last : any) {
+        console.log('Selected tab: ' + index + ', Last tab: ' + last);
     }
-
     render() {
-        return (
-            <div>
-                <TabsContainer compiler="TypeScript"
-                           tabProperties={tabProperties}
-                           swapTab = {this.swapTab}
-                           tabSelected = {this.state.tabSelected}
-                           framework="React"
-                 />
-                <ContainerContent currentTab={this.state.tabSelected} />
-            </div>
-        );
-    }
+            return (
+                <div>
+                    <h1>Course Scheduling System!!!!!</h1>
+                    <Tabs>
+                        <TabList>
+                            <Tab>Course Explorer</Tab>
+                            <Tab>Room Explorer</Tab>
+                            <Tab>Course Scheduler</Tab>
+                        </TabList>
 
-    swapTab(tabSelected: any) {
-        this.setState({currentTab: tabSelected.value});
-
+                        <TabPanel>
+                            <h2>Explore your potential courses!</h2>
+                                <h2>Here is the course module endpoint dropdown thingy </h2>
+                        </TabPanel>
+                        <TabPanel>
+                            <h2>Explore your potential rooms!</h2>
+                                <p>Here is your potential rooms to choose from!!!</p>
+                        </TabPanel>
+                        <TabPanel>
+                           <h2> Course Scheduler....</h2>
+                        </TabPanel>
+                    </Tabs>
+                </div>
+            );
     }
 }
