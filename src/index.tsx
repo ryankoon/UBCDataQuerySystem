@@ -8,9 +8,11 @@ TODO: REPLACE ALL THIS. THIS IS TEMPORARY SETUP FOR WEBPACK/REACT
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Tabs } from "./components/tabs";
+import { TabsContainer } from "./components/TabsContainer.tsx";
+import {App} from "./components/App";
+
+
 
 ReactDOM.render(
-    <Tabs compiler="TypeScript" framework="React" />,
-    document.getElementById("reacts-render-id"))
-
+    <App compiler="TypeScript" framework="React" />,
+    document.getElementById("reacts-render-id"));
