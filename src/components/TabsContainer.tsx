@@ -10,6 +10,11 @@ import SingleTab from './SingleTab.tsx';
 export class TabsContainer extends React.Component<any, any> {
     constructor(props : any){
         super(props);
+
+
+    }
+    handleClick (where : any) {
+        this.props.swapTab(where);
     }
     render() {
         return(
@@ -21,15 +26,14 @@ export class TabsContainer extends React.Component<any, any> {
                             <SingleTab
                                 value = {val.value}
                                 name = {val.name}
+                                handleClick ={this.handleClick.bind(this, val)}
+                                isCurrent = {(this.props.currentTab === val.value)}
                             />
                            );
-                        })}
+                        }.bind(this))}
                     </ul>
                 </ul>
             </nav>
         );
-    }
-    handleClick (where : any) {
-        this.props.swapTab(where);
     }
 }

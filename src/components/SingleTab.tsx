@@ -4,16 +4,19 @@ import * as React from 'react';
 export default class SingleTab extends React.Component<any, any> {
     constructor(props : any){
         super(props);
+        this.handleClick = this.props.handleClick.bind(this);
     }
     render() {
         return (
             <li >
-                <a onClick={this.handleClick} href="#">  {this.props.name} </a>
+                <a onClick = {this.props.handleClick} href="#">  {this.props.name} </a>
             </li>);
     }
-    handleClick(e : any){ // this is an issue... I need to figure out how to properly swap tabs and display containercontent
-       // probably need to do a bind on this.state somehow and click state in props
+    handleClick(e : any) {
+        console.log('we hit!');
+        console.log('this is e: ' + e);
         e.preventDefault();
-        this.props.swapClick(e);
+       // this.props.handleClick();
     }
+    // we now want 'onClick' show content....
 }

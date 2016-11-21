@@ -28,9 +28,11 @@ export class App extends React.Component<any, any> {
             <div>
                 <TabsContainer compiler="TypeScript"
                            tabProperties={tabProperties}
+                           swapTab = {this.swapTab}
+                           tabSelected = {this.state.tabSelected}
                            framework="React"
                  />
-                <ContainerContent currentTab={this.state.currentTab} />
+                <ContainerContent currentTab={this.state.tabSelected} />
             </div>
         );
     }
