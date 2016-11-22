@@ -75,7 +75,6 @@ export default class InsightFacade implements IInsightFacade {
                 });
         })
     }
-
     public performQuery(query: QueryRequest): Promise<InsightResponse> {
         Log.trace('InsightFacade:performQuery(..): query: ' + query);
         return new Promise((fulfill, reject) => {

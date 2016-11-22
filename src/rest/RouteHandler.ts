@@ -126,4 +126,16 @@ export default class RouteHandler {
             return next();
         }
     }
+    /*
+    Will call insightFacade and get an object of key: arrays of info for courses.
+    public static getCourseInformation () {
+
+    };
+     */
+    /*
+    Will call insightFacade and get an object of key: arrays of info for rooms.
+    public static getRoomInformation () {
+
+    }
+     */
 }
