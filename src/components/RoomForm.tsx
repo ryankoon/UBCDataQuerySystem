@@ -9,8 +9,12 @@ export class RoomForm extends React.Component<any, any> {
     constructor(props : any){
     super (props)
     }
+    shouldComponentUpdate(nextProps, nextState){
+
+    }
     render() {
         return (
+
             <FormGroup>
                 <ControlLabel> Building Name </ControlLabel>
                 <FormControl id="buildingName" componentClass="textarea" placeholder="textarea">
