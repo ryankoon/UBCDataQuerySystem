@@ -13,7 +13,7 @@ export class RoomForm extends React.Component<any, any> {
         return (
             <FormGroup>
                 <ControlLabel> Building Name </ControlLabel>
-                <FormControl componentClass="textarea" placeholder="textarea">
+                <FormControl id="buildingName" componentClass="textarea" placeholder="textarea">
                 </FormControl>
 
                 <ControlLabel> Furniture Type </ControlLabel>

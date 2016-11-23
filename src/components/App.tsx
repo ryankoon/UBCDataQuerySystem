@@ -7,7 +7,6 @@ export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
     }
-
     render() {
         return (
             <div>
@@ -18,7 +17,6 @@ export class App extends React.Component<any, any> {
                         <Tab>Room Explorer</Tab>
                         <Tab>Course Scheduler</Tab>
                     </TabList>
-
                     <TabPanel>
                         <h2>Explore your potential courses!</h2>
                         <h2>Here is the course module endpoint dropdown thingy </h2>
@@ -26,7 +24,7 @@ export class App extends React.Component<any, any> {
                     <TabPanel>
                         <h2>Explore your potential rooms!</h2>
                         <AjaxRoomDropDown compiler="TypeScript" framework="React"/>
-                        <RoomForm compiler="TypeScript" framework="React"/>
+                        <RoomForm handle compiler="TypeScript" framework="React"/>
                         <p>Here is your potential rooms to choose from!!!</p>
                     </TabPanel>
                     <TabPanel>
@@ -37,3 +35,6 @@ export class App extends React.Component<any, any> {
         );
     }
 }
+// Probably what I need to do... is to pass down a handler function to AjaxRoomDropDown
+// NEed to pass the result of that to roomform?
+// or.... I need to use jquery and do some updating schenan

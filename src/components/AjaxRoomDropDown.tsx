@@ -45,12 +45,16 @@ export class AjaxRoomDropDown extends React.Component<any, any> {
                 console.log (err);
         })
     }
+    setSelectedBuilding(index : string) {
+        alert(index);
+        // Need to somehow pass this state in and have the RoomForm respond to it.
+    }
     render () {
         return (
         <div>
             <DropdownButton className ="dropdown-margins" bsStyle="primary" id="building-dropdown" title="Building Name">
                 {this.state.building_name.map((item:any, index: any) =>{
-                    return <MenuItem eventKey = {index}> {item} </MenuItem>
+                    return <MenuItem onClick = {this.setSelectedBuilding} eventKey = {index}> {item} </MenuItem>
                 })}
             </DropdownButton>
 
