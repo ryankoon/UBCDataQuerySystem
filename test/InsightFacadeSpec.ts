@@ -278,4 +278,29 @@ describe('InsightFacade', () => {
             done()
         });
     });
+    it('can hit getRoomInformation', done => {
+        InsightFacadeController.getRoomInformation().then(result => {
+            let resultSet = result.body.result;
+            let testResult : Object = resultSet[0];
+            let keys : Array<string> = Object.keys(testResult);
+            expect(keys.length === 6).to.be.true;
+            done();
+        }).catch(err=>{
+            console.error(err);
+           done();
+        });
+    });
+
+    it('can hit courseInformation', done => {
+        InsightFacadeController.getCourseInformation().then(result => {
+            let resultSet = result.body.result;
+            let testResult : Object = resultSet[0];
+            let keys : Array<string> = Object.keys(testResult);
+            expect(keys.length === 6).to.be.true;
+            done();
+        }).catch(err=>{
+            console.error(err);
+            done();
+        });
+    });
 });

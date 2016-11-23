@@ -57,7 +57,21 @@ export default class Server {
 		that.rest.get("/public/.*", restify.serveStatic({
 		    directory: __dirname
 		}));
-                that.rest.get('/scheduler', RouteHandler.getUIPage);
+
+         that.rest.get('/scheduler', RouteHandler.getUIPage);
+                // TODO: Implement stubbed keys here.
+                that.rest.post('/query', restify.bodyParser(), RouteHandler.postQuery);
+                that.rest.get('/roomInfo', RouteHandler.getRoomInformation);
+                that.rest.get('/courseInfo', RouteHandler.getCourseInformation);
+
+                // While on scheduler, lets make Posts.
+                // for part 1
+                // We want to retrieve all section sizes, departments, course numbers, instructors and titles.
+                // Will do this in one call and then take the information to populate dropdowns.
+                // for part 2
+                // We want to retrieve all building names, room numbers, room-size, room type, furniture type, location
+                // for both parts we can hard code the 'labels' and dynamically populate the lists based pre-determined queries.
+                // Will do this in one call and then take the information to populate dropdowns.
 
                 // Loads the homepage.
         // curl -is  http://localhost:4321/

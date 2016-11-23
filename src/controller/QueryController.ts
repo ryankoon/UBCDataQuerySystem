@@ -108,7 +108,6 @@ export default class QueryController {
             if (errorMessage) {
                 return errorMessage;
             }
-
         }
 
         if (query.ORDER) {

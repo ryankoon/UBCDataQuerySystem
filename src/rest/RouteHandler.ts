@@ -56,8 +56,8 @@ export default class RouteHandler {
                return next();
            }
            res.write(file);
-            res.end();
-            return next();
+           res.end();
+           return next();
         });
     }
 
@@ -126,4 +126,37 @@ export default class RouteHandler {
             return next();
         }
     }
+
+    public static getRoomInformation (req: restify.Request, res: restify.Response, next: restify.Next) {
+        try {
+            let controller = new InsightFacade();
+            controller.getRoomInformation()
+                .then(function (result) {
+                    res.json(result.code, result.body);
+                    return next();
+                }).catch(function (err){
+                    res.json(400, {error : 'Error accessing room info due to invalid data'})
+            });
+        }
+        catch (err) {
+            res.json(400, {error : 'Failed trying to get room information'});
+            return next();
+        }
+    };
+    public static getCourseInformation (req: restify.Request, res: restify.Response, next: restify.Next) {
+        try {
+            let controller = new InsightFacade();
+            controller.getCourseInformation()
+                .then(function (result) {
+                    res.json(result.code, result.body);
+                    return next();
+                }).catch(function (err){
+                res.json(400, {error : 'Error accessing course info due to invalid data'})
+            });
+        }
+        catch (err) {
+            res.json(400, {error : 'Failed trying to get course information'});
+            return next();
+        }
+    };
 }
