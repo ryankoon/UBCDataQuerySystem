@@ -178,7 +178,7 @@ export default class InsightFacade implements IInsightFacade {
         });
     }
         /*
-         Return an Object of Key : Array pairs of all relevant key pairs.
+         Return an Array of Objects containing all the desired course information.
          */
     public getCourseInformation() : Promise<InsightResponse> {
             return new Promise((fulfill, reject)=>{

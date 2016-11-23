@@ -126,9 +126,7 @@ export default class RouteHandler {
             return next();
         }
     }
-    /*
-     Will call insightFacade and get an object of key: arrays of info for rooms.
-     */
+
     public static getRoomInformation (req: restify.Request, res: restify.Response, next: restify.Next) {
         try {
             let controller = new InsightFacade();
@@ -145,10 +143,6 @@ export default class RouteHandler {
             return next();
         }
     };
-    /*
-    Will call insightFacade and get an object of key: arrays of info for courses.
-    public static getCourseInformation () {
-     */
     public static getCourseInformation (req: restify.Request, res: restify.Response, next: restify.Next) {
         try {
             let controller = new InsightFacade();
