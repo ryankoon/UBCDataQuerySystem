@@ -25,8 +25,6 @@ export class App extends React.Component<any, any> {
                     <TabPanel>
                         <h2>Explore your potential rooms!</h2>
                         <AjaxRoomExplorer compiler="TypeScript" framework="React"/>
-                        <div id="evil-div"></div>
-                        <div id="building-dropdown"> </div>
                         <p>Here is your potential rooms to choose from!!!</p>
                     </TabPanel>
                     <TabPanel>
