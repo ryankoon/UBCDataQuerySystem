@@ -158,4 +158,42 @@ export default class InsightFacade implements IInsightFacade {
             }
         });
     }
+
+
+    /*
+        Return an Array of Objects containing all the desired room information.
+     */
+    public getRoomInformation() : Promise<InsightResponse> {
+        return new Promise((fulfill, reject) => {
+            let roomQuery: QueryRequest = {
+                "GET": ["rooms_number", "rooms_fullname", "rooms_seats", "rooms_type", "rooms_lat", "rooms_lon"],
+                "WHERE": {},
+                "AS": "TABLE"
+            }
+            this.performQuery(roomQuery).then(result => {
+               fulfill(result);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
+        /*
+         Return an Object of Key : Array pairs of all relevant key pairs.
+         */
+    public getCourseInformation() : Promise<InsightResponse> {
+            return new Promise((fulfill, reject)=>{
+                let courseQuery : QueryRequest =
+                {
+                    "GET": ["courses_instructor", "courses_dept", "courses_id", "courses_title", "courses_fail", "courses_pass"],
+                    "WHERE": {},
+                    "AS" : "TABLE"
+                }
+                this.performQuery(courseQuery).then(result => {
+                   fulfill(result);
+                }).catch(err=>{
+                    reject(err);
+                });
+                // We want to do a number of queries and just get a ton of information from the current data set.
+            });
+    }
 }

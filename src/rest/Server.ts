@@ -61,6 +61,9 @@ export default class Server {
          that.rest.get('/scheduler', RouteHandler.getUIPage);
                 // TODO: Implement stubbed keys here.
                 that.rest.post('/query', restify.bodyParser(), RouteHandler.postQuery);
+                that.rest.get('/roomInfo', RouteHandler.getRoomInformation);
+                that.rest.get('/courseInfo', RouteHandler.getCourseInformation);
+
                 // While on scheduler, lets make Posts.
                 // for part 1
                 // We want to retrieve all section sizes, departments, course numbers, instructors and titles.
