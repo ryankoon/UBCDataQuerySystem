@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
+import {CourseScheduler} from "./CourseScheduler";
 
 export class App extends React.Component<any, any> {
     handleSelect(index : any, last : any) {
@@ -26,7 +27,7 @@ export class App extends React.Component<any, any> {
                                 <p>Here is your potential rooms to choose from!!!</p>
                         </TabPanel>
                         <TabPanel>
-                           <h2> Course Scheduler....</h2>
+                           <CourseScheduler/>
                         </TabPanel>
                     </Tabs>
                 </div>
