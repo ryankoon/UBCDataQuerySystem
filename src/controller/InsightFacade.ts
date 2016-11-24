@@ -4,6 +4,7 @@ import {QueryRequest, default as QueryController} from "./QueryController";
 import DatasetController from '../controller/DatasetController';
 import Log from '../Util';
 import {Datasets} from "./DatasetController";
+import DataController from "./DataController";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -159,6 +160,24 @@ export default class InsightFacade implements IInsightFacade {
         });
     }
 
+    /*
+     Return an Array of Rooms that are within the given distance from a building.
+     */
+    public getRoomsWithinDistance(req: any) : Promise<InsightResponse> {
+        return new Promise((fulfill, reject) => {
+            let roomQuery: QueryRequest = {
+                "GET": ["rooms_number", "rooms_fullname", "rooms_seats", "rooms_type", "rooms_lat", "rooms_lon"],
+                "WHERE": {},
+                "AS": "TABLE"
+            }
+            this.performQuery(roomQuery).then(result => {
+                let dataController = new DataController();
+                dataController.roomsWithinDistance({lat: 123, lon: 123}, [], 123, 'walking');
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
 
     /*
         Return an Array of Objects containing all the desired room information.

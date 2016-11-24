@@ -127,6 +127,23 @@ export default class RouteHandler {
         }
     }
 
+    public static postRoomsWithinDistance(req: restify.Request, res: restify.Response, next: restify.Next) {
+        try {
+            let controller = new InsightFacade();
+            controller.getRoomsWithinDistance(req)
+                .then(function (result) {
+                    res.json(result.code, result.body);
+                    return next();
+                }).catch(function (err){
+                res.json(400, {error : 'Error'})
+            });
+        }
+        catch (err) {
+            res.json(400, {error : 'Failed'});
+            return next();
+        }
+    }
+
     public static getRoomInformation (req: restify.Request, res: restify.Response, next: restify.Next) {
         try {
             let controller = new InsightFacade();
