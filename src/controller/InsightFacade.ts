@@ -1,10 +1,11 @@
 
 import {IInsightFacade, InsightResponse} from "./IInsightFacade";
-import {QueryRequest, default as QueryController} from "./QueryController";
+import {QueryRequest, default as QueryController, QueryResponse} from "./QueryController";
 import DatasetController from '../controller/DatasetController';
 import Log from '../Util';
 import {Datasets} from "./DatasetController";
 import DataController from "./DataController";
+import {IRoom} from "./IBuilding";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -163,17 +164,27 @@ export default class InsightFacade implements IInsightFacade {
     /*
      Return an Array of Rooms that are within the given distance from a building.
      */
-    public getRoomsWithinDistance(req: any) : Promise<InsightResponse> {
+    public getRoomsWithinDistance(reqBody: any): Promise<InsightResponse> {
         return new Promise((fulfill, reject) => {
-            let roomQuery: QueryRequest = {
-                "GET": ["rooms_number", "rooms_fullname", "rooms_seats", "rooms_type", "rooms_lat", "rooms_lon"],
-                "WHERE": {},
-                "AS": "TABLE"
-            }
-            let dataController = new DataController();
-            dataController.roomsWithinDistance({lat: 123, lon: 123}, [], 123, 'walking')
-            .then(result => {
-                fulfill(result);
+            InsightFacade.datasetController.getDataset("rooms")
+                .then((dataset: any) => {
+                    let keys = Object.keys(dataset);
+                    let aRoomFromEachBuilding: IRoom[] = [];
+                    keys.forEach((key) => {
+                        if (dataset[key]["result"].length > 0) {
+                            aRoomFromEachBuilding.push(dataset[key]["result"][0]);
+                        }
+                    });
+
+
+
+                    let dataController = new DataController();
+
+                    return dataController.roomsWithinDistance({lat: reqBody.lat, lon: reqBody.lng},
+                        aRoomFromEachBuilding, reqBody.distance, 'walking');
+                }).then(result => {
+                let responseObject = new ResponseObject(200, result);
+                fulfill(responseObject);
             }).catch(err => {
                 reject(err);
             });

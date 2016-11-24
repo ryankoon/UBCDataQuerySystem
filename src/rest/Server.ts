@@ -61,7 +61,7 @@ export default class Server {
          that.rest.get('/scheduler', RouteHandler.getUIPage);
                 // TODO: Implement stubbed keys here.
                 that.rest.post('/query', restify.bodyParser(), RouteHandler.postQuery);
-                that.rest.post('/roomswithindistance', restify.bodyParser(), RouteHandler.postRoomsWithinDistance);
+                that.rest.post('/roomswithindistance', restify.bodyParser(), RouteHandler.getRoomsWithinDistance);
                 that.rest.get('/roomInfo', RouteHandler.getRoomInformation);
                 that.rest.get('/courseInfo', RouteHandler.getCourseInformation);
                 that.rest.post('/roomExplorer', restify.bodyParser(), RouteHandler.handleRoomExploration);

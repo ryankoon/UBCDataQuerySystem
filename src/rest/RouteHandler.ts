@@ -127,19 +127,20 @@ export default class RouteHandler {
         }
     }
 
-    public static postRoomsWithinDistance(req: restify.Request, res: restify.Response, next: restify.Next) {
+    public static getRoomsWithinDistance(req: restify.Request, res: restify.Response, next: restify.Next) {
         try {
             let controller = new InsightFacade();
-            controller.getRoomsWithinDistance(req)
+            let body = JSON.parse(req.body);
+            controller.getRoomsWithinDistance(body)
                 .then(function (result) {
                     res.json(result.code, result.body);
                     return next();
                 }).catch(function (err){
-                res.json(400, {error : 'Error'})
+                res.json(400, {error : err})
             });
         }
         catch (err) {
-            res.json(400, {error : 'Failed'});
+            res.json(400, {error : err});
             return next();
         }
     }
@@ -179,10 +180,16 @@ export default class RouteHandler {
     public static handleRoomExploration(req : restify.Request, res : restify.Response, next : restify.Next){
         try {
             console.log(req.params);
-            res.json(200, req.params);
+            let body = JSON.parse(req.body);
+            if (body.lat !== 'undefined' && body.lon !== 'undefined' && body.distance !== 'undefined') {
+                RouteHandler.getRoomsWithinDistance(req, res, next);
+            } else {
+                res.json(200, req.params);
+            }
         }
         catch (err){
-
+            res.json(400, {error : 'Failed while handling room exploration:' + err});
+            return next();
         }
     }
     public static handleCourseExploration(req : restify.Request, res : restify.Response, next : restify.Next){
@@ -191,7 +198,8 @@ export default class RouteHandler {
             res.json(200, req.params);
         }
         catch (err){
-
+            res.json(400, {error : 'Failed while handling course exploration:' + err});
+            return next();
         }
     }
 }
