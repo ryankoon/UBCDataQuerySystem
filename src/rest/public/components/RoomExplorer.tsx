@@ -17,6 +17,12 @@ export class RoomExplorer extends React.Component<any, any> {
             furniture_type : []
         }
     }
+
+    handleResponse (data : string, sentStates : string) {
+        console.log(data);
+        console.log(sentStates);
+    }
+
     componentWillMount() {
         request.get('http://localhost:4321/roomInfo')
             .then( res => {
@@ -65,7 +71,7 @@ export class RoomExplorer extends React.Component<any, any> {
     render(){
         return (
             <div>
-                <RoomForm buildings = {this.state.building_name} room_type ={this.state.room_type} furniture = {this.state.furniture_type} compiler="TypeScript" framework="React"/>
+                <RoomForm handleResponse = {this.handleResponse} buildings = {this.state.building_name} room_type ={this.state.room_type} furniture = {this.state.furniture_type} compiler="TypeScript" framework="React"/>
             </div>
         );
     }

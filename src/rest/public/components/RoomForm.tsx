@@ -47,6 +47,7 @@ export class RoomForm extends React.Component<any, any> {
             size : e.target.value
         })
     }
+
     submitRoomsForm(e : any){
         e.preventDefault();
         let tempState = this.state;
@@ -61,7 +62,15 @@ export class RoomForm extends React.Component<any, any> {
             request
                 .post('http://localhost:4321/roomExplorer')
                 .send(payload)
-                .end();
+                .end((err, res) => {
+                    if (err) {
+                        console.log (err); // TODO : Need an error handle/display system.
+                    }
+                    if (res){
+                        this.props.handleResponse(res, payload);
+                    }
+                });
+
         }
         else{
             console.log('Show an error message, this shouldnt happen');
@@ -69,7 +78,6 @@ export class RoomForm extends React.Component<any, any> {
 
 
     }
-
 
     render() {
         return (
