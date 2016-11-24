@@ -283,7 +283,7 @@ describe('InsightFacade', () => {
             let resultSet = result.body.result;
             let testResult : Object = resultSet[0];
             let keys : Array<string> = Object.keys(testResult);
-            expect(keys.length === 6).to.be.true;
+            expect(keys.length === 7).to.be.true;
             done();
         }).catch(err=>{
             console.error(err);

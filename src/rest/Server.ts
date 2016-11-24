@@ -63,7 +63,7 @@ export default class Server {
                 that.rest.post('/query', restify.bodyParser(), RouteHandler.postQuery);
                 that.rest.get('/roomInfo', RouteHandler.getRoomInformation);
                 that.rest.get('/courseInfo', RouteHandler.getCourseInformation);
-
+                that.rest.post('/roomExplorer', restify.bodyParser(), RouteHandler.handleRoomExploration);
                 // While on scheduler, lets make Posts.
                 // for part 1
                 // We want to retrieve all section sizes, departments, course numbers, instructors and titles.

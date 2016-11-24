@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
-import {AjaxRoomDropDown} from './AjaxRoomDropDown';
-import {RoomForm} from './RoomForm';
+import {RoomExplorer} from './RoomExplorer';
 export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
@@ -22,10 +21,7 @@ export class App extends React.Component<any, any> {
                         <h2>Here is the course module endpoint dropdown thingy </h2>
                     </TabPanel>
                     <TabPanel>
-                        <h2>Explore your potential rooms!</h2>
-                        <AjaxRoomDropDown compiler="TypeScript" framework="React"/>
-                        <RoomForm handle compiler="TypeScript" framework="React"/>
-                        <p>Here is your potential rooms to choose from!!!</p>
+                        <RoomExplorer compiler="TypeScript" framework="React"/>
                     </TabPanel>
                     <TabPanel>
                         <h2> Course Scheduler....</h2>
