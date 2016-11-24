@@ -80,8 +80,9 @@ export default class DataController {
 
     public makeGDistanceRequest(fromArr: latLon[], toArr: latLon[], mode: string): Promise<gDistanceResponse[]> {
         return new Promise ((resolve, reject) => {
+            const apiKey = 'AIzaSyBlMhLjn3J1r5A6f0H28dVZSsLx9OmHOXY';
             let gDistance = require('google-distance');
-            gDistance.apiKey = 'AIzaSyBlMhLjn3J1r5A6f0H28dVZSsLx9OmHOXY';
+            gDistance.apiKey = apiKey;
 
             let fromStringArr = fromArr.map((from: latLon) => {
                 return this.latLontoString(from);
