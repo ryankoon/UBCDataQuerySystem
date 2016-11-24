@@ -32,9 +32,6 @@
     "start": "node src/App.js"
   },
   "dependencies": {
-    "@types/react": "^0.14.48",
-    "@types/react-dom": "^0.14.18",
-    "@types/react-tabs": "^0.5.21",
     "jszip": "^3.1.2",
     "mochawesome": "^1.5.2",
     "parse5": "^2.2.3",

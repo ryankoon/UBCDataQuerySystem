@@ -1,7 +1,7 @@
 /**
  * Created by rtholmes on 2016-09-03.
  */
-
+///<reference path="../../typings/globals/parse5/index.d.ts" />
 import Log from "../Util";
 import JSZip = require('jszip');
 import fs = require('fs');

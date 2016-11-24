@@ -170,9 +170,10 @@ export default class InsightFacade implements IInsightFacade {
                 "WHERE": {},
                 "AS": "TABLE"
             }
-            this.performQuery(roomQuery).then(result => {
-                let dataController = new DataController();
-                dataController.roomsWithinDistance({lat: 123, lon: 123}, [], 123, 'walking');
+            let dataController = new DataController();
+            dataController.roomsWithinDistance({lat: 123, lon: 123}, [], 123, 'walking')
+            .then(result => {
+                fulfill(result);
             }).catch(err => {
                 reject(err);
             });
