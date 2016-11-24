@@ -39,9 +39,11 @@
     "mochawesome": "^1.5.2",
     "parse5": "^2.2.3",
     "react": "^15.4.0",
+    "react-bootstrap": "^0.30.7",
     "react-dom": "^15.4.0",
     "react-tabs": "^0.8.2",
     "restify": "^4.0.3",
+    "superagent": "^3.0.0",
     "tslint": "^3.15.1",
     "typescript": "^1.8.10"
   }

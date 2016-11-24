@@ -159,4 +159,12 @@ export default class RouteHandler {
             return next();
         }
     };
+    public static handleRoomExploration(req : restify.Request, res : restify.Response, next : restify.Next){
+        try {
+            console.log(req.params);
+        }
+        catch (err){
+
+        }
+    }
 }

@@ -166,7 +166,7 @@ export default class InsightFacade implements IInsightFacade {
     public getRoomInformation() : Promise<InsightResponse> {
         return new Promise((fulfill, reject) => {
             let roomQuery: QueryRequest = {
-                "GET": ["rooms_number", "rooms_fullname", "rooms_seats", "rooms_type", "rooms_lat", "rooms_lon"],
+                "GET": ["rooms_number", "rooms_fullname", "rooms_seats", "rooms_type", "rooms_lat", "rooms_lon", "rooms_furniture"],
                 "WHERE": {},
                 "AS": "TABLE"
             }
