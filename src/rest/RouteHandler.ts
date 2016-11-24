@@ -162,6 +162,16 @@ export default class RouteHandler {
     public static handleRoomExploration(req : restify.Request, res : restify.Response, next : restify.Next){
         try {
             console.log(req.params);
+            res.json(200, req.params);
+        }
+        catch (err){
+
+        }
+    }
+    public static handleCourseExploration(req : restify.Request, res : restify.Response, next : restify.Next){
+        try {
+            console.log(req.params);
+            res.json(200, req.params);
         }
         catch (err){
 

@@ -184,7 +184,7 @@ export default class InsightFacade implements IInsightFacade {
             return new Promise((fulfill, reject)=>{
                 let courseQuery : QueryRequest =
                 {
-                    "GET": ["courses_instructor", "courses_dept", "courses_id", "courses_title", "courses_fail", "courses_pass"],
+                    "GET": ["courses_instructor", "courses_dept", "courses_id", "courses_title", "courses_fail", "courses_pass", 'courses_Section'],
                     "WHERE": {},
                     "AS" : "TABLE"
                 }
