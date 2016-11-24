@@ -6,6 +6,8 @@ import FormControl = ReactBootstrap.FormControl;
 import ControlLabel = ReactBootstrap.ControlLabel;
 import FormGroup = ReactBootstrap.FormGroup;
 import Button = ReactBootstrap.Button;
+import Radio = ReactBootstrap.Radio;
+import ButtonGroup = ReactBootstrap.ButtonGroup;
 
 export class CourseForm extends React.Component<any, any> {
     constructor(props : any){
@@ -15,7 +17,9 @@ export class CourseForm extends React.Component<any, any> {
             courses_instructor : null,
             courses_section : null,
             courses_size : null,
-            courses_dept : null
+            courses_dept : null,
+            courses_average: null,
+            courses_passfail : null
         }
     }
     setCourseName(e : any) {
@@ -42,6 +46,52 @@ export class CourseForm extends React.Component<any, any> {
         this.setState({
             courses_dept : e.target.value
         });
+    }
+    setAverage(e : any) {
+        if (e.target.value === 'undefined' || e.target.value === null){
+            this.setState({
+                courses_average: null
+            })
+        }
+        else{
+            this.setState({
+                courses_average : e.target.value
+            })
+        }
+    }
+    setPassFail(e:any){
+        if (e.target.value === 'undefined' || e.target.value === null){
+            this.setState({
+                courses_passfail: null
+            })
+        }
+        else{
+            this.setState({
+                courses_passfail : e.target.value
+            })
+        }
+    }
+
+    submitCourseQuery(e: any) {
+        e.preventDefault();
+        let tempState = this.state;
+
+        for (var key in tempState){
+            if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === 'undefined'){
+                delete tempState[key];
+            }
+        }
+        let keys = Object.keys(tempState);
+        if (keys.length > 0 ) {
+            let payload: String = JSON.stringify(tempState);
+            request
+                .post('http://localhost:4321/courseExplorer')
+                .send(payload)
+                .end();
+        }
+        else{
+            console.log('Show an error message, this shouldnt happen');
+        }
     }
 
     render() {
@@ -75,13 +125,26 @@ export class CourseForm extends React.Component<any, any> {
                         return <option  value={item}>{item}</option>
                     })}
                 </FormControl>
-                <ControlLabel> Section Size </ControlLabel>
+                <ControlLabel> Within section size </ControlLabel>
                 <FormControl onChange = {this.setSectionSize.bind(this)} componentClass="select" placeholder="Size" >
                     <option value = "undefined"> Select a section. </option>
                     {this.props.sizes.map((item:any, index: any) =>{
                         return <option  value={item}>{item}</option>
                     })}
                 </FormControl>
+                <ControlLabel> Sort by a class average</ControlLabel>
+                <ButtonGroup onChange = {this.setAverage.bind(this)}>
+                    <Radio name="average"  active value = "undefined" inline>Neither </Radio>
+                    <Radio name="average"  value = "high" inline>Highest </Radio>
+                    <Radio name="average"  value = "high" inline>Lowest </Radio>
+                </ButtonGroup>
+                <ControlLabel> Pass/Fail Sort </ControlLabel>
+                <ButtonGroup onChange = {this.setPassFail.bind(this)}>
+                    <Radio name="average"  active value = "undefined" inline> Neither </Radio>
+                    <Radio name="average"  value = "pass" inline> Pass </Radio>
+                    <Radio name="average"  value = "fail" inline> Fail </Radio>
+                </ButtonGroup>
+                <Button type="submit" onClick = {this.submitCourseQuery.bind(this)}> Submit Query </Button>
             </form>
         );
     }

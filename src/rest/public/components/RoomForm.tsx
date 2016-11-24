@@ -52,7 +52,7 @@ export class RoomForm extends React.Component<any, any> {
         let tempState = this.state;
 
         for (var key in tempState){
-            if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === undefined){
+            if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === 'undefined'){
                 delete tempState[key];
             }
         }
