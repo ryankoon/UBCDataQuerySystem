@@ -64,6 +64,8 @@ export default class Server {
                 that.rest.post('/roomswithindistance', restify.bodyParser(), RouteHandler.postRoomsWithinDistance);
                 that.rest.get('/roomInfo', RouteHandler.getRoomInformation);
                 that.rest.get('/courseInfo', RouteHandler.getCourseInformation);
+                that.rest.post('/roomExplorer', restify.bodyParser(), RouteHandler.handleRoomExploration);
+                that.rest.post('/courseExplorer', restify.bodyParser(), RouteHandler.handleCourseExploration);
 
                 // While on scheduler, lets make Posts.
                 // for part 1
