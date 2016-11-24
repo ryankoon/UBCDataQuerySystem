@@ -166,24 +166,42 @@ export default class InsightFacade implements IInsightFacade {
      */
     public getRoomsWithinDistance(reqBody: any): Promise<InsightResponse> {
         return new Promise((fulfill, reject) => {
+            let roomsDataset: any;
             InsightFacade.datasetController.getDataset("rooms")
                 .then((dataset: any) => {
+                    roomsDataset = dataset;
                     let keys = Object.keys(dataset);
                     let aRoomFromEachBuilding: IRoom[] = [];
                     keys.forEach((key) => {
                         if (dataset[key]["result"].length > 0) {
+                            // only check distance from one room in each building
                             aRoomFromEachBuilding.push(dataset[key]["result"][0]);
                         }
                     });
-
-
 
                     let dataController = new DataController();
 
                     return dataController.roomsWithinDistance({lat: reqBody.lat, lon: reqBody.lng},
                         aRoomFromEachBuilding, reqBody.distance, 'walking');
-                }).then(result => {
-                let responseObject = new ResponseObject(200, result);
+                }).then(results => {
+                    let nearbyBuildings: string[] = [];
+                    let allNearbyRooms: IRoom[] = [];
+                    results.forEach(result => {
+                        if (result["shortname"]) {
+                            nearbyBuildings.push(result["shortname"]);
+                        }
+                    });
+
+                    // get all rooms in nearby buildings
+                    nearbyBuildings.forEach(buildingCode => {
+                        if (roomsDataset[buildingCode] && roomsDataset[buildingCode]["result"] &&
+                            roomsDataset[buildingCode]["result"].length > 0) {
+                            let aNearbyRoom = roomsDataset[buildingCode]["result"];
+                            allNearbyRooms = allNearbyRooms.concat(aNearbyRoom);
+                        }
+                    });
+
+                let responseObject = new ResponseObject(200, allNearbyRooms);
                 fulfill(responseObject);
             }).catch(err => {
                 reject(err);
