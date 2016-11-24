@@ -303,4 +303,6 @@ describe('InsightFacade', () => {
             done();
         });
     });
+
+    //TODO: Set distance to 0 make sure results are all the same latlon as input latlon
 });
