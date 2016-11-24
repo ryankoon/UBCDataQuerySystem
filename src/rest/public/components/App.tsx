@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import {RoomExplorer} from './RoomExplorer';
+import {CourseExplorer} from './CourseExplorer';
 export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
@@ -9,7 +10,7 @@ export class App extends React.Component<any, any> {
     render() {
         return (
             <div>
-                <h1>Course Scheduling System!!!!!</h1>
+                <h1>UBC Data Query System</h1>
                 <Tabs>
                     <TabList>
                         <Tab>Course Explorer</Tab>
@@ -17,8 +18,7 @@ export class App extends React.Component<any, any> {
                         <Tab>Course Scheduler</Tab>
                     </TabList>
                     <TabPanel>
-                        <h2>Explore your potential courses!</h2>
-                        <h2>Here is the course module endpoint dropdown thingy </h2>
+                       <CourseExplorer compiler="TypeScript" framework="React" />
                     </TabPanel>
                     <TabPanel>
                         <RoomExplorer compiler="TypeScript" framework="React"/>
