@@ -6,6 +6,7 @@ import * as request from 'superagent';
 import * as ReactBootstrap from 'react-bootstrap';
 import * as ReactDOM from 'react-dom';
 import {CourseForm} from "./CourseForm";
+import {ResponseHandler} from "./ResponseHandler";
 
 
 export class CourseExplorer extends React.Component<any, any> {
@@ -16,7 +17,29 @@ export class CourseExplorer extends React.Component<any, any> {
             depts : [],
             titles: [],
             sizes : [],
-            sections : []
+            sections : [],
+            responseContent : [],
+            responseKeys : [],
+            output : false
+        }
+    }
+    handleResponse (data : any, sentStates : string) {
+        if (data.body.length > 0) {
+            var responseContent = data.body;
+
+            var masterArray : Array<any> = [];
+            var keys = Object.keys(responseContent[0]);
+
+
+            for (var i=0; i < responseContent.length; i ++) {
+                var tempArray = keys.map(key => responseContent[i][key]);
+                masterArray.push(tempArray);
+            }
+            this.setState({
+                responseContent : responseContent,
+                output : true,
+                responseKeys : keys
+            })
         }
     }
     componentWillMount() {
@@ -77,10 +100,18 @@ export class CourseExplorer extends React.Component<any, any> {
         })
     }
     render(){
-        return (
+        if (this.state.output === false){
+            return (
+                <div>
+                    <CourseForm sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                </div>
+            );
+        }
+        else{
             <div>
-                <CourseForm sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                <ResponseHandler responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
+                                 framework="React"/>
             </div>
-        );
+        }
     }
 }
