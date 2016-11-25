@@ -1,9 +1,11 @@
 
 import {IInsightFacade, InsightResponse} from "./IInsightFacade";
-import {QueryRequest, default as QueryController} from "./QueryController";
+import {QueryRequest, default as QueryController, QueryResponse} from "./QueryController";
 import DatasetController from '../controller/DatasetController';
 import Log from '../Util';
 import {Datasets} from "./DatasetController";
+import DataController from "./DataController";
+import {IRoom} from "./IBuilding";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -159,6 +161,53 @@ export default class InsightFacade implements IInsightFacade {
         });
     }
 
+    /*
+     Return an Array of Rooms that are within the given distance from a building.
+     */
+    public getRoomsWithinDistance(reqBody: any): Promise<InsightResponse> {
+        return new Promise((fulfill, reject) => {
+            let roomsDataset: any;
+            InsightFacade.datasetController.getDataset("rooms")
+                .then((dataset: any) => {
+                    roomsDataset = dataset;
+                    let keys = Object.keys(dataset);
+                    let aRoomFromEachBuilding: IRoom[] = [];
+                    keys.forEach((key) => {
+                        if (dataset[key]["result"].length > 0) {
+                            // only check distance from one room in each building
+                            aRoomFromEachBuilding.push(dataset[key]["result"][0]);
+                        }
+                    });
+
+                    let dataController = new DataController();
+
+                    return dataController.roomsWithinDistance({lat: reqBody.lat, lon: reqBody.lng},
+                        aRoomFromEachBuilding, reqBody.distance, 'walking');
+                }).then(results => {
+                    let nearbyBuildings: string[] = [];
+                    let allNearbyRooms: IRoom[] = [];
+                    results.forEach(result => {
+                        if (result["shortname"]) {
+                            nearbyBuildings.push(result["shortname"]);
+                        }
+                    });
+
+                    // get all rooms in nearby buildings
+                    nearbyBuildings.forEach(buildingCode => {
+                        if (roomsDataset[buildingCode] && roomsDataset[buildingCode]["result"] &&
+                            roomsDataset[buildingCode]["result"].length > 0) {
+                            let aNearbyRoom = roomsDataset[buildingCode]["result"];
+                            allNearbyRooms = allNearbyRooms.concat(aNearbyRoom);
+                        }
+                    });
+
+                let responseObject = new ResponseObject(200, allNearbyRooms);
+                fulfill(responseObject);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
 
     /*
         Return an Array of Objects containing all the desired room information.

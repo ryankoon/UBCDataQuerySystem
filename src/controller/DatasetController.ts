@@ -1,7 +1,6 @@
 /**
  * Created by rtholmes on 2016-09-03.
  */
-
 import Log from "../Util";
 import JSZip = require('jszip');
 import fs = require('fs');

@@ -303,4 +303,77 @@ describe('InsightFacade', () => {
             done();
         });
     });
+
+    //TODO: Set distance to 0 make sure results are all the same latlon as input latlon
+    it ('Should return rooms of given building if distance is set to 0', done => {
+        let reqBody = {
+            lat: 49.26479,
+            lng: -123.25249,
+            distance: 0
+        };
+        let expectedResult = [
+                {
+                    "fullname": "Biological Sciences",
+                    "shortname": "BIOL",
+                    "number": "1503",
+                    "name": "BIOL_1503",
+                    "address": "6270 University Boulevard",
+                    "lat": 49.26479,
+                    "lon": -123.25249,
+                    "seats": 16,
+                    "type": "Small Group",
+                    "furniture": "Classroom-Movable Tables & Chairs",
+                    "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-1503"
+                },
+                {
+                    "fullname": "Biological Sciences",
+                    "shortname": "BIOL",
+                    "number": "2000",
+                    "name": "BIOL_2000",
+                    "address": "6270 University Boulevard",
+                    "lat": 49.26479,
+                    "lon": -123.25249,
+                    "seats": 228,
+                    "type": "Tiered Large Group",
+                    "furniture": "Classroom-Fixed Tablets",
+                    "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-2000"
+                },
+                {
+                    "fullname": "Biological Sciences",
+                    "shortname": "BIOL",
+                    "number": "2200",
+                    "name": "BIOL_2200",
+                    "address": "6270 University Boulevard",
+                    "lat": 49.26479,
+                    "lon": -123.25249,
+                    "seats": 76,
+                    "type": "Tiered Large Group",
+                    "furniture": "Classroom-Fixed Tables/Movable Chairs",
+                    "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-2200"
+                },
+                {
+                    "fullname": "Biological Sciences",
+                    "shortname": "BIOL",
+                    "number": "2519",
+                    "name": "BIOL_2519",
+                    "address": "6270 University Boulevard",
+                    "lat": 49.26479,
+                    "lon": -123.25249,
+                    "seats": 16,
+                    "type": "Small Group",
+                    "furniture": "Classroom-Movable Tables & Chairs",
+                    "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-2519"
+                }
+            ];
+
+        InsightFacadeController.getRoomsWithinDistance(reqBody)
+            .then(result => {
+                expect(result.body).not.be.null;
+                expect(result.body).to.deep.equal(expectedResult);
+                done();
+            })
+            .catch(err => {
+               done(err);
+            });
+    });
 });

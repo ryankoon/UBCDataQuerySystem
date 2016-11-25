@@ -28,8 +28,8 @@ export class RoomForm extends React.Component<any, any> {
     setBuildingName (e:any){
         this.setState({
             buildingName : e.target.value,
-            lat : e.target.getAttribute('data-lat'),
-            lng : e.target.getAttribute('data-lng')
+            lat : e.target[e.target.selectedIndex].getAttribute('data-lat'),
+            lng : e.target[e.target.selectedIndex].getAttribute('data-lng')
         });
     }
     setRoomType (e:any){
@@ -50,7 +50,6 @@ export class RoomForm extends React.Component<any, any> {
     submitRoomsForm(e : any){
         e.preventDefault();
         let tempState = this.state;
-
         for (var key in tempState){
             if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === 'undefined'){
                 delete tempState[key];
@@ -80,7 +79,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setBuildingName.bind(this)} componentClass="select" placeholder="Building name" >
                         <option value = "select"> Select a building. </option>
                         {this.props.buildings.map((item:any, index: any) =>{
-                            return <option data-lat = {item.lat} data-lng = {item.lng} value={item.building_name}>{item.building_name}</option>
+                            return <option data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
                         })}
                     </FormControl>
 
