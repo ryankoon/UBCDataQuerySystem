@@ -6,6 +6,8 @@ import * as request from 'superagent';
 import * as ReactBootstrap from 'react-bootstrap';
 import * as ReactDOM from 'react-dom';
 import {RoomForm} from "./RoomForm";
+import {Response} from "restify";
+import {ResponseHandler} from "./ResponseHandler";
 
 
 export class RoomExplorer extends React.Component<any, any> {
@@ -14,13 +16,35 @@ export class RoomExplorer extends React.Component<any, any> {
         this.state = {
             building_name : [],
             room_type : [],
-            furniture_type : []
+            furniture_type : [],
+            responseContent : [],
+            responseKeys : [],
+            output : false
         }
+        this.handleResponse = this.handleResponse.bind(this);
+    }
+    componentWillReceiveProps(){
+    console.log('hit props');
     }
 
-    handleResponse (data : string, sentStates : string) {
-        console.log(data);
-        console.log(sentStates);
+    handleResponse (data : any, sentStates : string) {
+        if (data.body.length > 0) {
+            var responseContent = data.body;
+
+            var masterArray : Array<any> = [];
+            var keys = Object.keys(responseContent[0]);
+
+
+            for (var i=0; i < responseContent.length; i ++) {
+                var tempArray = keys.map(key => responseContent[i][key]);
+                masterArray.push(tempArray);
+            }
+            this.setState({
+                responseContent : responseContent,
+                output : true,
+                responseKeys : keys
+            })
+        }
     }
 
     componentWillMount() {
@@ -68,11 +92,25 @@ export class RoomExplorer extends React.Component<any, any> {
             console.log (err);
         })
     }
-    render(){
-        return (
-            <div>
-                <RoomForm handleResponse = {this.handleResponse} buildings = {this.state.building_name} room_type ={this.state.room_type} furniture = {this.state.furniture_type} compiler="TypeScript" framework="React"/>
-            </div>
-        );
+    render() {
+        if (this.state.output === false) {
+            return (
+                <div>
+                    <RoomForm handleResponse={this.handleResponse.bind(this)} buildings={this.state.building_name}
+                              room_type={this.state.room_type} furniture={this.state.furniture_type}
+                              compiler="TypeScript"
+                              framework="React"/>
+                </div>
+            );
+        }
+        else{
+            return (
+                <div>
+                <ResponseHandler responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
+                                 framework="React"/>
+                </div>
+            );
+
+        }
     }
 }

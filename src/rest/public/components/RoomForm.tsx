@@ -87,7 +87,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setBuildingName.bind(this)} componentClass="select" placeholder="Building name" >
                         <option value = "select"> Select a building. </option>
                         {this.props.buildings.map((item:any, index: any) =>{
-                            return <option data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
+                            return <option key = {index} data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
                         })}
                     </FormControl>
 
@@ -95,7 +95,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setRoomType.bind(this)} componentClass="select" placeholder="RoomType" >
                         <option value = "select"> Select a type of room. </option>
                         {this.props.room_type.map((item:any, index: any) =>{
-                            return <option value={item}>{item}</option>
+                            return <option  key = {index} value={item}>{item}</option>
                         })}
                     </FormControl>
 
@@ -103,7 +103,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl componentClass="select" input = "text" name="furniture" placeholder="Furniture Type" onChange={this.setFurnitureType.bind(this)}>
                         <option value = "select"> Select a type of furniture. </option>
                         {this.props.furniture.map((item:any, index: any) =>{
-                            return <option value={item}>{item}</option>
+                            return <option  key = {index} value={item}>{item}</option>
                         })}
                     </FormControl>
 

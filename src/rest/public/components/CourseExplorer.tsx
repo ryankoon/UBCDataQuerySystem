@@ -63,6 +63,7 @@ export class CourseExplorer extends React.Component<any, any> {
                     if (b > a) return 1;
                     return 0;
                 });
+
                 this.setState({
                     instructors : sorted_arr_instructors,
                     depts : arr_dept,
