@@ -36,7 +36,7 @@
     "jszip": "^3.1.2",
     "mochawesome": "^1.5.2",
     "parse5": "^2.2.3",
-    "react": "^15.4.0",
+    "react": "^15.4.1",
     "react-bootstrap": "^0.30.7",
     "react-bootstrap-table": "^3.0.0-beta.2",
     "react-dom": "^15.4.0",
