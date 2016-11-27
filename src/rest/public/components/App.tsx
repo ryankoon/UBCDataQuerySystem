@@ -3,6 +3,7 @@ import * as ReactDom from 'react-dom';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import {RoomExplorer} from './RoomExplorer';
 import {CourseExplorer} from './CourseExplorer';
+import {CourseScheduler} from "./CourseScheduler";
 export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
@@ -24,7 +25,7 @@ export class App extends React.Component<any, any> {
                         <RoomExplorer compiler="TypeScript" framework="React"/>
                     </TabPanel>
                     <TabPanel>
-                        <h2> Course Scheduler....</h2>
+                        <CourseScheduler compiler="TypeScript" framework="React" />
                     </TabPanel>
                 </Tabs>
             </div>

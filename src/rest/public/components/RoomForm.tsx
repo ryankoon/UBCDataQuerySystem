@@ -47,6 +47,7 @@ export class RoomForm extends React.Component<any, any> {
             size : e.target.value
         })
     }
+
     submitRoomsForm(e : any){
         e.preventDefault();
         let tempState = this.state;
@@ -61,7 +62,15 @@ export class RoomForm extends React.Component<any, any> {
             request
                 .post('http://localhost:4321/roomExplorer')
                 .send(payload)
-                .end();
+                .end((err, res) => {
+                    if (err) {
+                        console.log (err); // TODO : Need an error handle/display system.
+                    }
+                    if (res){
+                        this.props.handleResponse(res, payload);
+                    }
+                });
+
         }
         else{
             console.log('Show an error message, this shouldnt happen');
@@ -69,7 +78,6 @@ export class RoomForm extends React.Component<any, any> {
 
 
     }
-
 
     render() {
         return (
@@ -79,7 +87,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setBuildingName.bind(this)} componentClass="select" placeholder="Building name" >
                         <option value = "select"> Select a building. </option>
                         {this.props.buildings.map((item:any, index: any) =>{
-                            return <option data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
+                            return <option key = {index} data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
                         })}
                     </FormControl>
 
@@ -87,7 +95,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setRoomType.bind(this)} componentClass="select" placeholder="RoomType" >
                         <option value = "select"> Select a type of room. </option>
                         {this.props.room_type.map((item:any, index: any) =>{
-                            return <option value={item}>{item}</option>
+                            return <option  key = {index} value={item}>{item}</option>
                         })}
                     </FormControl>
 
@@ -95,7 +103,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl componentClass="select" input = "text" name="furniture" placeholder="Furniture Type" onChange={this.setFurnitureType.bind(this)}>
                         <option value = "select"> Select a type of furniture. </option>
                         {this.props.furniture.map((item:any, index: any) =>{
-                            return <option value={item}>{item}</option>
+                            return <option  key = {index} value={item}>{item}</option>
                         })}
                     </FormControl>
 

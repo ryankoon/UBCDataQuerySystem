@@ -1,3 +1,6 @@
 .dropdown-margins{
     margin:5px;
 }
+.hide {
+    display: none;
+}

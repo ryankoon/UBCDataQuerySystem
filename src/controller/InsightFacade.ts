@@ -169,8 +169,7 @@ export default class InsightFacade implements IInsightFacade {
     public getRoomsWithinDistance(reqBody: any): Promise<InsightResponse> {
         return new Promise((fulfill, reject) => {
             let roomsDataset: any;
-            InsightFacade.datasetController.getDataset("rooms")
-                .then((dataset: any) => {
+                InsightFacade.datasetController.getDataset("rooms").then((dataset: any) => {
                     roomsDataset = dataset;
                     let keys = Object.keys(dataset);
                     let aRoomFromEachBuilding: IRoom[] = [];
@@ -205,9 +204,9 @@ export default class InsightFacade implements IInsightFacade {
 
                 let responseObject = new ResponseObject(200, allNearbyRooms);
                 fulfill(responseObject);
-            }).catch(err => {
+                }).catch(err => {
                 reject(err);
-            });
+                });
         });
     }
 

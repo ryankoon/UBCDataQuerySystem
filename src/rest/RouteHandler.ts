@@ -185,6 +185,7 @@ export default class RouteHandler {
                 RouteHandler.getRoomsWithinDistance(req, res, next);
             } else {
                 res.json(200, req.params);
+                return next();
             }
         }
         catch (err){
@@ -202,7 +203,7 @@ export default class RouteHandler {
                 })
                 .catch((err: any) => {
                     res.json(400, {error : 'Failed while handling course exploration:' + err});
-                })
+                });
         }
         catch (err){
             res.json(400, {error : 'Failed while handling course exploration:' + err});
