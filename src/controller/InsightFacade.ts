@@ -297,7 +297,7 @@ export default class InsightFacade implements IInsightFacade {
     handleRoomExploration(reqBody: string) {
         return new Promise((fulfill, reject)=>{
             let explorerController = new ExplorerController();
-            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "rooms", "AND");
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "rooms", "AND", null, "LT");
 
             this.performQuery(courseQuery)
                 .then(result => {

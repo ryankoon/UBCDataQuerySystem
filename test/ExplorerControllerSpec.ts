@@ -119,6 +119,30 @@ describe("ExplorerController", function () {
         expect(transformedRequest).to.deep.equal(expectedRequest);
     });
 
+    it("Should build a query without latlon", () => {
+        let controller = new ExplorerController();
+        let result: QueryRequest;
+
+
+        let reqbody = '{"rooms_fullname":"Biological Sciences","rooms_type":"Tiered Large Group","rooms_seats":"500",' +
+            '"rooms_lat":"49.26479","rooms_lon":"-123.25249"}';
+        let expectedQuery: QueryRequest = {
+            "GET":["rooms_name","rooms_seats","rooms_fullname","rooms_type"],
+            "WHERE": {
+                "AND":[
+                    {"IS":{"rooms_fullname":"Biological Sciences"}},
+                    {"IS":{"rooms_type":"Tiered Large Group"}},
+                    {"LT":{"rooms_seats":500}}
+                    ]
+            },
+            "GROUP":["rooms_name","rooms_seats","rooms_fullname","rooms_type"],
+            "APPLY":[],
+            "AS":"TABLE"};
+
+        result = controller.buildQuery(reqbody, "rooms", "AND", null, "LT");
+        expect(result).to.deep.equal(expectedQuery);
+    });
+
     it("Should be able to generate a comparator object", () => {
         let controller = new ExplorerController();
         let result: Object;

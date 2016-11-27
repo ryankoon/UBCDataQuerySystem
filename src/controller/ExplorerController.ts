@@ -25,6 +25,16 @@ export default class ExplorerController {
             let reqBodyJson = JSON.parse(reqBody);
 
             let reqKeys = Object.keys(reqBodyJson);
+            //remove latlon
+            let tempKeys: string[] = [];
+            reqKeys.forEach(key => {
+                if (key !== "rooms_lat" && key !== "rooms_lon") {
+                    tempKeys.push(key);
+                }
+            });
+            reqKeys = tempKeys;
+
+
             let whereObject: IObject = {};
             let andObjects: IObject[] = [];
             let optionalOrObjects: IObject = {"OR": []};
@@ -154,8 +164,6 @@ export default class ExplorerController {
                 orValues.push(room.shortname);
             }
         });
-
-
 
         //Stringify newReqBody
         let reqString: string = JSON.stringify(newReqBody);
