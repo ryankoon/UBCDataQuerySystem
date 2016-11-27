@@ -8,7 +8,7 @@ import {FacebookButton} from './FacebookButton';
 export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
-    }
+    } // send in this function... to do a state save.
     render() {
         return (
             <div>
@@ -16,11 +16,11 @@ export class App extends React.Component<any, any> {
                 <FacebookButton compiler="TypeScript" framework="React"/>
                 <Tabs>
                     <TabList>
-                        <Tab>Course Explorer</Tab>
+                        <Tab >Course Explorer</Tab>
                         <Tab>Room Explorer</Tab>
                         <Tab>Course Scheduler</Tab>
                     </TabList>
-                    <TabPanel>
+                    <TabPanel >
                        <CourseExplorer compiler="TypeScript" framework="React" />
                     </TabPanel>
                     <TabPanel>
