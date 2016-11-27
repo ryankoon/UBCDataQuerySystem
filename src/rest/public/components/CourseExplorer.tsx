@@ -24,8 +24,8 @@ export class CourseExplorer extends React.Component<any, any> {
         }
     }
     handleResponse (data : any, sentStates : string) {
-        if (data.body.length > 0) {
-            var responseContent = data.body;
+        if (data.body.result.length > 0) {
+            var responseContent = data.body.result;
 
             var masterArray : Array<any> = [];
             var keys = Object.keys(responseContent[0]);
@@ -108,10 +108,10 @@ export class CourseExplorer extends React.Component<any, any> {
             );
         }
         else{
-            <div>
+            return(<div>
                 <ResponseHandler formContext="courses" responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
                                  framework="React"/>
-            </div>
+            </div>);
         }
     }
 }

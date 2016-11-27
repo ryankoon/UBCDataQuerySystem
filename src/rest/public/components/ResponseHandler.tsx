@@ -24,20 +24,41 @@ export class ResponseHandler extends React.Component<any, any> {
 
     onRowSelect(row : any, isSelected : Boolean, e : any) {
         if (isSelected) {
-            this.setState({
-                selected: [ ...this.state.selected, row.name ]
-            });
+
+            if(this.props.formContext === "courses"){
+                this.setState({
+                    selected: [ ...this.state.selected, row.subcourses_id ]
+                });
+            }else{
+                this.setState({
+                    selected: [ ...this.state.selected, row.name ]
+                });
+            }
             return true;
         } else {
-            this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.name) });
+            if(this.props.formContext === "courses"){
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.subcourses_id) });
+
+            }else{
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.name) });
+
+            }
             return true;
         }
     }
     rowSelectAll(isSelected: Boolean, rows : any) {
         if(isSelected) {
             let interestedArray : Array<string> = [];
-            for (var i=0; i < rows.length; i++){
-                interestedArray.push(rows[i].name) // TODO: update for course explorer.
+            if (this.props.formContext === "courses"){
+                for (var i=0; i < rows.length; i++){
+                    interestedArray.push(rows[i].subcourses_id);
+                }
+            }
+            else{
+
+                for (var i=0; i < rows.length; i++){
+                    interestedArray.push(rows[i].name);
+                }
             }
             this.setState({
                 selected: [ ...this.state.selected, interestedArray ]
@@ -71,14 +92,11 @@ export class ResponseHandler extends React.Component<any, any> {
             onSelect : this.onRowSelect.bind(this),
             onSelectAll : this.rowSelectAll.bind(this)
         }
-        const {
-            currPage
-        } = this.state;
         const setSchedule = this.applySchedule.bind(this);
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
-              if (item === 'name' ) {
+              if (item === 'name' || item ==='subcourses_id' ) {
                   return   <TableHeaderColumn isKey={true} dataAlign="center"
                                               dataField={item}> {item}</TableHeaderColumn>
               }
