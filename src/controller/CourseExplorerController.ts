@@ -7,8 +7,6 @@ import {IObject} from "./IObject";
 export default class CourseExplorerController {
 
     public buildQuery(reqBody: string): QueryRequest {
-        console.log(reqBody);
-
         try {
             let reqBodyJson = JSON.parse(reqBody);
 
@@ -33,7 +31,6 @@ export default class CourseExplorerController {
                 }
             })
 
-
             let courseQuery: QueryRequest =
                 {
                     "GET": reqKeys,
@@ -51,10 +48,16 @@ export default class CourseExplorerController {
 
     public generateComparatorObject(key: string, value: any): IObject {
         let result: IObject = {};
-        //TODO handle numbers (according to field name?)
 
+        let valueType: string = typeof(value);
         result[key] = value;
-        result = {"IS": result};
+
+        if (valueType === "string") {
+            result = {"IS": result};
+        } else if (valueType === "number") {
+            result = {"EQ": result};
+        }
+
         return result;
     }
 }
