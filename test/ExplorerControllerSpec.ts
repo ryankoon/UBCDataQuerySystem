@@ -4,6 +4,8 @@
 import {expect} from 'chai';
 import ExplorerController from "../src/controller/ExplorerController";
 import {QueryRequest} from "../src/controller/QueryController";
+import {distanceRequestBody} from "../src/controller/ExplorerController";
+import {IRoom} from "../src/controller/IBuilding";
 
 
 describe("ExplorerController", function () {
@@ -51,6 +53,70 @@ describe("ExplorerController", function () {
 
         result = controller.buildQuery(requestBody, "rooms", "AND");
         expect(result).to.deep.equal(expectedResult);
+    });
+
+    it("Should be able to build a query for rooms with distance", () => {
+        let controller = new ExplorerController();
+        let reqBody = {
+            rooms_fullname: "Biological Sciences",
+            rooms_seats: 100,
+            rooms_lat: 49.26479,
+            rooms_lon: -123.25249,
+            rooms_distance: 0
+        };
+
+        let rooms: IRoom[] = [{
+            "fullname": "asdf",
+            "shortname": "ASDF",
+            "number": "1503",
+            "name": "ASDF_1503",
+            "address": "6270 University Boulevard",
+            "lat": 49.26479,
+            "lon": -123.25249,
+            "seats": 16,
+            "type": "Small Group",
+            "furniture": "Classroom-Movable Tables & Chairs",
+            "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ASDF-1503"
+        },
+            {
+                "fullname": "fdsa",
+                "shortname": "FDSA",
+                "number": "1503",
+                "name": "FDSA_1503",
+                "address": "6270 University Boulevard",
+                "lat": 49.26479,
+                "lon": -123.25249,
+                "seats": 16,
+                "type": "Small Group",
+                "furniture": "Classroom-Movable Tables & Chairs",
+                "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/FDSA-1503"
+            },
+            {
+                "fullname": "qwe",
+                "shortname": "QWE",
+                "number": "1503",
+                "name": "QWE_1503",
+                "address": "6270 University Boulevard",
+                "lat": 49.26479,
+                "lon": -123.25249,
+                "seats": 16,
+                "type": "Small Group",
+                "furniture": "Classroom-Movable Tables & Chairs",
+                "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/QWE-1503"
+            }];
+
+        let newreqbody = {
+            rooms_fullname: "Biological Sciences",
+            rooms_seats: 101
+        };
+        let reqstr = JSON.stringify(newreqbody);
+        let expectedRequest: distanceRequestBody = {
+            newReqString: reqstr,
+            buildingNames: {"rooms_shortname": ["ASDF", "FDSA", "QWE"]}
+        }
+        let transformedRequest = controller.transformRequestBody(reqBody, rooms);
+
+        expect(transformedRequest).to.deep.equal(expectedRequest);
     });
 
     it("Should be able to generate a comparator object", () => {
