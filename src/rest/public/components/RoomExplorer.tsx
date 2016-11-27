@@ -68,7 +68,7 @@ export class RoomExplorer extends React.Component<any, any> {
                         let temp : Object = {
                             building_name : arrayOfRoomObjects[i].rooms_fullname,
                             lat : arrayOfRoomObjects[i].rooms_lat,
-                            lng : arrayOfRoomObjects[i].rooms_lon
+                            lon : arrayOfRoomObjects[i].rooms_lon
                         }
                         building.push(temp);
                         tempBuildingTracker.push(arrayOfRoomObjects[i].rooms_fullname);

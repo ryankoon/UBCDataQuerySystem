@@ -54,7 +54,6 @@ export default class DataController {
                     toArr.push(aLatLon)
                 }
             });
-
             this.makeGDistanceRequest(fromArr, toArr, travelBy)
                 .then((result: gDistanceResponse[]) => {
                     if (result){
@@ -65,6 +64,8 @@ export default class DataController {
 
                             result.forEach((response: gDistanceResponse, index: number) => {
                                 if (response.distanceValue <= distance*1000) {
+                                    let travelModeColumnName: string = travelBy + "_distance";
+                                    rooms[index].traveldistance = response.distanceValue;
                                     roomsNearby.push(rooms[index]);
                                 }
                             });
