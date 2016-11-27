@@ -15,22 +15,23 @@ export default class CourseDataController {
      */
     public processCourseDataset(datasetName: string): Promise<number> {
         return new Promise((resolve, reject) => {
-                let datasetController = new DatasetController;
-                datasetController.getDataset(datasetName)
-                    .then((coursesDataset) => {
-                        let newDataset = this.generateNewCourseDataset(coursesDataset);
-                        return datasetController.save("subcourses", newDataset);
-                    })
-                    .then(result => {
-                        resolve(result);
-                    })
-                    .catch(err => {
-                        reject("Error processing course dataset: " + err);
-                    });
+            let datasetController = new DatasetController;
+            let newDataset: IObject;
+            datasetController.getDataset(datasetName)
+                .then((coursesDataset) => {
+                    newDataset = this.generateNewCourseDataset(coursesDataset);
+                    return datasetController.save("subcourses", newDataset);
+                })
+                .then(result => {
+                    resolve(newDataset);
+                })
+                .catch(err => {
+                    reject("Error processing course dataset: " + err);
+                });
         });
     }
 
-    private generateNewCourseDataset(coursesDataset: IObject) {
+    public generateNewCourseDataset(coursesDataset: IObject) {
         let newDataset: IObject = {};
 
         if (coursesDataset) {
@@ -62,7 +63,7 @@ export default class CourseDataController {
      * Returns sections in the latest year, and is not an "overall" section
      * @param courseResults
      */
-    private getSectionsInLatestYear(courseResults: IObject[]): IObject[] {
+    public getSectionsInLatestYear(courseResults: IObject[]): IObject[] {
         let latestSections: IObject[] = [];
         let nonOverallSections: IObject[] = [];
         let years: number[] = [];
@@ -71,7 +72,7 @@ export default class CourseDataController {
             if (result["Section"] !== "overall" && result["Year"]) {
                 let resultYear = result["Year"];
                 if (!isNaN(resultYear)) {
-                    resultYear = parseInt(resultYear);
+                    resultYear = parseInt(resultYear, 10);
                     years.push(resultYear);
                     nonOverallSections.push(result);
                 }
@@ -82,7 +83,11 @@ export default class CourseDataController {
             let latestYear = Math.max.apply(null, years);
 
             nonOverallSections.forEach(result => {
-                if (result["Year"] === latestYear.toString()) {
+                let resultYear = result["Year"];
+                if (!isNaN(resultYear)) {
+                    resultYear = parseInt(resultYear, 10);
+                }
+                if (resultYear === latestYear) {
                     latestSections.push(result);
                 }
             });
@@ -97,7 +102,7 @@ export default class CourseDataController {
      * Add sections to schedule to each result ceiling[size/3]
      * @param courseResults
      */
-    private transformCourseResults(courseResults: IObject[]): IObject[] {
+    public transformCourseResults(courseResults: IObject[]): IObject[] {
         let transformedSections: IObject[] = [];
         let sectionSizes: number[] = [];
         let tempSections: IObject[] = [];
@@ -124,7 +129,7 @@ export default class CourseDataController {
 
             //determine max section size
             let maxSize = Math.max.apply(null, sectionSizes);
-            let sectionsToSchedule = Math.ceil(courseResults.length/3)
+            let sectionsToSchedule = Math.ceil(courseResults.length / 3)
 
             tempSections.forEach(tempSection => {
                 tempSection["Size"] = maxSize;
