@@ -4,6 +4,7 @@ import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 import {RoomExplorer} from './RoomExplorer';
 import {CourseExplorer} from './CourseExplorer';
 import {CourseScheduler} from "./CourseScheduler";
+import {FacebookButton} from './FacebookButton';
 export class App extends React.Component<any, any> {
     handleSelect(index: any, last: any) {
         console.log('Selected tab: ' + index + ', Last tab: ' + last);
@@ -12,6 +13,7 @@ export class App extends React.Component<any, any> {
         return (
             <div>
                 <h1>UBC Data Query System</h1>
+                <FacebookButton compiler="TypeScript" framework="React"/>
                 <Tabs>
                     <TabList>
                         <Tab>Course Explorer</Tab>

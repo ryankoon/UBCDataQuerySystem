@@ -109,7 +109,7 @@ export class CourseExplorer extends React.Component<any, any> {
         }
         else{
             <div>
-                <ResponseHandler responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
+                <ResponseHandler formContext="courses" responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
                                  framework="React"/>
             </div>
         }

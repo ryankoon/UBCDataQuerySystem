@@ -23,7 +23,6 @@ export class CourseScheduler extends React.Component<any, any> {
     return (
         <div>
             <CourseSchedulerForm compiler="TypeScript" framework="React"/>
-
         </div>
     )
     }

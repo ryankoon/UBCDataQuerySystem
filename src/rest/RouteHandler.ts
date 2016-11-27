@@ -196,11 +196,17 @@ export default class RouteHandler {
     public static handleCourseExploration(req : restify.Request, res : restify.Response, next : restify.Next){
         try {
             console.log(req.params);
-            res.json(200, req.params);
-            return next();
+            let controller = new InsightFacade();
+            controller.handleCourseExploration(req.body)
+                .then((result: any) => {
+                    res.json(result.code, result.body);
+                })
+                .catch((err: any) => {
+                    res.json(400, {error : 'Failed while handling course exploration:' + err});
+                });
         }
         catch (err){
-            res.json(400, {error : 'Failed while handling course exploration:' + err});
+            res.json(400, {error : 'Failed while handling course exploration: ' + err});
             return next();
         }
     }

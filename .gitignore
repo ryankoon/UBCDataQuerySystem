@@ -15,3 +15,4 @@ npm-debug.log
 .hgignore
 mochawesome-reports/
 data/
+!src/**/facebook-vendor.js
