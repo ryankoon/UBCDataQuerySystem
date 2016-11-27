@@ -15,8 +15,11 @@ export default class ExplorerController {
 
     /**
      * Builds a query based on the selected fields on an explorer pane
-     * @param reqBody
+     * @param reqBody - key value pairs that represent what to filter by
      * @param type - 'courses' or 'rooms'
+     * @param condition - "AND" (match all values in reqBody), "OR" (match any values in reqBody)
+     * @param OrValueObject - object with one key, key - field to match by, values[] - match any value in array
+     * @param numComparison - operator to use for number compartor object ("IS", "EQ" - default, "LT", "GT")
      * @returns {QueryRequest}
      */
     public buildQuery(reqBody: string, type: string, condition: string, OrValueObject?: IObject,
@@ -132,17 +135,12 @@ export default class ExplorerController {
 
 
     /**
-     *
-     * @param reqBody
+     * Transform request body when querying rooms with distance
+     * @param reqBody - contains lat, lon, distance, full name
      * @param results - list of IRooms that contains one room from each nearby building
+     * @returns {distanceRequestBody}
      */
     public transformRequestBody(reqBody: IObject, results: IRoom[]): distanceRequestBody {
-        let reqBodytest = {
-            rooms_lat: 49.26479,
-            rooms_lon: -123.25249,
-            rooms_distance: 0
-        };
-
         let newReqBody: IObject = {};
 
         //grab all key values from request body except lat, lon, and distance
