@@ -38,6 +38,7 @@
     "parse5": "^2.2.3",
     "react": "^15.4.0",
     "react-bootstrap": "^0.30.7",
+    "react-bootstrap-table": "^3.0.0-beta.2",
     "react-dom": "^15.4.0",
     "react-tabs": "^0.8.2",
     "restify": "^4.0.3",
