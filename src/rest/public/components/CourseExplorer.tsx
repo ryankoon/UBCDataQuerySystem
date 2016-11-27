@@ -35,23 +35,23 @@ export class CourseExplorer extends React.Component<any, any> {
 
 
                 for (let i=0; i < arrayOfCourseObjects.length; i++) {
-                    if (arr_instructors.indexOf(arrayOfCourseObjects[i].courses_instructor) === -1) {
-                        if (arrayOfCourseObjects[i].courses_instructor.length > 0) { // TODO : Handles "" instructor, why does this exist. bug?
-                            arr_instructors.push(arrayOfCourseObjects[i].courses_instructor)
+                    if (arr_instructors.indexOf(arrayOfCourseObjects[i].subcourses_instructor) === -1) {
+                        if (arrayOfCourseObjects[i].subcourses_instructor.length > 0) { // TODO : Handles "" instructor, why does this exist. bug?
+                            arr_instructors.push(arrayOfCourseObjects[i].subcourses_instructor)
                         }
                     }
-                    if (arr_dept.indexOf(arrayOfCourseObjects[i].courses_dept) === -1) {
-                        arr_dept.push(arrayOfCourseObjects[i].courses_dept)
+                    if (arr_dept.indexOf(arrayOfCourseObjects[i].subcourses_dept) === -1) {
+                        arr_dept.push(arrayOfCourseObjects[i].subcourses_dept)
                     }
-                    if (arr_title.indexOf(arrayOfCourseObjects[i].courses_title) === -1){
-                        arr_title.push(arrayOfCourseObjects[i].courses_title);
+                    if (arr_title.indexOf(arrayOfCourseObjects[i].subcourses_title) === -1){
+                        arr_title.push(arrayOfCourseObjects[i].subcourses_title);
                     }
-                    if (arr_section.indexOf(arrayOfCourseObjects[i].courses_Section)=== -1){
-                        arr_section.push(arrayOfCourseObjects[i].courses_Section);
+                    if (arr_section.indexOf(arrayOfCourseObjects[i].subcourses_Section)=== -1){
+                        arr_section.push(arrayOfCourseObjects[i].subcourses_Section);
 
                         // for each unique section, push the size.
-                        let tempPass = arrayOfCourseObjects[i].courses_pass;
-                        let tempFail = arrayOfCourseObjects[i].courses_fail;
+                        let tempPass = arrayOfCourseObjects[i].subcourses_pass;
+                        let tempFail = arrayOfCourseObjects[i].subcourses_fail;
 
                         let tempSize: Number = tempPass + tempFail;
 
