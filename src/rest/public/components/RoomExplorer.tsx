@@ -106,7 +106,7 @@ export class RoomExplorer extends React.Component<any, any> {
         else{
             return (
                 <div>
-                <ResponseHandler responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
+                <ResponseHandler formContext = "rooms" responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
                                  framework="React"/>
                 </div>
             );

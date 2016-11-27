@@ -1,50 +1,66 @@
 import * as React from 'react';
 import * as ReactBootstrap from 'react-bootstrap';
+import * as ReactBootstrapTable from 'react-bootstrap-table';
+import BootstrapTable = ReactBootstrapTable.BootstrapTable;
+import TableHeaderColumn = ReactBootstrapTable.TableHeaderColumn;
 import Table = ReactBootstrap.Table;
+import Checkbox = ReactBootstrap.Checkbox;
+import {SelectRowMode} from "react-bootstrap-table";
+import {SelectRow} from "react-bootstrap-table";
 
 
 export class ResponseHandler extends React.Component<any, any> {
     constructor(props:any){
         super(props);
+        this.state = {
+            selected: [],
+        }
+    }
+    refs: {
+        [string: string]: any;
+        table:any;
     }
 
+    onRowSelect(row : any, isSelected : Boolean, e : any) {
+        if (isSelected && this.state.selected.length !== 2) {
+            this.setState({
+                selected: [ ...this.state.selected, row.name ]
+            });
+            return true;
+        } else {
+            this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.name) });
+            return false;
+        }
+    }
 
     render() {
 
-         var getArrays = (() => {
-             var masterArray : Array<any> = [];
-             this.props.responseContent.map( (eachRow : any) => {
-                var tempArray : Array<any>= [];
-                for (var property in eachRow){
-                    if (eachRow.hasOwnProperty(property)){
-                        tempArray.push(eachRow[property]);
-                    }
-                }
-                masterArray.push(tempArray);
-            });
-             return masterArray;
-         });
-         var renderRows = (() =>{
-             var masterArray = getArrays();
-              var html = "";
-             return masterArray.map( (item:any) => {
-                return <tr>{item.map( (subItem : any) => <td>{subItem}</td>)}</tr>
-             })
-         })
+        const rowMode : SelectRowMode = 'checkbox';
+
+        const selectRow : SelectRow = {
+            mode : rowMode,
+            onSelect : this.onRowSelect.bind(this)
+        }
+        const {
+            currPage
+        } = this.state;
+
          var renderHead = (() => {
-          return  this.props.responseKeys.map( (item: any)=>{
-                return <th>{item}</th>
-            });
+          return ( this.props.responseKeys.map( (item: any)=>{
+              if (item === 'name' ) {
+                  return   <TableHeaderColumn isKey={true} dataAlign="center"
+                                              dataField={item}> {item}</TableHeaderColumn>
+              }
+              else{
+                return <TableHeaderColumn dataAlign="center" dataSort={true} dataField={item}>{item}</TableHeaderColumn>
+              }
+            }) );
         });
+
         return(
-        <Table responsive>
-            <thead>
+        <BootstrapTable ref="table" selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
             {renderHead()}
-            </thead>
-            <tbody>
-            {renderRows()}
-            </tbody>
-        </Table>
+        </BootstrapTable>
         );
     }
 }
