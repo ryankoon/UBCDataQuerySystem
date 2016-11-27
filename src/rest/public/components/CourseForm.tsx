@@ -87,7 +87,14 @@ export class CourseForm extends React.Component<any, any> {
             request
                 .post('http://localhost:4321/courseExplorer')
                 .send(payload)
-                .end();
+                .end( (err, res) => {
+                   if(err){
+                       console.log(err);
+                   }
+                   if(res){
+                       this.props.handleResponse(res, payload);
+                   }
+                });
         }
         else{
             console.log('Show an error message, this shouldnt happen');
@@ -97,54 +104,56 @@ export class CourseForm extends React.Component<any, any> {
     render() {
         return (
             <form ref="form">
-                <ControlLabel> Courses </ControlLabel>
-                <FormControl onChange = {this.setCourseName.bind(this)} componentClass="select" placeholder="Course">
-                    <option value = "undefined"> Select a course. </option>
-                    {this.props.titles.map((item:any, index: any) =>{
-                        return <option  value={item}>{item}</option>
-                    })}
-                </FormControl>
-                <ControlLabel> Instructors </ControlLabel>
-                <FormControl onChange = {this.setInstructor.bind(this)} componentClass="select" placeholder="Instructor" >
-                    <option value = "undefined"> Select an instructor. </option>
-                    {this.props.instructors.map((item:any, index: any) =>{
-                        return <option  value={item}>{item}</option>
-                    })}
-                </FormControl>
-                <ControlLabel>Departments</ControlLabel>
-                <FormControl onChange = {this.setDepartmentName.bind(this)} componentClass="select" placeholder="SectionNumber" >
-                    <option value = "undefined"> Select a section. </option>
-                    {this.props.depts.map((item:any, index: any) =>{
-                        return <option  value={item}>{item}</option>
-                    })}
-                </FormControl>
-                <ControlLabel> Section Number </ControlLabel>
-                <FormControl onChange = {this.setSectionNumber.bind(this)} componentClass="select" placeholder="SectionNumber" >
-                    <option value = "undefined"> Select a section. </option>
-                    {this.props.sections.map((item:any, index: any) =>{
-                        return <option  value={item}>{item}</option>
-                    })}
-                </FormControl>
-                <ControlLabel> Within section size </ControlLabel>
-                <FormControl onChange = {this.setSectionSize.bind(this)} componentClass="select" placeholder="Size" >
-                    <option value = "undefined"> Select a section. </option>
-                    {this.props.sizes.map((item:any, index: any) =>{
-                        return <option  value={item}>{item}</option>
-                    })}
-                </FormControl>
-                <ControlLabel> Sort by a class average</ControlLabel>
-                <ButtonGroup onChange = {this.setAverage.bind(this)}>
-                    <Radio name="average"  active value = "undefined" inline>Neither </Radio>
-                    <Radio name="average"  value = "high" inline>Highest </Radio>
-                    <Radio name="average"  value = "high" inline>Lowest </Radio>
-                </ButtonGroup>
-                <ControlLabel> Pass/Fail Sort </ControlLabel>
-                <ButtonGroup onChange = {this.setPassFail.bind(this)}>
-                    <Radio name="average"  active value = "undefined" inline> Neither </Radio>
-                    <Radio name="average"  value = "pass" inline> Pass </Radio>
-                    <Radio name="average"  value = "fail" inline> Fail </Radio>
-                </ButtonGroup>
-                <Button type="submit" onClick = {this.submitCourseQuery.bind(this)}> Submit Query </Button>
+                <FormGroup>
+                    <ControlLabel> Courses </ControlLabel>
+                    <FormControl onChange = {this.setCourseName.bind(this)} componentClass="select" placeholder="Course">
+                        <option value = "undefined"> Select a course. </option>
+                        {this.props.titles.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
+                    <ControlLabel> Instructors </ControlLabel>
+                    <FormControl onChange = {this.setInstructor.bind(this)} componentClass="select" placeholder="Instructor" >
+                        <option value = "undefined"> Select an instructor. </option>
+                        {this.props.instructors.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
+                    <ControlLabel>Departments</ControlLabel>
+                    <FormControl onChange = {this.setDepartmentName.bind(this)} componentClass="select" placeholder="SectionNumber" >
+                        <option value = "undefined"> Select a section. </option>
+                        {this.props.depts.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
+                    <ControlLabel> Section Number </ControlLabel>
+                    <FormControl onChange = {this.setSectionNumber.bind(this)} componentClass="select" placeholder="SectionNumber" >
+                        <option value = "undefined"> Select a section. </option>
+                        {this.props.sections.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
+                    <ControlLabel> Within section size </ControlLabel>
+                    <FormControl onChange = {this.setSectionSize.bind(this)} componentClass="select" placeholder="Size" >
+                        <option value = "undefined"> Select a section. </option>
+                        {this.props.sizes.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
+                    <ControlLabel> Sort by a class average</ControlLabel>
+                    <ButtonGroup onChange = {this.setAverage.bind(this)}>
+                        <Radio name="average"  active value = "undefined" inline>Neither </Radio>
+                        <Radio name="average"  value = "high" inline>Highest </Radio>
+                        <Radio name="average"  value = "high" inline>Lowest </Radio>
+                    </ButtonGroup>
+                    <ControlLabel> Pass/Fail Sort </ControlLabel>
+                    <ButtonGroup onChange = {this.setPassFail.bind(this)}>
+                        <Radio name="average"  active value = "undefined" inline> Neither </Radio>
+                        <Radio name="average"  value = "pass" inline> Pass </Radio>
+                        <Radio name="average"  value = "fail" inline> Fail </Radio>
+                    </ButtonGroup>
+                    <Button type="submit" onClick = {this.submitCourseQuery.bind(this)}> Submit Query </Button>
+                </FormGroup>
             </form>
         );
     }

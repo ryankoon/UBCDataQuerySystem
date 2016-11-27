@@ -103,7 +103,7 @@ export class CourseExplorer extends React.Component<any, any> {
         if (this.state.output === false){
             return (
                 <div>
-                    <CourseForm tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                    <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
                 </div>
             );
         }
