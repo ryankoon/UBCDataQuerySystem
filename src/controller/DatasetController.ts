@@ -387,7 +387,7 @@ export default class DatasetController {
      * @param id
      * @param processedDataset
      */
-    private save(id: string, processedDataset: any) : Promise<any> {
+    public save(id: string, processedDataset: any) : Promise<any> {
         let that = this;
         Log.trace('DatasetController saving zip files to disk ...');
         return new Promise(function (fulfill, reject) {
