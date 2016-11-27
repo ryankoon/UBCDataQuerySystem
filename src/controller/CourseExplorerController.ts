@@ -25,11 +25,14 @@ export default class CourseExplorerController {
 
             // add required keys
             let queryController = new QueryController();
-            let datsetId = queryController.getDatasetId(reqKeys[0]);
-            let requiredField = datsetId + "_Section";
-            if (reqKeys.indexOf(requiredField) === -1) {
-                reqKeys.push(requiredField);
-            }
+            let datasetId = queryController.getDatasetId(reqKeys[0]);
+            let requiredFields = [datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
+            requiredFields.forEach(field => {
+                if (reqKeys.indexOf(field) === -1) {
+                    reqKeys.push(field);
+                }
+            })
+
 
             let courseQuery: QueryRequest =
                 {

@@ -13,61 +13,61 @@ export class CourseForm extends React.Component<any, any> {
     constructor(props : any){
         super (props)
         this.state = {
-            courses_title : null,
-            courses_instructor : null,
-            courses_section : null,
-            courses_size : null,
-            courses_dept : null,
-            courses_average: null,
-            courses_passfail : null
+            subcourses_title : null,
+            subcourses_instructor : null,
+            subcourses_section : null,
+            subcourses_size : null,
+            subcourses_dept : null,
+            subcourses_average: null,
+            subcourses_passfail : null
         }
     }
     setCourseName(e : any) {
         this.setState({
-            courses_title : e.target.value
+            subcourses_title : e.target.value
         });
     }
     setInstructor(e : any) {
         this.setState({
-            courses_instructor : e.target.value
+            subcourses_instructor : e.target.value
         });
     }
     setSectionNumber(e : any) {
         this.setState({
-            courses_Section : e.target.value
+            subcourses_Section : e.target.value
         });
     }
     setSectionSize(e: any){
        this.setState({
-           courses_size : e.target.value
+           subcourses_size : e.target.value
        })
     }
     setDepartmentName(e: any ){
         this.setState({
-            courses_dept : e.target.value
+            subcourses_dept : e.target.value
         });
     }
     setAverage(e : any) {
         if (e.target.value === 'undefined' || e.target.value === null){
             this.setState({
-                courses_average: null
+                subcourses_average: null
             })
         }
         else{
             this.setState({
-                courses_average : e.target.value
+                subcourses_average : e.target.value
             })
         }
     }
     setPassFail(e:any){
         if (e.target.value === 'undefined' || e.target.value === null){
             this.setState({
-                courses_passfail: null
+                subcourses_passfail: null
             })
         }
         else{
             this.setState({
-                courses_passfail : e.target.value
+                subcourses_passfail : e.target.value
             })
         }
     }
