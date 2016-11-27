@@ -34,7 +34,7 @@ export class CourseForm extends React.Component<any, any> {
     }
     setSectionNumber(e : any) {
         this.setState({
-            courses_section : e.target.value
+            courses_Section : e.target.value
         });
     }
     setSectionSize(e: any){

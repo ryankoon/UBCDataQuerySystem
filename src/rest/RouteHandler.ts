@@ -197,7 +197,7 @@ export default class RouteHandler {
         try {
             console.log(req.params);
             let controller = new InsightFacade();
-            controller.handleCourseExploration(req)
+            controller.handleCourseExploration(req.body)
                 .then((result: any) => {
                     res.json(result.code, result.body);
                 })
@@ -206,7 +206,7 @@ export default class RouteHandler {
                 });
         }
         catch (err){
-            res.json(400, {error : 'Failed while handling course exploration:' + err});
+            res.json(400, {error : 'Failed while handling course exploration: ' + err});
             return next();
         }
     }
