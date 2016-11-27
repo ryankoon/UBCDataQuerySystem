@@ -27,7 +27,7 @@ describe("ExplorerController", function () {
             "AS": "TABLE"
         };
 
-        result = controller.buildQuery(requestBody, "courses");
+        result = controller.buildQuery(requestBody, "courses", "AND");
         expect(result).to.deep.equal(expectedResult);
     });
 
@@ -49,7 +49,7 @@ describe("ExplorerController", function () {
             "AS": "TABLE"
         };
 
-        result = controller.buildQuery(requestBody, "rooms");
+        result = controller.buildQuery(requestBody, "rooms", "AND");
         expect(result).to.deep.equal(expectedResult);
     });
 

@@ -8,6 +8,7 @@ import DataController from "./DataController";
 import {IRoom} from "./IBuilding";
 import CourseDataController from "./CourseDataController";
 import ExplorerController from "./ExplorerController";
+import {distanceRequestBody} from "./ExplorerController";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -182,30 +183,22 @@ export default class InsightFacade implements IInsightFacade {
 
                     let dataController = new DataController();
 
+                    Log.info(reqBody.rooms_lat);
+                    Log.info(reqBody.rooms_lon);
                     return dataController.roomsWithinDistance({lat: reqBody.rooms_lat, lon: reqBody.rooms_lon},
                         aRoomFromEachBuilding, reqBody.rooms_distance, 'walking');
-                }).then(results => {
-                    let nearbyBuildings: string[] = [];
-                    let allNearbyRooms: IRoom[] = [];
-                    results.forEach(result => {
-                        if (result["shortname"]) {
-                            nearbyBuildings.push(result["shortname"]);
-                        }
-                    });
-
-                    // get all rooms in nearby buildings
-                    nearbyBuildings.forEach(buildingCode => {
-                        if (roomsDataset[buildingCode] && roomsDataset[buildingCode]["result"] &&
-                            roomsDataset[buildingCode]["result"].length > 0) {
-                            let aNearbyRoom = roomsDataset[buildingCode]["result"];
-                            allNearbyRooms = allNearbyRooms.concat(aNearbyRoom);
-                        }
-                    });
-
-                let responseObject = new ResponseObject(200, allNearbyRooms);
-                fulfill(responseObject);
+                }).then((results: IRoom[]) => {
+                    // results - One IRoom from each building
+                    let explorerController = new ExplorerController();
+                    let newReqBody: distanceRequestBody = explorerController.transformRequestBody(reqBody, results);
+                    let query = explorerController.buildQuery(newReqBody.newReqString, "rooms", "OR",
+                        newReqBody.buildingNames, "LT");
+                    let insightFascade = new InsightFacade();
+                    return insightFascade.performQuery(query);
+                }).then(responseObj => {
+                    fulfill(responseObj);
                 }).catch(err => {
-                reject(err);
+                    reject(err);
                 });
         });
     }
@@ -257,7 +250,7 @@ export default class InsightFacade implements IInsightFacade {
     public handleCourseExploration(reqBody: string): Promise<InsightResponse> {
         return new Promise((fulfill, reject)=>{
             let explorerController = new ExplorerController();
-            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "courses");
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "courses", "AND");
 
             this.performQuery(courseQuery)
              .then(result => {
@@ -271,7 +264,7 @@ export default class InsightFacade implements IInsightFacade {
     handleRoomExploration(reqBody: string) {
         return new Promise((fulfill, reject)=>{
             let explorerController = new ExplorerController();
-            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "rooms");
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "rooms", "AND");
 
             this.performQuery(courseQuery)
                 .then(result => {

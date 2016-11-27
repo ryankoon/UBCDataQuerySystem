@@ -17,4 +17,5 @@ export interface IRoom {
     type: string;
     furniture: string;
     href: string;
+    traveldistance?: number;
 }

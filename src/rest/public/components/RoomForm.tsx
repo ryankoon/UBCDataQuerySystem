@@ -11,10 +11,10 @@ export class RoomForm extends React.Component<any, any> {
     super (props)
         this.state = {
             rooms_fullname : null,
-            rooms_roomType : null,
-            rooms_furnitureType : null,
+            rooms_type : null,
+            rooms_furniture : null,
             rooms_distance : null,
-            rooms_size: null,
+            rooms_seats: null,
             rooms_lat : null,
             rooms_lon: null
         }
@@ -22,7 +22,7 @@ export class RoomForm extends React.Component<any, any> {
 
     setFurnitureType (e:any){
         this.setState({
-            rooms_furnitureType : e.target.value
+            rooms_furniture : e.target.value
         })
     }
     setBuildingName (e:any){
@@ -34,7 +34,7 @@ export class RoomForm extends React.Component<any, any> {
     }
     setRoomType (e:any){
         this.setState({
-            rooms_roomType : e.target.value
+            rooms_type : e.target.value
         })
     }
     setDistance (e:any){
@@ -44,7 +44,7 @@ export class RoomForm extends React.Component<any, any> {
     }
     setSize (e:any){
         this.setState({
-            rooms_size : e.target.value
+            rooms_seats : e.target.value
         })
     }
 
