@@ -260,12 +260,12 @@ export default class InsightFacade implements IInsightFacade {
             return new Promise((fulfill, reject)=>{
                 let courseQuery : QueryRequest =
                     {
-                        "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title", "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
+                        "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title",
+                            "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
                         "WHERE": {},
                         "AS" : "TABLE"
                     };
 
-                //TESTING - REMOVE
                 let courseDataController = new CourseDataController();
                 courseDataController.processCourseDataset("courses")
                 .then(newDataset => {
