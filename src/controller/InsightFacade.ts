@@ -9,6 +9,7 @@ import {IRoom} from "./IBuilding";
 import CourseDataController from "./CourseDataController";
 import ExplorerController from "./ExplorerController";
 import {distanceRequestBody} from "./ExplorerController";
+import {IObject} from "./IObject";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -170,6 +171,7 @@ export default class InsightFacade implements IInsightFacade {
     public getRoomsWithinDistance(reqBody: any): Promise<InsightResponse> {
         return new Promise((fulfill, reject) => {
             let roomsDataset: any;
+            let travelDistances: IObject = {};
                 InsightFacade.datasetController.getDataset("rooms").then((dataset: any) => {
                     roomsDataset = dataset;
                     let keys = Object.keys(dataset);
@@ -194,8 +196,39 @@ export default class InsightFacade implements IInsightFacade {
                     let query = explorerController.buildQuery(newReqBody.newReqString, "rooms", "OR",
                         newReqBody.buildingNames, "LT");
                     let insightFascade = new InsightFacade();
+
+                    // keep track of travel distances to each building
+                    results.forEach((room: IRoom) => {
+                        if (room.traveldistance && room.shortname) {
+                            travelDistances[room.shortname] = room.traveldistance;
+                        }
+                    });
+
                     return insightFascade.performQuery(query);
                 }).then(responseObj => {
+                    // restore travel distances in room objects
+                    if (responseObj.body["result"]) {
+                        let queryResults: any = <any>responseObj.body["result"];
+                        queryResults.forEach((queryResult: any) => {
+                            let roomName: string = queryResult["rooms_name"];
+                            let roomNameParts = roomName.split("_");
+                            let buildingCode: string = "";
+                            if (roomNameParts) {
+                               buildingCode = roomNameParts[0];
+                            }
+                            let travelDistance = travelDistances[buildingCode];
+
+                            if (travelDistance !== undefined) {
+                                queryResult["rooms_traveldistance"] = travelDistance;
+                            } else {
+                                // assume it is the building is the orgin to measure distance from
+                                queryResult["rooms_traveldistance"] = 0;
+                            }
+                        });
+
+                        responseObj.body["result"] = queryResults;
+                    }
+
                     fulfill(responseObj);
                 }).catch(err => {
                     reject(err);

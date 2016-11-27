@@ -319,21 +319,25 @@ describe('InsightFacade', () => {
                     "rooms_fullname": "Biological Sciences",
                     "rooms_name": "BIOL_1503",
                     "rooms_seats": 16,
+                    "rooms_traveldistance": 0
                 },
                 {
                     "rooms_fullname": "Biological Sciences",
                     "rooms_name": "BIOL_2000",
                     "rooms_seats": 228,
+                    "rooms_traveldistance": 0
                 },
                 {
                     "rooms_fullname": "Biological Sciences",
                     "rooms_name": "BIOL_2200",
                     "rooms_seats": 76,
+                    "rooms_traveldistance": 0
                 },
                 {
                     "rooms_fullname": "Biological Sciences",
                     "rooms_name": "BIOL_2519",
                     "rooms_seats": 16,
+                    "rooms_traveldistance": 0
                 }
             ]
         };
