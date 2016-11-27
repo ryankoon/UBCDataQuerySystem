@@ -266,8 +266,16 @@ export default class InsightFacade implements IInsightFacade {
                         "AS" : "TABLE"
                     };
 
-                let courseDataController = new CourseDataController();
-                courseDataController.processCourseDataset("courses")
+                let datasetController = new DatasetController();
+                datasetController.getDataset('subcourses')
+                .then(dataset => {
+                    if (dataset === null) {
+                        let courseDataController = new CourseDataController();
+                        return courseDataController.processCourseDataset("courses");
+                    } else {
+                        return new Promise((resolve, reject) => {resolve()});
+                    }
+                })
                 .then(newDataset => {
                     return this.performQuery(courseQuery);
                 })
