@@ -31,7 +31,7 @@ export class ResponseHandler extends React.Component<any, any> {
                 });
             }else{
                 this.setState({
-                    selected: [ ...this.state.selected, row.name ]
+                    selected: [ ...this.state.selected, row.rooms_name ]
                 });
             }
             return true;
@@ -40,7 +40,7 @@ export class ResponseHandler extends React.Component<any, any> {
                 this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.subcourses_id) });
 
             }else{
-                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.name) });
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.rooms_name) });
 
             }
             return true;
@@ -57,7 +57,7 @@ export class ResponseHandler extends React.Component<any, any> {
             else{
 
                 for (var i=0; i < rows.length; i++){
-                    interestedArray.push(rows[i].name);
+                    interestedArray.push(rows[i].rooms_name);
                 }
             }
             this.setState({
@@ -96,7 +96,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
-              if (item === 'name' || item ==='subcourses_id' ) {
+              if (item === 'rooms_name' || item ==='subcourses_id' ) {
                   return   <TableHeaderColumn isKey={true} dataAlign="center"
                                               dataField={item}> {item}</TableHeaderColumn>
               }
