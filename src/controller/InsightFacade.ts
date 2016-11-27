@@ -6,6 +6,7 @@ import Log from '../Util';
 import {Datasets} from "./DatasetController";
 import DataController from "./DataController";
 import {IRoom} from "./IBuilding";
+import CourseDataController from "./CourseDataController";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -230,9 +231,12 @@ export default class InsightFacade implements IInsightFacade {
          */
     public getCourseInformation() : Promise<InsightResponse> {
             return new Promise((fulfill, reject)=>{
+                //TESTING - REMOVE
+                let courseDataController = new CourseDataController();
+                courseDataController.processCourseDataset("courses");
                 let courseQuery : QueryRequest =
                 {
-                    "GET": ["courses_instructor", "courses_dept", "courses_id", "courses_title", "courses_fail", "courses_pass", 'courses_Section'],
+                    "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title", "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
                     "WHERE": {},
                     "AS" : "TABLE"
                 }
