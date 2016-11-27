@@ -4,9 +4,15 @@ import {IObject} from "./IObject";
  * Created by Ryan on 11/26/2016.
  */
 
-export default class CourseExplorerController {
+export default class ExplorerController {
 
-    public buildQuery(reqBody: string): QueryRequest {
+    /**
+     * Builds a query based on the selected fields on an explorer pane
+     * @param reqBody
+     * @param type - 'courses' or 'rooms'
+     * @returns {QueryRequest}
+     */
+    public buildQuery(reqBody: string, type: string): QueryRequest {
         try {
             let reqBodyJson = JSON.parse(reqBody);
 
@@ -24,12 +30,21 @@ export default class CourseExplorerController {
             // add required keys
             let queryController = new QueryController();
             let datasetId = queryController.getDatasetId(reqKeys[0]);
-            let requiredFields = [datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
-            requiredFields.forEach(field => {
-                if (reqKeys.indexOf(field) === -1) {
-                    reqKeys.push(field);
+
+            // add required fields to return based on explorer types
+            let requiredFields: string[];
+            if (type === 'courses') {
+                requiredFields = [datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
+            } else if (type === 'rooms') {
+                requiredFields = [datasetId + "_name", datasetId + "_seats"];
+            }
+            let tempFields = requiredFields;
+            reqKeys.forEach(field => {
+                if (requiredFields.indexOf(field) === -1) {
+                    tempFields.push(field);
                 }
-            })
+            });
+            reqKeys = tempFields;
 
             let courseQuery: QueryRequest =
                 {
@@ -48,9 +63,15 @@ export default class CourseExplorerController {
 
     public generateComparatorObject(key: string, value: any): IObject {
         let result: IObject = {};
-
         let valueType: string = typeof(value);
-        result[key] = value;
+        let parsedFloat = Number(value);
+
+        if (!isNaN(parsedFloat)){
+            valueType = "number";
+            result[key] = parsedFloat;
+        } else {
+            result[key] = value;
+        }
 
         if (valueType === "string") {
             result = {"IS": result};

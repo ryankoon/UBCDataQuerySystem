@@ -7,7 +7,7 @@ import {Datasets} from "./DatasetController";
 import DataController from "./DataController";
 import {IRoom} from "./IBuilding";
 import CourseDataController from "./CourseDataController";
-import CourseExplorerController from "./CourseExplorerController";
+import ExplorerController from "./ExplorerController";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -182,8 +182,8 @@ export default class InsightFacade implements IInsightFacade {
 
                     let dataController = new DataController();
 
-                    return dataController.roomsWithinDistance({lat: reqBody.lat, lon: reqBody.lng},
-                        aRoomFromEachBuilding, reqBody.distance, 'walking');
+                    return dataController.roomsWithinDistance({lat: reqBody.rooms_lat, lon: reqBody.rooms_lon},
+                        aRoomFromEachBuilding, reqBody.rooms_distance, 'walking');
                 }).then(results => {
                     let nearbyBuildings: string[] = [];
                     let allNearbyRooms: IRoom[] = [];
@@ -256,13 +256,27 @@ export default class InsightFacade implements IInsightFacade {
 
     public handleCourseExploration(reqBody: string): Promise<InsightResponse> {
         return new Promise((fulfill, reject)=>{
-            let courseExplorerController = new CourseExplorerController();
-            let courseQuery: QueryRequest = courseExplorerController.buildQuery(reqBody);
+            let explorerController = new ExplorerController();
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "courses");
 
             this.performQuery(courseQuery)
              .then(result => {
                 fulfill(result);
             }).catch(err=>{
+                reject(err);
+            });
+        });
+    }
+
+    handleRoomExploration(reqBody: string) {
+        return new Promise((fulfill, reject)=>{
+            let explorerController = new ExplorerController();
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "rooms");
+
+            this.performQuery(courseQuery)
+                .then(result => {
+                    fulfill(result);
+                }).catch(err=>{
                 reject(err);
             });
         });

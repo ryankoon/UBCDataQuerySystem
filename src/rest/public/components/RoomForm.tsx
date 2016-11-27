@@ -10,41 +10,41 @@ export class RoomForm extends React.Component<any, any> {
     constructor(props : any){
     super (props)
         this.state = {
-            buildingName : null,
-            roomType : null,
-            furnitureType : null,
-            distance : null,
-            size: null,
-            lat : null,
-            lng: null
+            rooms_fullname : null,
+            rooms_roomType : null,
+            rooms_furnitureType : null,
+            rooms_distance : null,
+            rooms_size: null,
+            rooms_lat : null,
+            rooms_lon: null
         }
     }
 
     setFurnitureType (e:any){
         this.setState({
-            furnitureType : e.target.value
+            rooms_furnitureType : e.target.value
         })
     }
     setBuildingName (e:any){
         this.setState({
-            buildingName : e.target.value,
-            lat : e.target[e.target.selectedIndex].getAttribute('data-lat'),
-            lng : e.target[e.target.selectedIndex].getAttribute('data-lng')
+            rooms_fullname : e.target.value,
+            rooms_lat : e.target[e.target.selectedIndex].getAttribute('data-lat'),
+            rooms_lon : e.target[e.target.selectedIndex].getAttribute('data-lon')
         });
     }
     setRoomType (e:any){
         this.setState({
-            roomType : e.target.value
+            rooms_roomType : e.target.value
         })
     }
     setDistance (e:any){
         this.setState({
-            distance : e.target.value
+            rooms_distance : e.target.value
         })
     }
     setSize (e:any){
         this.setState({
-            size : e.target.value
+            rooms_size : e.target.value
         })
     }
 
@@ -87,7 +87,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl onChange = {this.setBuildingName.bind(this)} componentClass="select" placeholder="Building name" >
                         <option value = "select"> Select a building. </option>
                         {this.props.buildings.map((item:any, index: any) =>{
-                            return <option key = {index} data-lat={item.lat} data-lng={item.lng} value={item.building_name}>{item.building_name}</option>
+                            return <option key = {index} data-lat={item.lat} data-lon={item.lon} value={item.building_name}>{item.building_name}</option>
                         })}
                     </FormControl>
 

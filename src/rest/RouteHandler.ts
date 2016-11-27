@@ -181,11 +181,17 @@ export default class RouteHandler {
         try {
             console.log(req.params);
             let body = JSON.parse(req.body);
-            if (body.lat !== 'undefined' && body.lon !== 'undefined' && body.distance !== 'undefined') {
+            if (body.rooms_lat !== undefined && body.rooms_lon !== undefined && body.rooms_distance !== undefined) {
                 RouteHandler.getRoomsWithinDistance(req, res, next);
             } else {
-                res.json(200, req.params);
-                return next();
+                let controller = new InsightFacade();
+                controller.handleRoomExploration(req.body)
+                    .then((result: any) => {
+                        res.json(result.code, result.body);
+                    })
+                    .catch((err: any) => {
+                        res.json(400, {error : 'Failed while handling course exploration:' + err});
+                    });
             }
         }
         catch (err){
