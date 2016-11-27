@@ -71,16 +71,16 @@ export class CourseExplorer extends React.Component<any, any> {
                     }
                     if (arr_section.indexOf(arrayOfCourseObjects[i].subcourses_Section)=== -1){
                         arr_section.push(arrayOfCourseObjects[i].subcourses_Section);
-
-                        // for each unique section, push the size.
-                        let tempPass = arrayOfCourseObjects[i].subcourses_pass;
-                        let tempFail = arrayOfCourseObjects[i].subcourses_fail;
-
-                        let tempSize: Number = tempPass + tempFail;
-
-                        arr_size.push(tempSize);
                     }
+                    if (arr_size.indexOf(arrayOfCourseObjects[i].subcourses_Size)=== -1) {
+                        arr_size.push(arrayOfCourseObjects[i].subcourses_Size);
+                    }
+
                 }
+
+                let sorted_size : Array<Number> = arr_size.sort(function (a : any,b : any) {
+                    return a-b;
+                });
                 let sorted_arr_instructors : Array<string> = arr_instructors.sort(function (a,b)  {
                     if (a < b) return -1;
                     if (b > a) return 1;
@@ -92,7 +92,7 @@ export class CourseExplorer extends React.Component<any, any> {
                     depts : arr_dept,
                     titles: arr_title,
                    sections : arr_section,
-                    sizes : arr_size
+                    sizes : sorted_size
                 })
             }).catch(err => {
             // TODO: need to display warning / error handling
@@ -103,7 +103,7 @@ export class CourseExplorer extends React.Component<any, any> {
         if (this.state.output === false){
             return (
                 <div>
-                    <CourseForm sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                    <CourseForm tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
                 </div>
             );
         }

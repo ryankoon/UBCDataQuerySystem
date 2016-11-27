@@ -8,6 +8,7 @@ import * as ReactDOM from 'react-dom';
 import {RoomForm} from "./RoomForm";
 import {Response} from "restify";
 import {ResponseHandler} from "./ResponseHandler";
+import Button = ReactBootstrap.Button;
 
 
 export class RoomExplorer extends React.Component<any, any> {
@@ -92,6 +93,7 @@ export class RoomExplorer extends React.Component<any, any> {
             console.log (err);
         })
     }
+
     render() {
         if (this.state.output === false) {
             return (
@@ -106,7 +108,7 @@ export class RoomExplorer extends React.Component<any, any> {
         else{
             return (
                 <div>
-                <ResponseHandler formContext = "rooms" responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
+                    <ResponseHandler formContext = "rooms" responseKeys = {this.state.responseKeys} responseContent={this.state.responseContent} compiler="TypeScript"
                                  framework="React"/>
                 </div>
             );

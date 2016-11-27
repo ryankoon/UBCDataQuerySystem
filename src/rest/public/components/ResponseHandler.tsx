@@ -7,6 +7,7 @@ import Table = ReactBootstrap.Table;
 import Checkbox = ReactBootstrap.Checkbox;
 import {SelectRowMode} from "react-bootstrap-table";
 import {SelectRow} from "react-bootstrap-table";
+import Button = ReactBootstrap.Button;
 
 
 export class ResponseHandler extends React.Component<any, any> {
@@ -22,14 +23,42 @@ export class ResponseHandler extends React.Component<any, any> {
     }
 
     onRowSelect(row : any, isSelected : Boolean, e : any) {
-        if (isSelected && this.state.selected.length !== 2) {
+        if (isSelected) {
             this.setState({
                 selected: [ ...this.state.selected, row.name ]
             });
             return true;
         } else {
             this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.name) });
-            return false;
+            return true;
+        }
+    }
+    rowSelectAll(isSelected: Boolean, rows : any) {
+        if(isSelected) {
+            let interestedArray : Array<string> = [];
+            for (var i=0; i < rows.length; i++){
+                interestedArray.push(rows[i].name) // TODO: update for course explorer.
+            }
+            this.setState({
+                selected: [ ...this.state.selected, interestedArray ]
+            });
+            return true;
+        }
+        else{
+            var emptyState : Array<any> = [];
+            this.setState({
+                selected: emptyState
+            });
+        return true;
+        }
+    }
+    applySchedule(e : any){
+        if (this.state.selected.length > 0) {
+            localStorage.setItem(this.props.formContext, this.state.selected);
+            console.log('set schedule. lets show success!');
+        }
+        else{
+            localStorage.removeItem(this.props.formContext);
         }
     }
 
@@ -39,11 +68,13 @@ export class ResponseHandler extends React.Component<any, any> {
 
         const selectRow : SelectRow = {
             mode : rowMode,
-            onSelect : this.onRowSelect.bind(this)
+            onSelect : this.onRowSelect.bind(this),
+            onSelectAll : this.rowSelectAll.bind(this)
         }
         const {
             currPage
         } = this.state;
+        const setSchedule = this.applySchedule.bind(this);
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
@@ -58,9 +89,12 @@ export class ResponseHandler extends React.Component<any, any> {
         });
 
         return(
-        <BootstrapTable ref="table" selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
-            {renderHead()}
-        </BootstrapTable>
+         <div>
+            <Button onClick={setSchedule}> Apply to schedule </Button>
+            <BootstrapTable ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
+                {renderHead()}
+            </BootstrapTable>
+         </div>
         );
     }
 }
