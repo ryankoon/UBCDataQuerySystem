@@ -7,6 +7,7 @@ import {Datasets} from "./DatasetController";
 import DataController from "./DataController";
 import {IRoom} from "./IBuilding";
 import CourseDataController from "./CourseDataController";
+import CourseExplorerController from "./CourseExplorerController";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -232,21 +233,39 @@ export default class InsightFacade implements IInsightFacade {
          */
     public getCourseInformation() : Promise<InsightResponse> {
             return new Promise((fulfill, reject)=>{
+                let courseQuery : QueryRequest =
+                    {
+                        "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title", "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
+                        "WHERE": {},
+                        "AS" : "TABLE"
+                    };
+
                 //TESTING - REMOVE
                 let courseDataController = new CourseDataController();
-                courseDataController.processCourseDataset("courses");
-                let courseQuery : QueryRequest =
-                {
-                    "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title", "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
-                    "WHERE": {},
-                    "AS" : "TABLE"
-                }
-                this.performQuery(courseQuery).then(result => {
-                   fulfill(result);
+                courseDataController.processCourseDataset("courses")
+                .then(newDataset => {
+                    return this.performQuery(courseQuery);
+                })
+                .then(result => {
+                    fulfill(result);
                 }).catch(err=>{
                     reject(err);
                 });
                 // We want to do a number of queries and just get a ton of information from the current data set.
             });
+    }
+
+    public handleCourseExploration(request: any): Promise<InsightResponse> {
+        return new Promise((fulfill, reject)=>{
+            let courseExplorerController = new CourseExplorerController();
+            let courseQuery: QueryRequest = courseExplorerController.buildQuery(request);
+
+            this.performQuery(courseQuery)
+             .then(result => {
+                fulfill(result);
+            }).catch(err=>{
+                reject(err);
+            });
+        });
     }
 }

@@ -90,6 +90,7 @@ export class CourseForm extends React.Component<any, any> {
                 .end();
         }
         else{
+            console.log("reaches this state when you submit query without selecting any filters.");
             console.log('Show an error message, this shouldnt happen');
         }
     }
