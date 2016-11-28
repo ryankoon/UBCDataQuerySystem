@@ -80,7 +80,7 @@ export default class ScheduleController {
 
     private sections: ISubCourse[];
     private rooms: IRoom[];
-    private allSchedules: CampusSchedule[];
+    public allSchedules: CampusSchedule[];
     public static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
     public static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
 
@@ -373,7 +373,13 @@ export default class ScheduleController {
      */
     public scheduleSection(section: ISubCourse, rooms: IRoom[], schedule: CampusSchedule,
                            timetable: CampusTimetable, roomsBookedTimes: RoomsBookedTimes): ScheduleResult {
-        let result: ScheduleResult;
+        let result: ScheduleResult = {
+            newSchedule: null,
+            newTimetable: null,
+            newRoomsBookedTimes: null,
+            cost: -1
+        };
+
         let leastCost: number = -1;
         let bestRoom: IRoom;
         let bestDay: string;
@@ -384,7 +390,7 @@ export default class ScheduleController {
             //Find the next available timeslot, does not have to be adjacent to last scheduled course
             roomAvailability.MWF.some(mwfTime => {
                 let cost = this.getSchedulingCost(section, room, "MWF", mwfTime, timetable, roomsBookedTimes);
-                if (leastCost === -1 || leastCost > cost) {
+                if (cost != -1 && (leastCost === -1 || leastCost > cost)) {
                     leastCost = cost;
                     bestRoom = room;
                     bestDay = "MWF";
@@ -398,7 +404,7 @@ export default class ScheduleController {
 
             roomAvailability.TTH.some(tthTime => {
                 let cost = this.getSchedulingCost(section, room, "TTH", tthTime, timetable, roomsBookedTimes);
-                if (leastCost === -1 || leastCost > cost) {
+                if (cost != -1 && (leastCost === -1 || leastCost > cost)) {
                     leastCost = cost;
                     bestRoom = room;
                     bestDay = "TTH";
@@ -413,18 +419,17 @@ export default class ScheduleController {
             if (leastCost === 0) {
                 return true;
             }
-        })
+        });
 
         if (leastCost !== -1 && bestRoom && bestDay && bestTime) {
             result = this.updateScheduleTimetableRoomBookings(schedule, timetable, roomsBookedTimes, section, bestRoom,
                 bestDay, bestTime, leastCost)
         } else if (leastCost === -1) {
             // should not have changed
-            return result;
         } else {
             Log.error("Error with scheduling a section!");
-            return result;
         }
+        return result;
     }
 
     /**
