@@ -109,7 +109,10 @@ export class ResponseHandler extends React.Component<any, any> {
         return(
          <div>
             <Button onClick={setSchedule}> Apply to schedule </Button>
-            <BootstrapTable ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
+            <BootstrapTable
+                search
+                columnFilter
+                ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
                 {renderHead()}
             </BootstrapTable>
          </div>
