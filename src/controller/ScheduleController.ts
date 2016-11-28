@@ -52,6 +52,12 @@ export interface ScheduleResult {
     cost: number;
 }
 
+export interface BestScheduleResult {
+    bestSchedule: CampusSchedule;
+    quality: number;
+}
+
+
 /**
  * IObject: key - course id (aka uuid), value - array of times (e.g ["800", " "1530"]
  * This represents all the times of the scheduled courses across rooms
@@ -77,17 +83,12 @@ export interface RoomAvailability extends IObject {
 }
 
 export default class ScheduleController {
-
-    private sections: ISubCourse[];
-    private rooms: IRoom[];
     public allSchedules: CampusSchedule[];
     public static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
     public static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
 
 
     constructor() {
-        this.sections = [];
-        this.rooms = [];
         this.allSchedules = [];
     }
 
@@ -97,16 +98,19 @@ export default class ScheduleController {
      * @param rooms
      * @returns {IObject}
      */
-    public findBestSchedule(courseSections: ISubCourse[], rooms: IRoom[]): IObject {
-        let result: IObject = {};
+    public findBestSchedule(courseSections: ISubCourse[], rooms: IRoom[]): BestScheduleResult {
+        let result: BestScheduleResult = {
+            "bestSchedule": undefined,
+            "quality": undefined
+        };
 
-        if (this.sections && this.sections.length > 0 && this.rooms && this.rooms.length > 0) {
+        if (courseSections && courseSections.length > 0 && rooms && rooms.length > 0) {
 
         // 1. Find all possible schedules.
             let blankCampusSchedule = this.createblankCampusSchedule();
             let blankCampusTimetable = this.createblankCampusTimetable();
             let blankRoomsBookedTimes = this.createblankRoomsBookedTimes();
-            this.findAllSchedulesRecursively(this.sections, 0, this.rooms, blankCampusSchedule, blankCampusTimetable,
+            this.findAllSchedulesRecursively(courseSections, 0, rooms, blankCampusSchedule, blankCampusTimetable,
                 blankRoomsBookedTimes);
 
             if (this.allSchedules.length > 0) {
@@ -115,8 +119,8 @@ export default class ScheduleController {
                 let bestSchedule: CampusSchedule = this.getBestSchedule(this.allSchedules);
 
         // 3. Calculate the quality
-                let quality = this.calculateQuality(bestSchedule, this.sections.length);
-                result = {"BestSchedule": bestSchedule, "Quality": quality}
+                let quality = this.calculateQuality(bestSchedule, courseSections.length);
+                result = {"bestSchedule": bestSchedule, "quality": quality};
             } else {
                 Log.error("No schedules were found!");
             }

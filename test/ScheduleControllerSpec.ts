@@ -11,6 +11,7 @@ import {RoomsBookedTimes} from "../src/controller/ScheduleController";
 import {ScheduleResult} from "../src/controller/ScheduleController";
 import {IRoom} from "../src/controller/IBuilding";
 import {RoomAvailability} from "../src/controller/ScheduleController";
+import {BestScheduleResult} from "../src/controller/ScheduleController";
 
 describe("ScheduleController", function () {
 
@@ -50,7 +51,13 @@ describe("ScheduleController", function () {
 
     it("Should be able to findBestSchedule", () => {
         let controller: ScheduleController = new ScheduleController();
-        expect(false).to.be.true;
+        let subcourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+        let aroom: IRoom = { "fullname": "Allard Hall (LAW)", "shortname": "ALRD", "number": "105", "name": "ALRD_105", "address": "1822 East Mall", "lat": 49.2699, "lon": -123.25318, "seats": 94, "type": "Case Style", "furniture": "Classroom-Fixed Tables/Movable Chairs", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ALRD-105" };
+        let result: BestScheduleResult;
+
+        result = controller.findBestSchedule([subcourse], [aroom]);
+        expect(result.bestSchedule.cost).to.equal(55);
+        expect(result.quality).to.equal(1);
     });
 
     it("Should be able to updateScheduleTimetableRoomBookings", () => {
