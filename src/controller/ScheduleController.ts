@@ -23,6 +23,7 @@ export interface TimeTable extends IObject{
 }
 
 //TODO check if numbers are escaped on compile
+//Start times of courses
 export interface DAYMWF {
     800: IObject;
     900: IObject;
@@ -33,9 +34,8 @@ export interface DAYMWF {
     1400: IObject;
     1500: IObject;
     1600: IObject;
-    1700: IObject;
 }
-
+//Start times of courses
 export interface DAYTTH {
     800: IObject;
     930: IObject;
@@ -43,7 +43,6 @@ export interface DAYTTH {
     1230: IObject;
     1400: IObject;
     1530: IObject;
-    1700: IObject;
 }
 
 export interface ScheduleResult {
@@ -82,8 +81,8 @@ export default class ScheduleController {
     private sections: ISubCourse[];
     private rooms: IRoom[];
     private allSchedules: CampusSchedule[];
-    private static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700"];
-    private static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530", "1700"];
+    private static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
+    private static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
 
 
     constructor() {
@@ -137,8 +136,8 @@ export default class ScheduleController {
 
     public createblankCampusTimetable(): CampusTimetable {
         return {
-            "MWF": undefined,
-            "TTH": undefined
+            "MWF": {},
+            "TTH": {}
         };
     }
 
@@ -153,7 +152,7 @@ export default class ScheduleController {
                                                roomsTimeTable: RoomsBookedTimes, section: ISubCourse, room: IRoom,
                                                day: string, time: string, cost: number): ScheduleResult {
         let scheduleResult: ScheduleResult;
-        let updatedCampusSchedule =  this.addSectionSchedule(schedule, section, room.name, day, time, cost);
+        let updatedCampusSchedule =  this.addSectionToSchedule(schedule, section, room.name, day, time, cost);
         let updatedCampusTimetable = this.addCourseToCampusTimetable(campusTimeTable, section.id, day, time);
         let updatedRoomsTimetables =  this.addTimeToRoomsBookings(roomsTimeTable, room.name, day, time);
 
@@ -171,11 +170,11 @@ export default class ScheduleController {
         }
     }
 
-    public addSectionSchedule(schedule: CampusSchedule, section: ISubCourse, roomName: string, day: string, time: string,
-                              cost: number): CampusSchedule {
+    public addSectionToSchedule(schedule: CampusSchedule, section: ISubCourse, roomName: string, day: string, time: string,
+                                cost: number): CampusSchedule {
         let result: CampusSchedule = schedule;
         result.scheduledSections += 1;
-        result.cost =+ cost;
+        result.cost += cost;
 
         if (result.roomSchedules[roomName] === null || result.roomSchedules[roomName] === undefined) {
             let newTimetableMWF: DAYMWF = <DAYMWF>this.createTimeSlotsObject("MWF");
@@ -183,13 +182,13 @@ export default class ScheduleController {
             let newTimetable: TimeTable = {"MWF": newTimetableMWF, "TTH": newTimetableTTH};
 
             result.roomSchedules[roomName] = newTimetable;
+        }
+
+        if (result.roomSchedules[roomName][day][time] === undefined) {
+            result.roomSchedules[roomName][day][time] = section;
         } else {
-            if (result.roomSchedules[roomName][day][time] === undefined) {
-                result.roomSchedules[roomName][day][time] = section;
-            } else {
-                Log.error("FATAL - addSectionSchedule: room is already scheduled to a section! " +
-                    "Should not reach this state!");
-            }
+            Log.error("FATAL - addSectionSchedule: room is already scheduled to a section! " +
+                "Should not reach this state!");
         }
 
         return result;
@@ -203,7 +202,7 @@ export default class ScheduleController {
             if (sectionScheduledTimes === null || sectionScheduledTimes === undefined) {
                 result[day][sectionId] = [];
             }
-            if (sectionScheduledTimes.indexOf(time) === -1) {
+            if (result[day][sectionId].indexOf(time) === -1) {
                 result[day][sectionId].push(time);
             } else {
                 Log.error("FATAL - addCourseToCampusTimetable: Concurrent Section! Should not reach this state!");
@@ -246,8 +245,7 @@ export default class ScheduleController {
                 1300: "open",
                 1400: "open",
                 1500: "open",
-                1600: "open",
-                1700: "open"
+                1600: "open"
             };
             timeTable.MWF[roomName] = allOpenMWF;
         } else if (day === "TTH") {
@@ -257,8 +255,7 @@ export default class ScheduleController {
                 1100: "open",
                 1230: "open",
                 1400: "open",
-                1530: "open",
-                1700: "open"
+                1530: "open"
             };
             timeTable.TTH[roomName] = allOpenTTH;
         }
@@ -278,7 +275,6 @@ export default class ScheduleController {
                 1400: undefined,
                 1500: undefined,
                 1600: undefined,
-                1700: undefined,
             };
         } else if (day === "TTH") {
             result = {
@@ -288,7 +284,6 @@ export default class ScheduleController {
                 1230: undefined,
                 1400: undefined,
                 1530: undefined,
-                1700: undefined,
             };
         }
 
