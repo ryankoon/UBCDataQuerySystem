@@ -216,4 +216,22 @@ export default class RouteHandler {
             return next();
         }
     }
+
+    public static handleCourseScheduling(req : restify.Request, res : restify.Response, next : restify.Next){
+        try {
+            console.log(req.params);
+            let controller = new InsightFacade();
+            controller.handleCourseScheduling(req.body)
+                .then((result: any) => {
+                    res.json(result.code, result.body);
+                })
+                .catch((err: any) => {
+                    res.json(err.code, err.body);
+                });
+        }
+        catch (err){
+            res.json(400, {error : 'Failed while handling course scheduling: ' + err});
+            return next();
+        }
+    }
 }

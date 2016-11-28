@@ -56,7 +56,7 @@ export class CourseSchedulerForm extends React.Component<any, any> {
         if (keys.length > 0 ) {
             let payload: String = JSON.stringify(tempState);
             request
-                .post('http://localhost:4321/courseScheduler')
+                .post('http://localhost:4321/scheduleCourses')
                 .send(payload)
                 .end();
         }
