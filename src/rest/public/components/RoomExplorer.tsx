@@ -29,8 +29,8 @@ export class RoomExplorer extends React.Component<any, any> {
     }
 
     handleResponse (data : any, sentStates : string) {
-        if (data.body.length > 0) {
-            var responseContent = data.body;
+        if (data.body.result.length > 0) {
+            var responseContent = data.body.result;
 
             var masterArray : Array<any> = [];
             var keys = Object.keys(responseContent[0]);
