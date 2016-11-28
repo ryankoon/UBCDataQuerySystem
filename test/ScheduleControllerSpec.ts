@@ -10,6 +10,7 @@ import {CampusTimetable} from "../src/controller/ScheduleController";
 import {RoomsBookedTimes} from "../src/controller/ScheduleController";
 import {ScheduleResult} from "../src/controller/ScheduleController";
 import {IRoom} from "../src/controller/IBuilding";
+import {RoomAvailability} from "../src/controller/ScheduleController";
 
 describe("ScheduleController", function () {
 
@@ -49,6 +50,7 @@ describe("ScheduleController", function () {
 
     it("Should be able to findBestSchedule", () => {
         let controller: ScheduleController = new ScheduleController();
+        expect(false).to.be.true;
     });
 
     it("Should be able to updateScheduleTimetableRoomBookings", () => {
@@ -449,36 +451,284 @@ describe("ScheduleController", function () {
         expect(result).to.deep.equal(expectedMWF);
     });
 
-    it("Should be able to initializeRoomBookingObject", () => {
-        let controller: ScheduleController = new ScheduleController();
-    });
-
-    it("Should be able to createTimeSlotsObject", () => {
-        let controller: ScheduleController = new ScheduleController();
-    });
-
     it("Should be able to getSchedulingCost", () => {
         let controller: ScheduleController = new ScheduleController();
+        let subcourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+        let aroom: IRoom = { "fullname": "Allard Hall (LAW)", "shortname": "ALRD", "number": "105", "name": "ALRD_105", "address": "1822 East Mall", "lat": 49.2699, "lon": -123.25318, "seats": 94, "type": "Case Style", "furniture": "Classroom-Fixed Tables/Movable Chairs", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ALRD-105" };
+        let broom: IRoom = { "fullname": "Biological Sciences", "shortname": "BIOL", "number": "2000", "name": "BIOL_2000", "address": "6270 University Boulevard", "lat": 49.26479, "lon": -123.25249, "seats": 228, "type": "Tiered Large Group", "furniture": "Classroom-Fixed Tablets", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-2000" };
+        let xsroom: IRoom = { "fullname": "Food, Nutrition and Health", "shortname": "FNH", "number": "20", "name": "FNH_20", "address": "2205 East Mall", "lat": 49.26414, "lon": -123.24959, "seats": 12, "type": "Small Group", "furniture": "Classroom-Movable Tablets", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/FNH-20" };
+        let emptyCampusSchedule: CampusSchedule = {
+            scheduledSections: 0,
+            cost: 0,
+            roomSchedules: {}
+        };
+        let doesNotExist: CampusTimetable = {
+            MWF: {},
+            TTH: {}
+        };
+        let dne: RoomsBookedTimes = {
+            "MWF": {},
+            "TTH": {}
+        };
+        let result: number;
+
+        // empty timetables
+        result = controller.getSchedulingCost(subcourse, aroom, "TTH", "1230", doesNotExist, dne);
+        expect(result).to.equal(55);
+
+        // should not be able to schedule in same timeslot: return -1
+        let scheduleResults: ScheduleResult = controller.updateScheduleTimetableRoomBookings(emptyCampusSchedule,
+            doesNotExist, dne, subcourse, aroom, "TTH", "1230", 55);
+        result = controller.getSchedulingCost(subcourse, aroom, "TTH", "1230", doesNotExist, dne);
+        expect(result).to.equal(-1);
+
+        // should not be able to schedule concurrent section: return -1
+        result = controller.getSchedulingCost(subcourse, broom, "TTH", "1230", scheduleResults.newTimetable,
+            scheduleResults.newRoomsBookedTimes);
+        expect(result).to.equal(-1);
+
+        // should not be able to schedule oversized section: return -1
+        result = controller.getSchedulingCost(subcourse, xsroom, "TTH", "1230", doesNotExist, dne);
+        expect(result).to.equal(-1);
     });
 
     it("Should be able to findAvailableRoomTimeslots", () => {
         let controller: ScheduleController = new ScheduleController();
+        let result: RoomAvailability;
+        let aroom: IRoom = { "fullname": "Allard Hall (LAW)", "shortname": "ALRD", "number": "105", "name": "ALRD_105", "address": "1822 East Mall", "lat": 49.2699, "lon": -123.25318, "seats": 94, "type": "Case Style", "furniture": "Classroom-Fixed Tables/Movable Chairs", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ALRD-105" };
+        let noBookedRooms: RoomsBookedTimes = {
+            "MWF": {},
+            "TTH": {}
+        };
+        let someBooked: RoomsBookedTimes = {
+            "MWF": {
+                "ALRD_105": {
+                    800: "booked",
+                    900: "booked",
+                    1000: "booked",
+                    1100: "open",
+                    1200: "booked",
+                    1300: "booked",
+                    1400: "booked",
+                    1500: "open",
+                    1600: "booked"
+                }
+            },
+            "TTH": {
+                "ALRD_105": {
+                    800: "booked",
+                    930: "booked",
+                    1100: "open",
+                    1230: "booked",
+                    1400: "booked",
+                    1530: "booked"
+                }
+            }
+        };
+
+        let allBooked: RoomsBookedTimes = {
+            "MWF": {
+                "ALRD_105": {
+                    800: "booked",
+                    900: "booked",
+                    1000: "booked",
+                    1100: "booked",
+                    1200: "booked",
+                    1300: "booked",
+                    1400: "booked",
+                    1500: "booked",
+                    1600: "booked"
+                }
+            },
+            "TTH": {
+                "ALRD_105": {
+                    800: "booked",
+                    930: "booked",
+                    1100: "booked",
+                    1230: "booked",
+                    1400: "booked",
+                    1530: "booked"
+                }
+            }
+        };
+        let expectedResult: RoomAvailability = {
+            "MWF": ScheduleController.MWFTimes,
+            "TTH": ScheduleController.TTHTimes
+        };
+        let expectedSome: RoomAvailability = {
+            "MWF": ["1100", "1500"],
+            "TTH": ["1100"]
+        };
+        let expectedEmpty: RoomAvailability = {
+            "MWF": [],
+            "TTH": []
+        };
+
+        // all open
+        result = controller.findAvailableRoomTimeslots(aroom, noBookedRooms);
+        expect(result).to.deep.equal(expectedResult);
+
+        // some open
+        result = controller.findAvailableRoomTimeslots(aroom, someBooked);
+        expect(result).to.deep.equal(expectedSome);
+
+        // all booked
+        result = controller.findAvailableRoomTimeslots(aroom, allBooked);
+        expect(result).to.deep.equal(expectedEmpty);
+
     });
 
     it("Should be able to scheduleSection", () => {
         let controller: ScheduleController = new ScheduleController();
+        expect(false).to.be.true;
     });
 
     it("Should be able to findAllSchedulesRecursively", () => {
         let controller: ScheduleController = new ScheduleController();
+        expect(false).to.be.true;
     });
 
     it("Should be able to getBestSchedule", () => {
         let controller: ScheduleController = new ScheduleController();
+        let result: CampusSchedule;
+        let subcourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+        let aSchedule: CampusSchedule = {
+            scheduledSections: 5,
+            cost: 33,
+            roomSchedules: {
+                "notfound": {
+                    "MWF": {
+                        800: subcourse,
+                        900: subcourse,
+                        1000: subcourse,
+                        1100: subcourse,
+                        1200: undefined,
+                        1300: undefined,
+                        1400: undefined,
+                        1500: undefined,
+                        1600: undefined
+                    },
+                    "TTH": {
+                        800: subcourse,
+                        930: undefined,
+                        1100: undefined,
+                        1230: undefined,
+                        1400: undefined,
+                        1530: undefined
+                    }
+                }
+            }
+        };
+        let bSchedule: CampusSchedule = {
+            scheduledSections: 2,
+            cost: 1,
+            roomSchedules: {
+                "notfound": {
+                    "MWF": {
+                        800: subcourse,
+                        900: undefined,
+                        1000: undefined,
+                        1100: undefined,
+                        1200: undefined,
+                        1300: undefined,
+                        1400: undefined,
+                        1500: undefined,
+                        1600: undefined
+                    },
+                    "TTH": {
+                        800: subcourse,
+                        930: undefined,
+                        1100: undefined,
+                        1230: undefined,
+                        1400: undefined,
+                        1530: undefined
+                    }
+                }
+            }
+        };
+        let cSchedule: CampusSchedule = {
+            scheduledSections: 15,
+            cost: 600,
+            roomSchedules: {
+                "notfound": {
+                    "MWF": {
+                        800: subcourse,
+                        900: subcourse,
+                        1000: subcourse,
+                        1100: subcourse,
+                        1200: subcourse,
+                        1300: subcourse,
+                        1400: subcourse,
+                        1500: subcourse,
+                        1600: subcourse
+                    },
+                    "TTH": {
+                        800: subcourse,
+                        930: subcourse,
+                        1100: subcourse,
+                        1230: subcourse,
+                        1400: subcourse,
+                        1530: subcourse
+                    }
+                }
+            }
+        };
+
+        let schedules: CampusSchedule[] = [aSchedule, bSchedule, cSchedule];
+        result = controller.getBestSchedule(schedules);
+        expect(result).to.deep.equal(cSchedule);
+
+        schedules = [bSchedule];
+        result = controller.getBestSchedule(schedules);
+        expect(result).to.deep.equal(bSchedule);
+
+        // returns undefined if given empty array of schedules
+        schedules = [];
+        result = controller.getBestSchedule(schedules);
+        expect(result).to.be.undefined;
+
     });
 
     it("Should be able to calculateQuality", () => {
         let controller: ScheduleController = new ScheduleController();
+        let result: number;
+        let subcourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+        let aSchedule: CampusSchedule = {
+            scheduledSections: 5,
+            cost: 33,
+            roomSchedules: {
+                "notfound": {
+                    "MWF": {
+                        800: subcourse,
+                        900: subcourse,
+                        1000: subcourse,
+                        1100: subcourse,
+                        1200: undefined,
+                        1300: undefined,
+                        1400: undefined,
+                        1500: undefined,
+                        1600: undefined
+                    },
+                    "TTH": {
+                        800: subcourse,
+                        930: undefined,
+                        1100: undefined,
+                        1230: undefined,
+                        1400: undefined,
+                        1530: undefined
+                    }
+                }
+            }
+        };
+
+        result = controller.calculateQuality(aSchedule, 5);
+        expect(result).to.equal(1);
+        result = controller.calculateQuality(aSchedule, 7);
+        expect(result).to.equal(5/7);
+        result = controller.calculateQuality(null, 5);
+        expect(result).to.equal(-1);
+        result = controller.calculateQuality(undefined, 5);
+        expect(result).to.equal(-1);
     });
 
 });

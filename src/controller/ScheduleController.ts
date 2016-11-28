@@ -81,8 +81,8 @@ export default class ScheduleController {
     private sections: ISubCourse[];
     private rooms: IRoom[];
     private allSchedules: CampusSchedule[];
-    private static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
-    private static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
+    public static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
+    public static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
 
 
     constructor() {
@@ -148,6 +148,10 @@ export default class ScheduleController {
         }
     }
 
+    /**
+     * Precondition: room should be free and and no concurrent section has been found
+     * Commit to scheduling section in room.
+     */
     public updateScheduleTimetableRoomBookings(schedule: CampusSchedule, campusTimeTable: CampusTimetable,
                                                roomsTimeTable: RoomsBookedTimes, section: ISubCourse, room: IRoom,
                                                day: string, time: string, cost: number): ScheduleResult {
@@ -234,7 +238,6 @@ export default class ScheduleController {
     }
 
     public initializeRoomBookingObject(timeTable: RoomsBookedTimes, roomName: string, day: string) {
-        //TODO Does this pass by reference?
         if (day === "MWF") {
             let allOpenMWF: IObject = {
                 800: "open",
@@ -308,8 +311,8 @@ export default class ScheduleController {
         if (section && room && day && time && timetable && roomTimeTable) {
             let sectionId = section.id;
             let sectionScheduledTimes = timetable[day][sectionId];
-            if (section.SectionSize <= room.seats && (roomTimeTable[day][time] === null ||
-                roomTimeTable[day][time] === "open") && (sectionScheduledTimes === null ||
+            if (section.SectionSize <= room.seats && (roomTimeTable[day][time] === undefined ||
+                roomTimeTable[day][time] === "open") && (sectionScheduledTimes === undefined ||
                 sectionScheduledTimes.indexOf(time) === -1)) {
 
                 if (room.seats && section.SectionSize) {
@@ -341,14 +344,14 @@ export default class ScheduleController {
             let availableMWF: string[] = [];
             ScheduleController.MWFTimes.forEach(mwfTime => {
                 //TODO Double check RoomsBookedTimes Structure
-               if (roomBookedMWF === null || roomBookedMWF[mwfTime] === null || roomBookedMWF[mwfTime] === "open") {
+               if (roomBookedMWF === undefined || roomBookedMWF[mwfTime] === undefined || roomBookedMWF[mwfTime] === "open") {
                    availableMWF.push(mwfTime);
                }
             });
 
             let availableTTH: string[] = [];
             ScheduleController.TTHTimes.forEach(tthTime => {
-                if (roomBookedTTH === null || roomBookedTTH[tthTime] === null || roomBookedTTH[tthTime] === "open") {
+                if (roomBookedTTH === undefined || roomBookedTTH[tthTime] === undefined || roomBookedTTH[tthTime] === "open") {
                     availableTTH.push(tthTime);
                 }
             });
