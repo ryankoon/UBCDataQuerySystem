@@ -52,9 +52,16 @@ export class CourseSchedulerForm extends React.Component<any, any> {
                 delete tempState[key];
             }
         }
-        let keys = Object.keys(tempState);
-        if (keys.length > 0 ) {
-            let payload: String = JSON.stringify(tempState);
+        let coursesStr = localStorage.getItem("courses");
+        let roomsStr = localStorage.getItem("rooms");
+        let courses: string[];
+        let rooms: string[];
+        if (coursesStr && roomsStr){
+            courses = coursesStr.split(",");
+            rooms = roomsStr.split(",");
+        }
+        if (courses.length > 0 && rooms.length > 0) {
+            let payload = JSON.stringify({"courses": courses, "rooms": rooms});
             request
                 .post('http://localhost:4321/scheduleCourses')
                 .send(payload)

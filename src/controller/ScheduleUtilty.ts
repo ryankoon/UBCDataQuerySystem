@@ -1,5 +1,6 @@
 import {IObject} from "./IObject";
 import {IRoom} from "./IBuilding";
+import {ISubCourse} from "./CourseDataController";
 /**
  * Created by Ryan on 2016-11-28.
  */
@@ -14,7 +15,7 @@ export default class ScheduleUtility {
      * @param courses
      * @param rooms
      */
-    public generateScheduleCoursesRooms(courses: IObject[], rooms: IRoom[]): IObject {
+    public generateScheduleCoursesRooms(courses: ISubCourse[], rooms: IRoom[]): IObject {
         let processedCourses = this.validateCourses(courses);
         let processedRooms = this.validateRooms(rooms);
 
@@ -44,11 +45,20 @@ export default class ScheduleUtility {
     /*
     Create course objects according to sectionsTo schedule
      */
-    generateScheduleCourses (courses: IObject[]): IObject[] {
+    public generateScheduleCourses (courses: IObject[]): IObject[] {
         let results: IObject[];
 
         return results;
     }
 
+    /*
+    gets courses by uuids in queryBody - key: 'courses'
+    gets rooms by name in queryBody - key: 'rooms'
+     */
+    public getCoursesRooms(queryBody: any, coursesDataset: ISubCourse[], roomDataset: IRoom[]) : IObject {
+        let results: IObject;
+
+        return results;
+    }
 
 }
