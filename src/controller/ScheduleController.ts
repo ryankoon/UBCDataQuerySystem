@@ -1,6 +1,7 @@
-import {IObject} from "./IBuilding";
 import {IObject} from "./IObject";
 import Log from "../Util";
+import {IRoom} from "./IBuilding";
+import {ISubCourse} from "./CourseDataController";
 /**
  * Created by Ryan on 11/27/2016.
  */
@@ -61,8 +62,8 @@ export interface CampusTimetable {
 
 export default class ScheduleController {
 
-    private sections: IObject[];
-    private rooms: IObject[];
+    private sections: ISubCourse[];
+    private rooms: IRoom[];
     private allSchedules: CampusSchedule[];
 
 
@@ -72,7 +73,7 @@ export default class ScheduleController {
         this.allSchedules = [];
     }
 
-    public findBestSchedule(courseSections: IObject[], rooms: IObject[]): IObject {
+    public findBestSchedule(courseSections: ISubCourse[], rooms: IRoom[]): IObject {
         let result: IObject = {};
 
         // 1. Process Inputs
@@ -103,18 +104,21 @@ export default class ScheduleController {
     }
 
 
-    public processSections(sections: IObject[]): IObject[] {
-        let results: IObject[] = [];
-        //TODO
+    public processSections(sections: ISubCourse[]): ISubCourse[] {
+        let results: ISubCourse[] = [];
+
         //remove invalid rooms
+        sections.forEach(section => {
+
+        })
 
         //generate correct number of sections for each course based on sectionsToSchedule
 
         return results;
     }
 
-    public processRooms(rooms: IObject[]): IObject[] {
-        let results: IObject[] = [];
+    public processRooms(rooms: IRoom[]): IRoom[] {
+        let results: IRoom[] = [];
         //TODO
         //remove invalid rooms
 
@@ -139,19 +143,19 @@ export default class ScheduleController {
         };
     }
 
-    public addSectionSchedule(schedule: CampusSchedule, section: IObject, day: string, time: string): CampusSchedule {
+    public addSectionSchedule(schedule: CampusSchedule, section: ISubCourse, day: string, time: string): CampusSchedule {
         let result: CampusSchedule = schedule;
         //TODO
         return result;
     }
 
-    public addCourseToCampusTimetable(timeTable: CampusTimetable, section: IObject, day: string, time: string): CampusTimetable {
+    public addCourseToCampusTimetable(timeTable: CampusTimetable, section: ISubCourse, day: string, time: string): CampusTimetable {
         let result: CampusTimetable = timeTable;
         //TODO
         return result;
     }
 
-    public getSchedulingCost(section: IObject, room: IObject, time: string, schedule: CampusSchedule,
+    public getSchedulingCost(section: ISubCourse, room: IRoom, time: string, schedule: CampusSchedule,
                              timetable: CampusTimetable) {
         //TODO
     }
@@ -163,7 +167,7 @@ export default class ScheduleController {
      * @param section
      * @param room
      */
-    public scheduleSection(section: IObject, room: IObject, schedule: CampusSchedule,
+    public scheduleSection(section: ISubCourse, room: IRoom, schedule: CampusSchedule,
                            timetable: CampusTimetable): ScheduleResult {
         let result: ScheduleResult;
         //TODO
@@ -174,7 +178,7 @@ export default class ScheduleController {
     }
 
 
-    public findAllSchedules(sections: IObject[], currIndex: number, rooms: IObject[], schedule: CampusSchedule,
+    public findAllSchedules(sections: ISubCourse[], currIndex: number, rooms: IRoom[], schedule: CampusSchedule,
                             campusTimetable: CampusTimetable): number {
         let result = 0;
         //TODO
