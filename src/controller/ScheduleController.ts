@@ -130,7 +130,7 @@ export default class ScheduleController {
         return {
             scheduledSections: 0,
             cost: 0,
-            roomSchedules: null
+            roomSchedules: {}
         };
 
     }
@@ -153,9 +153,9 @@ export default class ScheduleController {
                                                roomsTimeTable: RoomsBookedTimes, section: ISubCourse, room: IRoom,
                                                day: string, time: string, cost: number): ScheduleResult {
         let scheduleResult: ScheduleResult;
-        let updatedCampusSchedule =  this.addSectionSchedule(schedule, section, room, day, time);
-        let updatedCampusTimetable = this.addCourseToCampusTimetable(campusTimeTable, section, day, time);
-        let updatedRoomsTimetables =  this.addTimeToRoomsBookings(roomsTimeTable, day, time);
+        let updatedCampusSchedule =  this.addSectionSchedule(schedule, section, room.name, day, time, cost);
+        let updatedCampusTimetable = this.addCourseToCampusTimetable(campusTimeTable, section.id, day, time);
+        let updatedRoomsTimetables =  this.addTimeToRoomsBookings(roomsTimeTable, room.name, day, time);
 
         if (updatedCampusSchedule && updatedCampusTimetable && updatedRoomsTimetables) {
             scheduleResult = {
@@ -167,25 +167,131 @@ export default class ScheduleController {
 
             return scheduleResult;
         } else {
-
+            Log.error("Invalid updated schedules/timetables in updateScheduleTimetableRoomBookings!");
         }
     }
 
-    public addSectionSchedule(schedule: CampusSchedule, section: ISubCourse, room: IRoom, day: string, time: string): CampusSchedule {
+    public addSectionSchedule(schedule: CampusSchedule, section: ISubCourse, roomName: string, day: string, time: string,
+                              cost: number): CampusSchedule {
         let result: CampusSchedule = schedule;
-        //TODO
+        result.scheduledSections += 1;
+        result.cost =+ cost;
+
+        if (result.roomSchedules[roomName] === null || result.roomSchedules[roomName] === undefined) {
+            let newTimetableMWF: DAYMWF = <DAYMWF>this.createTimeSlotsObject("MWF");
+            let newTimetableTTH: DAYTTH = <DAYTTH>this.createTimeSlotsObject("TTH");
+            let newTimetable: TimeTable = {"MWF": newTimetableMWF, "TTH": newTimetableTTH};
+
+            result.roomSchedules[roomName] = newTimetable;
+        } else {
+            if (result.roomSchedules[roomName][day][time] === undefined) {
+                result.roomSchedules[roomName][day][time] = section;
+            } else {
+                Log.error("FATAL - addSectionSchedule: room is already scheduled to a section! " +
+                    "Should not reach this state!");
+            }
+        }
+
         return result;
     }
 
-    public addCourseToCampusTimetable(timeTable: CampusTimetable, section: ISubCourse, day: string, time: string): CampusTimetable {
+    public addCourseToCampusTimetable(timeTable: CampusTimetable, sectionId: number, day: string, time: string): CampusTimetable {
         let result: CampusTimetable = timeTable;
-        //TODO
+
+        if (timeTable && sectionId && day && time) {
+            let sectionScheduledTimes = result[day][sectionId];
+            if (sectionScheduledTimes === null || sectionScheduledTimes === undefined) {
+                result[day][sectionId] = [];
+            }
+            if (sectionScheduledTimes.indexOf(time) === -1) {
+                result[day][sectionId].push(time);
+            } else {
+                Log.error("FATAL - addCourseToCampusTimetable: Concurrent Section! Should not reach this state!");
+            }
+        } else {
+            Log.error("Invalid parameters in addTimeToRoomsBookings!");
+        }
+
         return result;
     }
 
-    public addTimeToRoomsBookings(timeTable: RoomsBookedTimes, day: string, time: string): RoomsBookedTimes {
-        let result: RoomsBookedTimes;
-        //TODO
+    public addTimeToRoomsBookings(timeTable: RoomsBookedTimes, roomName: string, day: string, time: string): RoomsBookedTimes {
+        let result: RoomsBookedTimes = timeTable;
+        if (result && roomName && day && time) {
+            let roomDayAvailabilities = result[day][roomName];
+            if (roomDayAvailabilities === null || roomDayAvailabilities === undefined) {
+                this.initializeRoomBookingObject(result, roomName, day);
+            }
+            if (result[day][roomName][time] === "booked") {
+                Log.error("FATAL - addTimeToRoomsBookings: Time has been booked already! Should not reach this state!")
+            } else {
+                result[day][roomName][time] = "booked";
+            }
+        } else {
+            Log.error("Invalid parameters in addTimeToRoomsBookings!");
+        }
+
+        return result;
+    }
+
+    public initializeRoomBookingObject(timeTable: RoomsBookedTimes, roomName: string, day: string) {
+        //TODO Does this pass by reference?
+        if (day === "MWF") {
+            let allOpenMWF: IObject = {
+                800: "open",
+                900: "open",
+                1000: "open",
+                1100: "open",
+                1200: "open",
+                1300: "open",
+                1400: "open",
+                1500: "open",
+                1600: "open",
+                1700: "open"
+            };
+            timeTable.MWF[roomName] = allOpenMWF;
+        } else if (day === "TTH") {
+            let allOpenTTH: IObject = {
+                800: "open",
+                930: "open",
+                1100: "open",
+                1230: "open",
+                1400: "open",
+                1530: "open",
+                1700: "open"
+            };
+            timeTable.TTH[roomName] = allOpenTTH;
+        }
+    }
+
+    public createTimeSlotsObject(day: string): IObject {
+        let result = {};
+
+        if (day === "MWF") {
+            result = {
+                800: undefined,
+                900: undefined,
+                1000: undefined,
+                1100: undefined,
+                1200: undefined,
+                1300: undefined,
+                1400: undefined,
+                1500: undefined,
+                1600: undefined,
+                1700: undefined,
+            };
+        } else if (day === "TTH") {
+            result = {
+                800: undefined,
+                930: undefined,
+                1100: undefined,
+                1230: undefined,
+                1400: undefined,
+                1530: undefined,
+                1700: undefined,
+            };
+        }
+
         return result;
     }
 
@@ -270,7 +376,7 @@ export default class ScheduleController {
     public scheduleSection(section: ISubCourse, rooms: IRoom[], schedule: CampusSchedule,
                            timetable: CampusTimetable, roomsBookedTimes: RoomsBookedTimes): ScheduleResult {
         let result: ScheduleResult;
-        let overallCost: number = -1;
+        let leastCost: number = -1;
         let bestRoom: IRoom;
         let bestDay: string;
         let bestTime: string;
@@ -280,13 +386,13 @@ export default class ScheduleController {
             //Find the next available timeslot, does not have to be adjacent to last scheduled course
             roomAvailability.MWF.some(mwfTime => {
                 let cost = this.getSchedulingCost(section, room, "MWF", mwfTime, timetable, roomsBookedTimes);
-                if (overallCost === -1 || overallCost > cost) {
-                    overallCost = cost;
+                if (leastCost === -1 || leastCost > cost) {
+                    leastCost = cost;
                     bestRoom = room;
                     bestDay = "MWF";
                     bestTime = mwfTime;
                 }
-                if (overallCost === 0) {
+                if (leastCost === 0) {
                     // stop searching if section can the room without any empty seat at an available time
                     return true;
                 }
@@ -294,27 +400,27 @@ export default class ScheduleController {
 
             roomAvailability.TTH.some(tthTime => {
                 let cost = this.getSchedulingCost(section, room, "TTH", tthTime, timetable, roomsBookedTimes);
-                if (overallCost === -1 || overallCost > cost) {
-                    overallCost = cost;
+                if (leastCost === -1 || leastCost > cost) {
+                    leastCost = cost;
                     bestRoom = room;
                     bestDay = "TTH";
                     bestTime = tthTime;
                 }
-                if (overallCost === 0) {
+                if (leastCost === 0) {
                     // stop searching if section can the room without any empty seat at an available time
                     return true;
                 }
             });
 
-            if (overallCost === 0) {
+            if (leastCost === 0) {
                 return true;
             }
         })
 
-        if (overallCost !== -1 && bestRoom && bestDay && bestTime) {
+        if (leastCost !== -1 && bestRoom && bestDay && bestTime) {
             result = this.updateScheduleTimetableRoomBookings(schedule, timetable, roomsBookedTimes, section, bestRoom,
-                bestDay, bestTime, overallCost)
-        } else if (overallCost === -1) {
+                bestDay, bestTime, leastCost)
+        } else if (leastCost === -1) {
             // should not have changed
             return result;
         } else {
