@@ -291,7 +291,7 @@ export default class InsightFacade implements IInsightFacade {
     public handleCourseExploration(reqBody: string): Promise<InsightResponse> {
         return new Promise((fulfill, reject)=>{
             let explorerController = new ExplorerController();
-            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "courses", "AND");
+            let courseQuery: QueryRequest = explorerController.buildQuery(reqBody, "courses", "AND", null, "LT");
 
             this.performQuery(courseQuery)
              .then(result => {
