@@ -3,10 +3,9 @@
  */
 import * as React from 'react';
 import * as request from 'superagent';
-import * as ReactBootstrap from 'react-bootstrap';
-import * as ReactDOM from 'react-dom';
 import {CourseForm} from "./CourseForm";
 import {ResponseHandler} from "./ResponseHandler";
+import {Alerts} from './Alert';
 
 
 export class CourseExplorer extends React.Component<any, any> {
@@ -20,7 +19,9 @@ export class CourseExplorer extends React.Component<any, any> {
             sections : [],
             responseContent : [],
             responseKeys : [],
-            output : false
+            output : false,
+            triggerAlert : false,
+            errorMessage : null
         }
     }
     handleResponse (data : any, sentStates : string) {
@@ -38,8 +39,15 @@ export class CourseExplorer extends React.Component<any, any> {
             this.setState({
                 responseContent : responseContent,
                 output : true,
-                responseKeys : keys
+                responseKeys : keys,
+                errorMessage : null,
+                triggerAlert : false
             })
+        }else{
+            this.setState({
+                triggerAlert : true,
+                errorMessage : 'The course search retrieved no results.'
+            });
         }
     }
     componentWillMount() {
@@ -101,11 +109,24 @@ export class CourseExplorer extends React.Component<any, any> {
     }
     render(){
         if (this.state.output === false){
-            return (
-                <div>
-                    <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
-                </div>
-            );
+            if (this.state.triggerAlert === false){
+                return (
+                    <div>
+                        <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                    </div>
+                );
+            }
+            else {
+                return (
+                    <div>
+                        <Alerts alertStyle="danger" message = {this.state.errorMessage}></Alerts>
+                        <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap={this.props.OnClick}
+                                    sizes={this.state.sizes} instructors={this.state.instructors}
+                                    depts={this.state.depts} sections={this.state.sections} titles={this.state.titles}
+                                    compiler="TypeScript" framework="React"/>
+                    </div>
+                );
+            }
         }
         else{
             return(<div>
