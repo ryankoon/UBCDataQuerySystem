@@ -7,23 +7,25 @@ export class Alerts extends React.Component<any, any> {
     constructor(props : any){
         super(props);
         this.state = {
-            alertVisible : false
+            alertVisible : true
         }
-    }
-
-    handleAlertShow() {
-        this.setState({alertVisible: true});
     }
     handleAlertDismiss() {
         this.setState({alertVisible: false});
     }
     render(){
-        return(
-        <Alert bsStyle="danger" onDismiss={this.handleAlertDismiss}>
-            <h4>UHOH AN ERROR!</h4>
-            <p>{this.props.error}</p>
-            <p><Button onClick={this.handleAlertDismiss}>Hide Message</Button></p>
-        </Alert>
-        );
+        if (this.state.alertVisible === true) {
+            return (
+                <Alert bsStyle={this.props.alertStyle} onDismiss={this.handleAlertDismiss.bind(this)}>
+                    <h4>{this.props.message}</h4>
+                    <p><Button onClick={this.handleAlertDismiss.bind(this)}>Hide Message</Button></p>
+                </Alert>
+            );
+        }
+        else{
+            return (
+                <div></div>
+            )
+        }
     }
 }

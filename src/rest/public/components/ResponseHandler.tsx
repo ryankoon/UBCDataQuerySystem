@@ -8,13 +8,14 @@ import Checkbox = ReactBootstrap.Checkbox;
 import {SelectRowMode} from "react-bootstrap-table";
 import {SelectRow} from "react-bootstrap-table";
 import Button = ReactBootstrap.Button;
-
+import {Alerts} from './Alert';
 
 export class ResponseHandler extends React.Component<any, any> {
     constructor(props:any){
         super(props);
         this.state = {
             selected: [],
+            alert : false
         }
     }
     refs: {
@@ -77,6 +78,10 @@ export class ResponseHandler extends React.Component<any, any> {
         if (this.state.selected.length > 0) {
             localStorage.setItem(this.props.formContext, this.state.selected);
             console.log('set schedule. lets show success!');
+            this.setState({
+                alert : true
+            });
+
         }
         else{
             localStorage.removeItem(this.props.formContext);
@@ -106,16 +111,32 @@ export class ResponseHandler extends React.Component<any, any> {
             }) );
         });
 
-        return(
-         <div>
-            <Button onClick={setSchedule}> Apply to schedule </Button>
-            <BootstrapTable
-                search
-                columnFilter
-                ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
-                {renderHead()}
-            </BootstrapTable>
-         </div>
-        );
+       if(this.state.alert === true){
+           return(
+               <div>
+                   <Alerts alertStyle="success" message="Successfully added to schedule!"></Alerts>
+                   <Button onClick={setSchedule}> Apply to Schedule </Button>
+                   <BootstrapTable
+                       search
+                       columnFilter
+                       ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
+                       {renderHead()}
+                   </BootstrapTable>
+               </div>
+           );
+       }
+       else{
+           return(
+               <div>
+                   <Button onClick={setSchedule}> Apply to Schedule </Button>
+                   <BootstrapTable
+                       search
+                       columnFilter
+                       ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
+                       {renderHead()}
+                   </BootstrapTable>
+               </div>
+           );
+       }
     }
 }
