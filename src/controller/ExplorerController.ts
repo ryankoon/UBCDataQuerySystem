@@ -83,9 +83,10 @@ export default class ExplorerController {
             // add required fields to return based on explorer types
             let requiredFields: string[];
             if (type === 'courses') {
-                requiredFields = [datasetId + "_uuid", datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
+                requiredFields = [datasetId + "_uuid", datasetId + "_dept", datasetId + "_id", datasetId + "_Section",
+                    datasetId + "_SectionSize", datasetId + "_SectionsToSchedule"];
             } else if (type === 'rooms') {
-                requiredFields = [datasetId + "_name", datasetId + "_seats"];
+                requiredFields = [datasetId + "_name", datasetId + "_seats", datasetId + "_SectionsToSchedule"];
             }
             let tempFields = requiredFields;
             reqKeys.forEach(field => {
