@@ -117,7 +117,13 @@ export default class ExplorerController {
 
         if (!isNaN(parsedFloat)){
             valueType = "number";
-            result[key] = parsedFloat;
+
+            // assuming that the query is for WITHIN room/section size
+            if (numComparator === "LT") {
+                result[key] = parsedFloat + 1;
+            } else {
+                result[key] = parsedFloat;
+            }
         } else {
             result[key] = value;
         }

@@ -15,7 +15,7 @@ describe("ExplorerController", function () {
         let requestBody = '{"asdf_tree": "fdsa asdf", "asdf_mee": 1268, "asdf_three": "newval"}';
         let result: QueryRequest;
         let expectedResult: QueryRequest = {
-            "GET": ["asdf_dept", "asdf_id", "asdf_Section", "asdf_SectionSize", "asdf_tree", "asdf_mee", "asdf_three"],
+            "GET": ["asdf_uuid", "asdf_dept", "asdf_id", "asdf_Section", "asdf_SectionSize", "asdf_tree", "asdf_mee", "asdf_three"],
             "WHERE": {
                 "AND": [
                     {"IS": {"asdf_tree": "fdsa asdf"}},
@@ -23,7 +23,7 @@ describe("ExplorerController", function () {
                     {"IS": {"asdf_three": "newval"}}
                 ]
             },
-            "GROUP": ["asdf_dept", "asdf_id", "asdf_Section", "asdf_SectionSize", "asdf_tree", "asdf_mee",
+            "GROUP": ["asdf_uuid", "asdf_dept", "asdf_id", "asdf_Section", "asdf_SectionSize", "asdf_tree", "asdf_mee",
                 "asdf_three"],
             "APPLY": [],
             "AS": "TABLE"
@@ -132,7 +132,7 @@ describe("ExplorerController", function () {
                 "AND":[
                     {"IS":{"rooms_fullname":"Biological Sciences"}},
                     {"IS":{"rooms_type":"Tiered Large Group"}},
-                    {"LT":{"rooms_seats":500}}
+                    {"LT":{"rooms_seats":501}}
                     ]
             },
             "GROUP":["rooms_name","rooms_seats","rooms_fullname","rooms_type"],
