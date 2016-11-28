@@ -83,7 +83,7 @@ export default class ExplorerController {
             // add required fields to return based on explorer types
             let requiredFields: string[];
             if (type === 'courses') {
-                requiredFields = [datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
+                requiredFields = [datasetId + "_uuid", datasetId + "_dept", datasetId + "_id", datasetId + "_Section", datasetId + "_SectionSize"];
             } else if (type === 'rooms') {
                 requiredFields = [datasetId + "_name", datasetId + "_seats"];
             }
@@ -117,7 +117,13 @@ export default class ExplorerController {
 
         if (!isNaN(parsedFloat)){
             valueType = "number";
-            result[key] = parsedFloat;
+
+            // assuming that the query is for WITHIN room/section size
+            if (numComparator === "LT") {
+                result[key] = parsedFloat + 1;
+            } else {
+                result[key] = parsedFloat;
+            }
         } else {
             result[key] = value;
         }

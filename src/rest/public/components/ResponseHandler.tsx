@@ -27,7 +27,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
             if(this.props.formContext === "courses"){
                 this.setState({
-                    selected: [ ...this.state.selected, row.subcourses_id ]
+                    selected: [ ...this.state.selected, row.subcourses_uuid ]
                 });
             }else{
                 this.setState({
@@ -37,7 +37,7 @@ export class ResponseHandler extends React.Component<any, any> {
             return true;
         } else {
             if(this.props.formContext === "courses"){
-                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.subcourses_id) });
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.subcourses_uuid) });
 
             }else{
                 this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.rooms_name) });
@@ -51,7 +51,7 @@ export class ResponseHandler extends React.Component<any, any> {
             let interestedArray : Array<string> = [];
             if (this.props.formContext === "courses"){
                 for (var i=0; i < rows.length; i++){
-                    interestedArray.push(rows[i].subcourses_id);
+                    interestedArray.push(rows[i].subcourses_uuid);
                 }
             }
             else{
@@ -96,7 +96,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
-              if (item === 'rooms_name' || item ==='subcourses_id' ) {
+              if (item === 'rooms_name' || item ==='subcourses_uuid' ) {
                   return   <TableHeaderColumn isKey={true} dataAlign="center"
                                               dataField={item}> {item}</TableHeaderColumn>
               }
