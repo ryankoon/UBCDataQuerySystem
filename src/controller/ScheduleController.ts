@@ -468,14 +468,26 @@ export default class ScheduleController {
 
     public getBestSchedule(schedules: CampusSchedule[]): CampusSchedule {
         let result: CampusSchedule;
-        //TODO
+        let mostScheduledCourses: number = 0;
+
+        if (schedules && schedules.length > 0) {
+            schedules.forEach((schedule: CampusSchedule) => {
+                if (schedule.scheduledSections > mostScheduledCourses) {
+                    result = schedule;
+                    mostScheduledCourses = schedule.scheduledSections;
+                }
+            })
+        } else {
+            Log.error("No schedule was given!");
+        }
         return result;
     }
 
     public calculateQuality(schedule: CampusSchedule, requestedSections: number): number {
-        let result: number;
-        //TODO
-
+        let result: number = -1;
+        if (schedule && requestedSections) {
+            result = schedule.scheduledSections/requestedSections;
+        }
        return result;
     }
 
