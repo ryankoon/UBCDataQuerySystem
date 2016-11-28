@@ -17,11 +17,12 @@ export interface RoomSchedules {
     [index: string]: TimeTable; //unique id of a room
 }
 
-export interface TimeTable {
+export interface TimeTable extends IObject{
     MWF: DAYMWF;
     TTH: DAYTTH;
 }
 
+//TODO check if numbers are escaped on compile
 export interface DAYMWF {
     800: IObject;
     900: IObject;
@@ -53,11 +54,11 @@ export interface ScheduleResult {
 }
 
 /**
- * IObject: key - course dept and id, value - array of times (e.g ["800", " "1530"]
+ * IObject: key - course id (aka uuid), value - array of times (e.g ["800", " "1530"]
  * This represents all the times of the scheduled courses across rooms
  * Used to check for concurrent sections
  */
-export interface CampusTimetable {
+export interface CampusTimetable extends IObject {
     MWF: IObject;
     TTH: IObject;
 }
@@ -66,12 +67,12 @@ export interface CampusTimetable {
  * This represents all the times that are booked for the room
  * Used to check for concurrent sections
  */
-export interface RoomsBookedTimes {
+export interface RoomsBookedTimes extends IObject {
     MWF: IObject;
     TTH: IObject;
 }
 
-export interface RoomAvailability {
+export interface RoomAvailability extends IObject {
     MWF: string[];
     TTH: string[];
 }
@@ -183,13 +184,41 @@ export default class ScheduleController {
     }
 
     public addTimeToRoomsBookings(timeTable: RoomsBookedTimes, day: string, time: string): RoomsBookedTimes {
-
+        let result: RoomsBookedTimes;
+        //TODO
+        return result;
     }
 
-    public getSchedulingCost(section: ISubCourse, room: IRoom, time: string, schedule: CampusSchedule,
-                             timetable: CampusTimetable): number {
+    /**
+     * Check room size >= section size
+     * Check concurrent sections
+     * Check room is available
+     * @param section
+     * @param room
+     * @param time
+     * @param schedule
+     * @param timetable
+     * @param roomTimeTable
+     * @returns {number}
+     */
+    public getSchedulingCost(section: ISubCourse, room: IRoom, day: string, time: string,
+                             timetable: CampusTimetable, roomTimeTable: RoomsBookedTimes): number {
         let cost = -1;
-        //TODO
+        if (section && room && day && time && timetable && roomTimeTable) {
+            let sectionId = section.id;
+            let sectionScheduledTimes = timetable[day][sectionId];
+            if (section.SectionSize <= room.seats && (roomTimeTable[day][time] === null ||
+                roomTimeTable[day][time] === "open") && (sectionScheduledTimes === null ||
+                sectionScheduledTimes.indexOf(time) === -1)) {
+
+                if (room.seats && section.SectionSize) {
+                    cost = room.seats - section.SectionSize;
+                }
+                cost = room.seats - section.SectionSize;
+            }
+        } else {
+            Log.error("A parameter is invalid for getSchedulingCost!");
+        }
 
         return cost;
     }
@@ -210,6 +239,7 @@ export default class ScheduleController {
 
             let availableMWF: string[] = [];
             ScheduleController.MWFTimes.forEach(mwfTime => {
+                //TODO Double check RoomsBookedTimes Structure
                if (roomBookedMWF === null || roomBookedMWF[mwfTime] === null || roomBookedMWF[mwfTime] === "open") {
                    availableMWF.push(mwfTime);
                }
@@ -249,7 +279,7 @@ export default class ScheduleController {
             let roomAvailability: RoomAvailability = this.findAvailableRoomTimeslots(room, roomsBookedTimes);
             //Find the next available timeslot, does not have to be adjacent to last scheduled course
             roomAvailability.MWF.some(mwfTime => {
-                let cost = this.getSchedulingCost(section, room, mwfTime, schedule, timetable);
+                let cost = this.getSchedulingCost(section, room, "MWF", mwfTime, timetable, roomsBookedTimes);
                 if (overallCost === -1 || overallCost > cost) {
                     overallCost = cost;
                     bestRoom = room;
@@ -263,7 +293,7 @@ export default class ScheduleController {
             });
 
             roomAvailability.TTH.some(tthTime => {
-                let cost = this.getSchedulingCost(section, room, tthTime, schedule, timetable);
+                let cost = this.getSchedulingCost(section, room, "TTH", tthTime, timetable, roomsBookedTimes);
                 if (overallCost === -1 || overallCost > cost) {
                     overallCost = cost;
                     bestRoom = room;
