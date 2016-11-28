@@ -107,7 +107,7 @@ export default class ScheduleController {
             let blankCampusTimetable = this.createblankCampusTimetable();
             let blankRoomsBookedTimes = this.createblankRoomsBookedTimes();
             this.findAllSchedulesRecursively(this.sections, 0, this.rooms, blankCampusSchedule, blankCampusTimetable,
-                blankRoomsBookedTimes, 0);
+                blankRoomsBookedTimes);
 
             if (this.allSchedules.length > 0) {
 
@@ -442,28 +442,35 @@ export default class ScheduleController {
      * @returns {number}
      */
     public findAllSchedulesRecursively(sections: ISubCourse[], currIndex: number, rooms: IRoom[], schedule: CampusSchedule,
-                                       campusTimetable: CampusTimetable, roomsBookedTimes: RoomsBookedTimes,
-                                       accumulatedCost: number): number {
-        if (currIndex > sections.length) {
-            this.allSchedules.push(schedule);
-            return accumulatedCost;
+                                       campusTimetable: CampusTimetable, roomsBookedTimes: RoomsBookedTimes): void {
+        //clone objects - http://heyjavascript.com/4-creative-ways-to-clone-objects
+        let oldSections = (JSON.parse(JSON.stringify(sections)));
+        let oldRooms = (JSON.parse(JSON.stringify(rooms)));
+        let oldSchedule = (JSON.parse(JSON.stringify(schedule)));
+        let oldCampusTimetable = (JSON.parse(JSON.stringify(campusTimetable)));
+        let oldRoomsBookedTimes = (JSON.parse(JSON.stringify(roomsBookedTimes)));
+
+        if (currIndex > sections.length - 1) {
+            if (schedule.scheduledSections > 0) {
+                this.allSchedules.push(schedule);
+            }
         } else {
            let scheduleResult = this.scheduleSection(sections[currIndex], rooms, schedule, campusTimetable, roomsBookedTimes);
            if (scheduleResult) {
                if (scheduleResult.cost === -1) {
                    return this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, schedule, campusTimetable,
-                       roomsBookedTimes, accumulatedCost);
+                       roomsBookedTimes);
                } else {
                    let newSchedule = scheduleResult.newSchedule;
                    let newTimetable = scheduleResult.newTimetable;
                    let newRoomsBookedTimes = scheduleResult.newRoomsBookedTimes;
                    let cost = scheduleResult.cost;
-                   return Math.min(
-                       this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, schedule,
-                       campusTimetable, roomsBookedTimes, accumulatedCost),
-                       this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, newSchedule,
-                       newTimetable, newRoomsBookedTimes, accumulatedCost + cost)
-                   );
+                   // Skip this course anyways
+                   this.findAllSchedulesRecursively(oldSections, currIndex + 1, oldRooms, oldSchedule,
+                       oldCampusTimetable, oldRoomsBookedTimes);
+                   // Schedule this course
+                   this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, newSchedule,
+                   newTimetable, newRoomsBookedTimes);
                }
            }
         }

@@ -603,7 +603,7 @@ describe("ScheduleController", function () {
             }
         };
 
-        function resetEmptyValues() {
+        function resetValues() {
             emptyCampusSchedule = {
                 scheduledSections: 0,
                 cost: 0,
@@ -765,7 +765,7 @@ describe("ScheduleController", function () {
         expect(result.cost).to.equal(55);
 
         // Should book adjacent timeslot
-        resetEmptyValues();
+        resetValues();
         result = controller.scheduleSection(subcourse, [aroom, broom, xsroom], result.newSchedule,
             result.newTimetable, result.newRoomsBookedTimes);
         Log.test(JSON.stringify(result));
@@ -775,7 +775,7 @@ describe("ScheduleController", function () {
         expect(result.cost).to.equal(55);
 
         // Should book next timeslot on TTH
-        resetEmptyValues();
+        resetValues();
         result = controller.scheduleSection(subcourse, [aroom, broom, xsroom], result.newSchedule,
             aCampusTimetable, allBookedTimesMWF);
         Log.test(JSON.stringify(result));
@@ -785,14 +785,14 @@ describe("ScheduleController", function () {
         expect(result.cost).to.equal(55);
 
         // Fully booked and show prevent concurrent sections
-        resetEmptyValues();
+        resetValues();
         result = controller.scheduleSection(subcourse, [aroom, broom, xsroom], emptyCampusSchedule,
             filledCampusTimetable, allBookedTimes);
         Log.test(JSON.stringify(result));
         expect(result.cost).to.equal(-1);
 
         // Skip small room
-        resetEmptyValues();
+        resetValues();
         result = controller.scheduleSection(subcourse, [xsroom, aroom, broom], emptyCampusSchedule,
             emptyCampusTimetable, emptyRoomsBookedTimes);
         Log.test(JSON.stringify(result));
@@ -804,7 +804,47 @@ describe("ScheduleController", function () {
 
     it("Should be able to findAllSchedulesRecursively", () => {
         let controller: ScheduleController = new ScheduleController();
-        expect(false).to.be.true;
+        let result: number;
+        let subcourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+        let aroom: IRoom = { "fullname": "Allard Hall (LAW)", "shortname": "ALRD", "number": "105", "name": "ALRD_105", "address": "1822 East Mall", "lat": 49.2699, "lon": -123.25318, "seats": 94, "type": "Case Style", "furniture": "Classroom-Fixed Tables/Movable Chairs", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ALRD-105" };
+        let broom: IRoom = { "fullname": "Biological Sciences", "shortname": "BIOL", "number": "2000", "name": "BIOL_2000", "address": "6270 University Boulevard", "lat": 49.26479, "lon": -123.25249, "seats": 228, "type": "Tiered Large Group", "furniture": "Classroom-Fixed Tablets", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/BIOL-2000" };
+        let xsroom: IRoom = { "fullname": "Food, Nutrition and Health", "shortname": "FNH", "number": "20", "name": "FNH_20", "address": "2205 East Mall", "lat": 49.26414, "lon": -123.24959, "seats": 12, "type": "Small Group", "furniture": "Classroom-Movable Tablets", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/FNH-20" };
+        let emptyCampusSchedule: CampusSchedule = {
+            scheduledSections: 0,
+            cost: 0,
+            roomSchedules: {}
+        };
+        let emptyCampusTimetable: CampusTimetable = {
+            MWF: {},
+            TTH: {}
+        };
+
+        let emptyRoomsBookedTimes: RoomsBookedTimes = {
+            "MWF": {},
+            "TTH": {}
+        };
+        function resetValues() {
+            emptyCampusSchedule = {
+                scheduledSections: 0,
+                cost: 0,
+                roomSchedules: {}
+            };
+
+            emptyCampusTimetable = {
+                MWF: {},
+                TTH: {}
+            };
+            emptyRoomsBookedTimes = {
+                "MWF": {},
+                "TTH": {}
+            };
+        };
+
+        controller.findAllSchedulesRecursively([subcourse], 0, [aroom, broom, xsroom], emptyCampusSchedule,
+            emptyCampusTimetable, emptyRoomsBookedTimes);
+        expect(controller.allSchedules.length > 0).to.be.true;
+
+
     });
 
     it("Should be able to getBestSchedule", () => {
