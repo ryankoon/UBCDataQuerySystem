@@ -137,8 +137,8 @@ export default class ScheduleController {
 
     public createblankCampusTimetable(): CampusTimetable {
         return {
-            "MWF": null,
-            "TTH": null
+            "MWF": undefined,
+            "TTH": undefined
         };
     }
 
