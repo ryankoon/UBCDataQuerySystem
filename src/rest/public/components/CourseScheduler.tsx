@@ -21,14 +21,14 @@ export class CourseScheduler extends React.Component<any, any> {
         }
     }
     handleResponse(res : any, payload : any){
-        if (res.body && res.body.err.length > 0){
+        if (res.body && res.body.err && res.body.err.length > 0){
             this.setState({
                 errorMessage: res.body.err,
                 schedule : false
             });
         }
         else {
-            let result = res.body.result
+            let result = res.body.bestSchedule
             // TODO: ensure set keys works.
             let resultKeys = Object.keys(result);
             this.setState({
@@ -55,8 +55,9 @@ export class CourseScheduler extends React.Component<any, any> {
                 rooms : rooms,
                 courses : courses
             }
+            let stringifiedPayload = JSON.stringify(payload);
             superagent.post('http://localhost:4321/scheduleCourses')
-                .send(payload)
+                .send(stringifiedPayload)
                 .end( (err, res) => {
                     if(err){
                         console.log(err);
@@ -77,7 +78,7 @@ export class CourseScheduler extends React.Component<any, any> {
         if (this.state.schedule === true) {
             return (
                 <div>
-                    <ResponseHandler  compiler="TypeScript" framework="React"/>
+                    <ResponseHandler responseKeys={this.state.responseKeys} responseBody={this.state.responseBody} compiler="TypeScript" framework="React"/>
                 </div>
             )
         }
