@@ -349,6 +349,9 @@ export default class InsightFacade implements IInsightFacade {
                             coursesRoomsToSchedule["courses"], coursesRoomsToSchedule["rooms"]);
 
                         if (bestSchedule.bestSchedule !== undefined) {
+
+                            // TODO: Call to transform schedule here
+
                             let resObj = new ResponseObject(200, bestSchedule);
                             fulfill(resObj);
                         } else {

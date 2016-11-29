@@ -1,6 +1,7 @@
 import {IObject} from "./IObject";
 import {IRoom} from "./IBuilding";
 import {ISubCourse} from "./CourseDataController";
+import {CampusSchedule} from "./ScheduleController";
 /**
  * Created by Ryan on 2016-11-28.
  */
@@ -16,30 +17,28 @@ export default class ScheduleUtility {
      * @param rooms
      */
     public generateScheduleCoursesRooms(courses: ISubCourse[], rooms: IRoom[]): IObject {
-        let processedCourses = this.validateCourses(courses);
-        let processedRooms = this.validateRooms(rooms);
 
         let sectionsToSchedule = this.generateScheduleCourses(courses);
 
-        return {"sectionsToSchedule": sectionsToSchedule, "roomsToSchedule": processedRooms};
+        return {"sectionsToSchedule": sectionsToSchedule, "roomsToSchedule": rooms};
     }
 
     /*
     Remove invalid courses and collapse into one section
      */
-    public validateCourses (courses: IObject[]): IObject[] {
-        let results: IObject[];
+    public validCourse (course: ISubCourse): boolean {
 
-        return results;
+        return (course.Subject && course.Subject.length > 0
+            && course.Course && course.Course.length > 0
+            && course.Size && course.Size > 0);
     }
 
     /*
     Remove rooms without seats
      */
-    public validateRooms (courses: IRoom[]): IRoom[] {
-        let results: IRoom[];
-
-        return results;
+    public validRoom (room: IRoom): boolean {
+        return (room.name && room.name.length > 0
+            && room.seats && room.seats > 0);
     }
 
     /*
@@ -76,7 +75,7 @@ export default class ScheduleUtility {
                 allSubcourses.forEach(subcourse => {
                     jsonObj["courses"].for((courseid: string) => {
                         let courseIdNum = parseInt(courseid);
-                        if (!isNaN(courseIdNum) && subcourse.id === courseIdNum) {
+                        if (!isNaN(courseIdNum) && subcourse.id === courseIdNum && this.validCourse(subcourse)) {
                             requestedCourses.push(subcourse);
                         }
                     });
@@ -94,7 +93,7 @@ export default class ScheduleUtility {
                         if (roomDataset[buildingCode]) {
                             let roomsInBuilding: IRoom[] = roomDataset[buildingCode];
                             roomsInBuilding.some((room: IRoom): boolean => {
-                                if (room.name === roomName) {
+                                if (room.name === roomName && this.validRoom(room)) {
                                     requestedRooms.push(room);
                                     return true;
                                 }
@@ -108,4 +107,15 @@ export default class ScheduleUtility {
         }
         return results;
     }
+
+    /**
+     * Transform best schedule into a format that can easily display in a table
+     * @param schedule
+     */
+    public transformScheduleResults (schedule: CampusSchedule): IObject[] {
+        let result: IObject[];
+
+        return result;
+    }
+
 }
