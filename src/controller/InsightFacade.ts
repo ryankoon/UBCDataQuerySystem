@@ -10,6 +10,10 @@ import CourseDataController from "./CourseDataController";
 import ExplorerController from "./ExplorerController";
 import {distanceRequestBody} from "./ExplorerController";
 import {IObject} from "./IObject";
+import ScheduleController from "./ScheduleController";
+import {BestScheduleResult} from "./ScheduleController";
+import {ISubCourse} from "./CourseDataController";
+import ScheduleUtility from "./ScheduleUtilty";
 
 class ResponseObject implements InsightResponse{
     code: Number;
@@ -313,6 +317,57 @@ export default class InsightFacade implements IInsightFacade {
                 }).catch(err=>{
                 reject(err);
             });
+        });
+    }
+
+    public handleCourseScheduling(reqBody: string) {
+        return new Promise((fulfill, reject)=>{
+            // Get courses directly from subcourses.json with uuid
+            // Get rooms directly from rooms.json
+            // req keys - courses, rooms
+            let subcoursesToProcess: any;
+            let roomsToProcess: any;
+            let datasetController = new DatasetController();
+            datasetController.getDataset('subcourses')
+                .then((subcoursesDataset: any) => {
+                    subcoursesToProcess = subcoursesDataset;
+                    return datasetController.getDataset('rooms');
+                })
+                .then((roomsDataset: any)=> {
+                    roomsToProcess = roomsDataset;
+                    let scheduleUtility = new ScheduleUtility();
+                    let coursesRoomsToProcess: IObject = scheduleUtility.getCoursesRooms(reqBody, subcoursesToProcess,
+                        roomsToProcess);
+                    let coursesRoomsToSchedule: IObject = scheduleUtility.generateScheduleCoursesRooms(
+                        coursesRoomsToProcess["courses"], coursesRoomsToProcess["rooms"]);
+                    if (coursesRoomsToSchedule["sectionsToSchedule"] !== undefined && coursesRoomsToSchedule["sectionsToSchedule"].length > 0
+                        && coursesRoomsToSchedule["roomsToSchedule"] !== undefined && coursesRoomsToSchedule["roomsToSchedule"].length > 0) {
+                        let scheduleController = new ScheduleController();
+
+                        // let mockCourse: ISubCourse = { "tier_eighty_five": 6, "tier_ninety": 4, "Title": "geotech eng prac", "Section": "101", "Detail": "", "tier_seventy_two": 6, "Other": 1, "Low": 30, "tier_sixty_four": 3, "id": 68164, "tier_sixty_eight": 3, "tier_zero": 0, "tier_seventy_six": 7, "tier_thirty": 1, "tier_fifty": 2, "Professor": "eberhardt, erik", "Audit": 0, "tier_g_fifty": 1, "tier_forty": 0, "Withdrew": 0, "Year": "2014", "tier_twenty": 0, "Stddev": 12.76, "Enrolled": 40, "tier_fifty_five": 0, "tier_eighty": 6, "tier_sixty": 1, "tier_ten": 0, "High": 97, "Course": "433", "Session": "w", "Pass": 38, "Fail": 1, "Avg": 76.05, "Campus": "ubc", "Subject": "eosc", "SectionSize": 39, "Size": 39, "SectionsToSchedule": 1 };
+                        // let mockRoom: IRoom = { "fullname": "Allard Hall (LAW)", "shortname": "ALRD", "number": "105", "name": "ALRD_105", "address": "1822 East Mall", "lat": 49.2699, "lon": -123.25318, "seats": 94, "type": "Case Style", "furniture": "Classroom-Fixed Tables/Movable Chairs", "href": "http://students.ubc.ca/campus/discover/buildings-and-classrooms/room/ALRD-105" };
+                        let bestSchedule: BestScheduleResult = scheduleController.findBestSchedule(
+                            coursesRoomsToSchedule["sectionsToSchedule"], coursesRoomsToSchedule["roomsToSchedule"]);
+
+                        if (bestSchedule.bestSchedule !== undefined) {
+
+                            // TODO: Call to transform schedule here
+
+                            let resObj = new ResponseObject(200, bestSchedule);
+                            fulfill(resObj);
+                        } else {
+                            let resObj = new ResponseObject(400, {err: "No schedule found."});
+                            reject(resObj);
+                        }
+                    } else {
+                        let resObj = new ResponseObject(400, {err: "There are no valid rooms/courses to schedule."});
+                        reject(resObj);
+                    }
+                })
+                .catch(err => {
+                    let resObj = new ResponseObject(400, {err: err});
+                    reject(resObj);
+                });
         });
     }
 }
