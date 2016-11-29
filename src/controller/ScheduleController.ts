@@ -315,14 +315,13 @@ export default class ScheduleController {
         if (section && room && day && time && timetable && roomTimeTable) {
             let sectionId = section.id;
             let sectionScheduledTimes = timetable[day][sectionId];
-            if (section.SectionSize <= room.seats && (roomTimeTable[day][time] === undefined ||
+            if (section.Size <= room.seats && (roomTimeTable[day][time] === undefined ||
                 roomTimeTable[day][time] === "open") && (sectionScheduledTimes === undefined ||
                 sectionScheduledTimes.indexOf(time) === -1)) {
 
-                if (room.seats && section.SectionSize) {
-                    cost = room.seats - section.SectionSize;
+                if (room.seats && section.Size) {
+                    cost = room.seats - section.Size;
                 }
-                cost = room.seats - section.SectionSize;
             }
         } else {
             Log.error("A parameter is invalid for getSchedulingCost!");
