@@ -86,7 +86,7 @@ export default class ScheduleController {
     public allSchedules: CampusSchedule[];
     public static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
     public static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
-
+    private searches: number = 0;
 
     constructor() {
         this.allSchedules = [];
@@ -453,7 +453,8 @@ export default class ScheduleController {
         let oldSchedule = (JSON.parse(JSON.stringify(schedule)));
         let oldCampusTimetable = (JSON.parse(JSON.stringify(campusTimetable)));
         let oldRoomsBookedTimes = (JSON.parse(JSON.stringify(roomsBookedTimes)));
-
+        this.searches += 1;
+        Log.info(schedule.cost.toString());
         if (currIndex > sections.length - 1) {
             if (schedule.scheduledSections > 0) {
                 this.allSchedules.push(schedule);
@@ -470,8 +471,10 @@ export default class ScheduleController {
                    let newRoomsBookedTimes = scheduleResult.newRoomsBookedTimes;
                    let cost = scheduleResult.cost;
                    // Skip this course anyways
-                   this.findAllSchedulesRecursively(oldSections, currIndex + 1, oldRooms, oldSchedule,
-                       oldCampusTimetable, oldRoomsBookedTimes);
+                   if (this.searches < 5000) {
+                       this.findAllSchedulesRecursively(oldSections, currIndex + 1, oldRooms, oldSchedule,
+                           oldCampusTimetable, oldRoomsBookedTimes);
+                   }
                    // Schedule this course
                    this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, newSchedule,
                    newTimetable, newRoomsBookedTimes);
