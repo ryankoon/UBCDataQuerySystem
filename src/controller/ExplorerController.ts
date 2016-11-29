@@ -86,7 +86,7 @@ export default class ExplorerController {
                 requiredFields = [datasetId + "_uuid", datasetId + "_dept", datasetId + "_id", datasetId + "_Section",
                     datasetId + "_SectionSize", datasetId + "_SectionsToSchedule"];
             } else if (type === 'rooms') {
-                requiredFields = [datasetId + "_name", datasetId + "_seats", datasetId + "_SectionsToSchedule"];
+                requiredFields = [datasetId + "_name", datasetId + "_seats"];
             }
             let tempFields = requiredFields;
             reqKeys.forEach(field => {
