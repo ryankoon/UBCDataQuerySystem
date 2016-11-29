@@ -55,10 +55,57 @@ export default class ScheduleUtility {
     gets courses by uuids in queryBody - key: 'courses'
     gets rooms by name in queryBody - key: 'rooms'
      */
-    public getCoursesRooms(queryBody: any, coursesDataset: ISubCourse[], roomDataset: IRoom[]) : IObject {
-        let results: IObject;
+    public getCoursesRooms(queryBody: any, coursesDataset: any, roomDataset: any) : IObject {
+        let results: IObject = {"courses": [], "rooms": []};
 
+        try {
+            let allSubcourses: ISubCourse[] = [];
+            let courseKeys: string[] = Object.keys(coursesDataset);
+
+            // Put all subcourses into an array
+            courseKeys.forEach((key: string) => {
+                let courseResults: ISubCourse[] = coursesDataset[key]["result"];
+                allSubcourses = allSubcourses.concat(courseResults);
+            });
+
+            let requestedCourses: ISubCourse[] = [];
+            let jsonObj = JSON.parse(queryBody);
+
+            //Find the ones requested
+            if (jsonObj["courses"]) {
+                allSubcourses.forEach(subcourse => {
+                    jsonObj["courses"].for((courseid: string) => {
+                        let courseIdNum = parseInt(courseid);
+                        if (!isNaN(courseIdNum) && subcourse.id === courseIdNum) {
+                            requestedCourses.push(subcourse);
+                        }
+                    });
+                });
+            }
+
+            // Get rooms requested
+            let requestedRooms: IRoom[] = [];
+            let roomsNames: string[] = jsonObj["rooms"];
+            if (roomsNames) {
+                roomsNames.forEach((roomName: string) => {
+                    if (roomName.indexOf("_") !== -1) {
+                        let buildingCode: string = roomName.split("_")[0];
+
+                        if (roomDataset[buildingCode]) {
+                            let roomsInBuilding: IRoom[] = roomDataset[buildingCode];
+                            roomsInBuilding.some((room: IRoom): boolean => {
+                                if (room.name === roomName) {
+                                    requestedRooms.push(room);
+                                    return true;
+                                }
+                            });
+                        }
+                    }
+                })
+            }
+        } catch (err) {
+
+        }
         return results;
     }
-
 }

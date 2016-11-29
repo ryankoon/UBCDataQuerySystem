@@ -325,15 +325,15 @@ export default class InsightFacade implements IInsightFacade {
             // Get courses directly from subcourses.json with uuid
             // Get rooms directly from rooms.json
             // req keys - courses, rooms
-            let subcoursesToProcess: ISubCourse[];
-            let roomsToProcess: IRoom[];
+            let subcoursesToProcess: any;
+            let roomsToProcess: any;
             let datasetController = new DatasetController();
             datasetController.getDataset('subcourses')
-                .then(subcoursesDataset => {
+                .then((subcoursesDataset: any) => {
                     subcoursesToProcess = subcoursesDataset;
                     return datasetController.getDataset('rooms');
                 })
-                .then(roomsDataset => {
+                .then((roomsDataset: any)=> {
                     roomsToProcess = roomsDataset;
                     let scheduleUtility = new ScheduleUtility();
                     let coursesRoomsToprocess: IObject = scheduleUtility.getCoursesRooms(reqBody, subcoursesToProcess,
