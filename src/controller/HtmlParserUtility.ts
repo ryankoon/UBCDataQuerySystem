@@ -1,3 +1,4 @@
+///<reference path="../../typings/globals/parse5/index.d.ts" />
 import {ASTNode} from "parse5";
 /**
  * Created by alekspc on 2016-11-05.
