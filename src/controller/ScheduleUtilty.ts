@@ -2,6 +2,7 @@ import {IObject} from "./IObject";
 import {IRoom} from "./IBuilding";
 import {ISubCourse} from "./CourseDataController";
 import {CampusSchedule} from "./ScheduleController";
+import Log from "../Util";
 /**
  * Created by Ryan on 2016-11-28.
  */
@@ -18,7 +19,7 @@ export default class ScheduleUtility {
      */
     public generateScheduleCoursesRooms(courses: ISubCourse[], rooms: IRoom[]): IObject {
 
-        let sectionsToSchedule = this.generateScheduleCourses(courses);
+        let sectionsToSchedule: ISubCourse[] = this.generateScheduleCourses(courses);
 
         return {"sectionsToSchedule": sectionsToSchedule, "roomsToSchedule": rooms};
     }
@@ -30,7 +31,8 @@ export default class ScheduleUtility {
 
         return (course.Subject && course.Subject.length > 0
             && course.Course && course.Course.length > 0
-            && course.Size && course.Size > 0);
+            && course.Size && course.Size > 0
+            && course.SectionsToSchedule && course.SectionsToSchedule > 0);
     }
 
     /*
@@ -44,10 +46,31 @@ export default class ScheduleUtility {
     /*
     Create course objects according to sectionsTo schedule
      */
-    public generateScheduleCourses (courses: IObject[]): IObject[] {
-        let results: IObject[];
+    public generateScheduleCourses (courses: ISubCourse[]): ISubCourse[] {
+        let result: ISubCourse[] = [];
+        let uniqueCourses: IObject = {};
 
-        return results;
+        // collapse courses into one instance
+        courses.forEach((course: ISubCourse) => {
+            let hash = course.Subject + course.Course;
+            if (uniqueCourses[hash] === undefined) {
+                uniqueCourses[hash] = course;
+            }
+        });
+
+        // recreate based on sectionsToSchedule field
+        let uniqueCoursesKeys = Object.keys(uniqueCourses);
+        uniqueCoursesKeys.forEach((courseKey: string) => {
+            let courseSection: ISubCourse = uniqueCourses[courseKey];
+            let sectionsToSchedule: number = courseSection.SectionsToSchedule;
+            for(let i = 0; i < sectionsToSchedule; i++) {
+                let newSectionObject: ISubCourse = (JSON.parse(JSON.stringify(courseSection)));
+                newSectionObject.Detail = "Section" + i;
+                result.push(newSectionObject);
+            }
+        });
+
+        return result;
     }
 
     /*
@@ -73,7 +96,7 @@ export default class ScheduleUtility {
             //Find the ones requested
             if (jsonObj["courses"]) {
                 allSubcourses.forEach(subcourse => {
-                    jsonObj["courses"].for((courseid: string) => {
+                    jsonObj["courses"].forEach((courseid: string) => {
                         let courseIdNum = parseInt(courseid);
                         if (!isNaN(courseIdNum) && subcourse.id === courseIdNum && this.validCourse(subcourse)) {
                             requestedCourses.push(subcourse);
@@ -91,8 +114,8 @@ export default class ScheduleUtility {
                         let buildingCode: string = roomName.split("_")[0];
 
                         if (roomDataset[buildingCode]) {
-                            let roomsInBuilding: IRoom[] = roomDataset[buildingCode];
-                            roomsInBuilding.some((room: IRoom): boolean => {
+                            let roomsInBuilding: IRoom[] = roomDataset[buildingCode]["result"];
+                            roomsInBuilding.some(room => {
                                 if (room.name === roomName && this.validRoom(room)) {
                                     requestedRooms.push(room);
                                     return true;
@@ -102,10 +125,13 @@ export default class ScheduleUtility {
                     }
                 })
             }
+            results["courses"] = requestedCourses;
+            results["rooms"] = requestedRooms;
+            return results;
         } catch (err) {
-
+            Log.error("Error getting CourseRooms!");
+            return results;
         }
-        return results;
     }
 
     /**
@@ -113,6 +139,9 @@ export default class ScheduleUtility {
      * @param schedule
      */
     public transformScheduleResults (schedule: CampusSchedule): IObject[] {
+        // Upper case course name (aka Subject)
+        // convert to int for course number (aka Course)
+
         let result: IObject[];
 
         return result;
