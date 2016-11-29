@@ -24,7 +24,7 @@ export interface TimeTable extends IObject{
 
 //TODO check if numbers are escaped on compile
 //Start times of courses
-export interface DAYMWF {
+export interface DAYMWF extends IObject {
     800: IObject;
     900: IObject;
     1000: IObject;
@@ -36,7 +36,7 @@ export interface DAYMWF {
     1600: IObject;
 }
 //Start times of courses
-export interface DAYTTH {
+export interface DAYTTH extends IObject {
     800: IObject;
     930: IObject;
     1100: IObject;
