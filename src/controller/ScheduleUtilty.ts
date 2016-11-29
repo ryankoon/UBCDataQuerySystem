@@ -1,7 +1,7 @@
 import {IObject} from "./IObject";
 import {IRoom} from "./IBuilding";
 import {ISubCourse} from "./CourseDataController";
-import {CampusSchedule} from "./ScheduleController";
+import {CampusSchedule, RoomSchedules, TimeTable, DAYMWF, DAYTTH} from "./ScheduleController";
 import Log from "../Util";
 /**
  * Created by Ryan on 2016-11-28.
@@ -136,15 +136,62 @@ export default class ScheduleUtility {
 
     /**
      * Transform best schedule into a format that can easily display in a table
-     * @param schedule
+     * @param roomSchedules
      */
-    public transformScheduleResults (schedule: CampusSchedule): IObject[] {
+    public transformRoomSchedules (roomSchedules: RoomSchedules): IObject[] {
         // Upper case course name (aka Subject)
-        // convert to int for course number (aka Course)
+        // convert to int for course number (aka Course)?
+        let transformedSchedule: IObject[] = [];
+        let idCount = 0;
 
-        let result: IObject[];
+        if (roomSchedules && roomSchedules !== undefined) {
+            let roomNames = Object.keys(roomSchedules);
 
-        return result;
+            roomNames.forEach((roomName: string) => {
+                let roomTimetable: TimeTable = roomSchedules[roomName];
+
+                let MWFTimetable: DAYMWF = roomTimetable.MWF;
+                let TTHTimetable: DAYTTH = roomTimetable.TTH;
+
+                let MWFScheduledTimes = Object.keys(MWFTimetable);
+                let TTHScheduledTimes = Object.keys(TTHTimetable);
+
+                MWFScheduledTimes.forEach(mwfTime => {
+                    let courseSection: ISubCourse = MWFTimetable[mwfTime];
+                    if (courseSection && courseSection !== undefined) {
+                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection);
+                        if (Object.keys(transformedSubCourse) && Object.keys(transformedSubCourse).length > 0){
+                            transformedSubCourse["Id"] = idCount;
+                            transformedSchedule.push(courseSection);
+                            idCount += 1;
+                        }
+
+                    }
+                });
+
+                TTHScheduledTimes.forEach(tthTime => {
+                    let courseSection: ISubCourse = TTHTimetable[tthTime];
+                    if (courseSection && courseSection !== undefined) {
+                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection);
+                        if (Object.keys(transformedSubCourse) && Object.keys(transformedSubCourse).length > 0){
+                            transformedSubCourse["Id"] = idCount;
+                            transformedSchedule.push(courseSection);
+                            idCount += 1;
+                        }
+                    }
+                });
+
+            });
+        }
+
+        return transformedSchedule;
+    }
+
+    // return a subset of fields in ISubCourse
+    public transformSubCourse(subcourse: ISubCourse): IObject {
+        let transformedSubcourse: IObject = {};
+
+        return transformedSubcourse;
     }
 
 }
