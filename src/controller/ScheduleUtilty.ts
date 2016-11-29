@@ -7,7 +7,19 @@ import Log from "../Util";
  * Created by Ryan on 2016-11-28.
  */
 
+export interface ISmallSubCourse {
+    Id: number;
+    Day: string;
+    Time: string;
+    CourseDept: string;
+    CourseId: string;
+    RoomName: string;
+    CourseSize: number;
+}
+
 export default class ScheduleUtility {
+
+    private idCount = 0;
 
     /**
      * remove courses that do not have valid dept, courseid, size
@@ -159,11 +171,10 @@ export default class ScheduleUtility {
                 MWFScheduledTimes.forEach(mwfTime => {
                     let courseSection: ISubCourse = MWFTimetable[mwfTime];
                     if (courseSection && courseSection !== undefined) {
-                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection);
+                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection,
+                            "MWF", mwfTime, roomName);
                         if (Object.keys(transformedSubCourse) && Object.keys(transformedSubCourse).length > 0){
-                            transformedSubCourse["Id"] = idCount;
-                            transformedSchedule.push(courseSection);
-                            idCount += 1;
+                            transformedSchedule.push(transformedSubCourse);
                         }
 
                     }
@@ -172,11 +183,10 @@ export default class ScheduleUtility {
                 TTHScheduledTimes.forEach(tthTime => {
                     let courseSection: ISubCourse = TTHTimetable[tthTime];
                     if (courseSection && courseSection !== undefined) {
-                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection);
+                        let transformedSubCourse: IObject = this.transformSubCourse(courseSection,
+                            "TTH", tthTime, roomName);
                         if (Object.keys(transformedSubCourse) && Object.keys(transformedSubCourse).length > 0){
-                            transformedSubCourse["Id"] = idCount;
-                            transformedSchedule.push(courseSection);
-                            idCount += 1;
+                            transformedSchedule.push(transformedSubCourse);
                         }
                     }
                 });
@@ -188,8 +198,27 @@ export default class ScheduleUtility {
     }
 
     // return a subset of fields in ISubCourse
-    public transformSubCourse(subcourse: ISubCourse): IObject {
-        let transformedSubcourse: IObject = {};
+    public transformSubCourse(subcourse: ISubCourse, day: string, time: string, roomname: string): ISmallSubCourse {
+        let transformedSubcourse: ISmallSubCourse;
+
+        if (subcourse && subcourse !== undefined && Object.keys(subcourse) && Object.keys(subcourse).length > 0) {
+            let id = this.idCount;
+            let coursedept = subcourse.Subject.toUpperCase();
+            let courseid = subcourse.Course;
+            let coursesize = subcourse.Size;
+
+            transformedSubcourse = {
+                Id: id,
+                Day: day,
+                Time: time,
+                CourseDept: coursedept,
+                CourseId: courseid,
+                RoomName: roomname,
+                CourseSize: coursesize
+            }
+
+            this.idCount += 1;
+        }
 
         return transformedSubcourse;
     }
