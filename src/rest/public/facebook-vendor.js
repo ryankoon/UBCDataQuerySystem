@@ -16,28 +16,54 @@ window.fbAsyncInit = function() {
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));3
 
-
 $(document).ready(function () {
+
+    faceBookInitialLocalStorage = function(response){
+        var localFacebookIds = JSON.parse(localStorage.getItem('facebookUserIds'));
+        var currentUserId = response.authResponse.userID;
+        if (localFacebookIds === null) {
+            var arrayOfUserObjects = [];
+            var userObject = {
+                id : response.authResponse.userID,
+                rating : null
+            }
+            arrayOfUserObjects.push(userObject);
+            localStorage.setItem('facebookUserIds', JSON.stringify(arrayOfUserObjects));
+        }
+        else{
+            // Mutate the userID to have the new user
+            var unique = false;
+            for (var i=0; i < localFacebookIds.length; i++){
+                if (localStorage.getItem('facebookUserIds').indexOf(currentUserId) === -1){
+                   unique = true;
+                }
+            }
+            if (unique) { // dbl check this. indexof always messes with me.
+                var userObject = {
+                    id : response.authResponse.userID,
+                    rating : null
+                }
+                localFacebookIds.push(userObject);
+                localStorage.setItem('facebookUserIds', JSON.stringify(localFacebookIds));
+            }
+        }
+
+        localStorage.setItem('currentFacebookUserId', currentUserId);
+    }
+
+
     $('.fb-connect').on("click", function () {
         FB.getLoginStatus(function(response) {
-            window.currentAccessToken = response.authResponse.accessToken;
-            window.currentUserId = response.authResponse.userId;
-            window.userIds = [];
-            window.userIds.push(response.userId);
+            console.log('Entered get login status');
             if (response.status === 'connected') {
+                faceBookInitialLocalStorage(response);
                 alert('Already Logged in.');
-                // needs to be setup as a post with content body
-
-                var JSONBody = {
-
-                }
                 /*
                  GET /oauth/access_token
                  ?client_id={app-id}
                  &client_secret={app-secret}
                  &grant_type=client_credentials
                  Need to make a GRAPH API get to this address in order to get an APP access token
-
                  */
 
                 var path = '/' + response.authResponse.userID + '/notifications';
@@ -62,11 +88,11 @@ $(document).ready(function () {
                     */
             }
             else {
-                FB.login(function () {
+                FB.login(function (response) {
                     // need app access token
                     // We have current user-ID... but now ...
                     // can we notify users who are mutual friends?
-
+                    faceBookInitialLocalStorage(response);
                 });
             }
         });

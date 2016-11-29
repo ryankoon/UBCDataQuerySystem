@@ -21,12 +21,23 @@ export class CourseScheduler extends React.Component<any, any> {
         }
     }
     handleResponse(res : any, payload : any){
-        if (res.body && res.body.err && res.body.err.length > 0){
+        // TODO: unremove comments. this is temporary to test FB
+   //     if (res.body && res.body.err && res.body.err.length > 0){
+            // set localStorage to track ratings
+            let userList = JSON.parse(localStorage.getItem('facebookUserIds'));
+            let currentUser = localStorage.getItem('currentFacebookUserId');
+            for (var i=0; i < userList.length; i++){
+                if(userList[i] && userList[i].id === currentUser){
+                    userList[i].rating = res.body.quality; // TODO : ensure score is set.
+                }
+            }
+            localStorage.setItem('facebookUserIds', JSON.stringify(userList));
             this.setState({
                 errorMessage: res.body.err,
                 schedule : false
             });
-        }
+   //    }
+        /*
         else {
             let result = res.body.bestSchedule
             // TODO: ensure set keys works.
@@ -37,6 +48,7 @@ export class CourseScheduler extends React.Component<any, any> {
                 responseKeys: resultKeys
             });
         }
+        */
     }
 
 
