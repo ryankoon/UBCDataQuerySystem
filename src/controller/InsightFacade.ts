@@ -348,11 +348,16 @@ export default class InsightFacade implements IInsightFacade {
 
                         if (bestSchedule.bestSchedule !== undefined && bestSchedule.bestSchedule.roomSchedules !== undefined) {
 
-                            scheduleUtility.transformRoomSchedules(bestSchedule.bestSchedule.roomSchedules);
+                            // copy over fields
+                            let transformedResponse: IObject = {};
+                            let transformedRoomSchedules: IObject[] = scheduleUtility.transformRoomSchedules(bestSchedule.bestSchedule.roomSchedules);
                             // store scheduledSections and cost outside of bestschedule
+                            transformedResponse["scheduledSections"] = bestSchedule.bestSchedule.scheduledSections;
+                            transformedResponse["cost"] = bestSchedule.bestSchedule.cost;
+                            transformedResponse["quality"] = bestSchedule.quality;
+                            transformedResponse["bestSchedule"] = transformedRoomSchedules;
 
-
-                            let resObj = new ResponseObject(200, bestSchedule);
+                            let resObj = new ResponseObject(200, transformedResponse);
                             fulfill(resObj);
                         } else {
                             let resObj = new ResponseObject(400, {err: "No schedule found."});

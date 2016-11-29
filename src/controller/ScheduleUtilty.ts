@@ -151,10 +151,7 @@ export default class ScheduleUtility {
      * @param roomSchedules
      */
     public transformRoomSchedules (roomSchedules: RoomSchedules): IObject[] {
-        // Upper case course name (aka Subject)
-        // convert to int for course number (aka Course)?
         let transformedSchedule: IObject[] = [];
-        let idCount = 0;
 
         if (roomSchedules && roomSchedules !== undefined) {
             let roomNames = Object.keys(roomSchedules);
