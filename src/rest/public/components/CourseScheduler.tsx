@@ -21,28 +21,41 @@ export class CourseScheduler extends React.Component<any, any> {
         }
     }
     handleResponse(res : any, payload : any){
-        let result = res.body.result;
-        // TODO: ensure set keys works.
-        let resultKeys = Object.keys(result);
-        this.setState({
-            schedule : true,
-            responseContent : result,
-            responseKeys : resultKeys
-        });
+        if (res.body && res.body.err.length > 0){
+            this.setState({
+                errorMessage: res.body.err,
+                schedule : false
+            });
+        }
+        else {
+            let result = res.body.result
+            // TODO: ensure set keys works.
+            let resultKeys = Object.keys(result);
+            this.setState({
+                schedule: true,
+                responseContent: result,
+                responseKeys: resultKeys
+            });
+        }
     }
 
 
     componentWillMount(){
         if (localStorage.getItem('rooms') !== null && localStorage.getItem('courses') !== null){
             // TODO: set post
-            let rooms  = localStorage.getItem('rooms');
-            let courses = localStorage.getItem('courses');
-
+            let roomsStr  = localStorage.getItem('rooms');
+            let coursesStr = localStorage.getItem('courses');
+            let courses : string[];
+            let rooms : string[];
+            if(coursesStr && roomsStr){
+                courses = coursesStr.split(',');
+                rooms = roomsStr.split(',');
+            }
             let payload = {
                 rooms : rooms,
                 courses : courses
             }
-            superagent.post('/address')
+            superagent.post('http://localhost:4321/scheduleCourses')
                 .send(payload)
                 .end( (err, res) => {
                     if(err){
