@@ -30,9 +30,14 @@ export class ResponseHandler extends React.Component<any, any> {
                 this.setState({
                     selected: [ ...this.state.selected, row.subcourses_uuid ]
                 });
-            }else{
+            }else if (this.props.formContext="rooms"){
                 this.setState({
                     selected: [ ...this.state.selected, row.rooms_name ]
+                });
+            }
+            else{
+                this.setState({
+                    selected: [...this.state.selected, row.Id]
                 });
             }
             return true;
@@ -40,9 +45,12 @@ export class ResponseHandler extends React.Component<any, any> {
             if(this.props.formContext === "courses"){
                 this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.subcourses_uuid) });
 
-            }else{
+            }else if (this.props.formContext ==="rooms"){
                 this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.rooms_name) });
 
+            }
+            else{
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.Id) });
             }
             return true;
         }
@@ -55,10 +63,15 @@ export class ResponseHandler extends React.Component<any, any> {
                     interestedArray.push(rows[i].subcourses_uuid);
                 }
             }
-            else{
+            else if(this.props.formContext === "rooms"){
 
                 for (var i=0; i < rows.length; i++){
                     interestedArray.push(rows[i].rooms_name);
+                }
+            }
+            else{
+                for (var i=0; i < rows.length; i++){
+                    interestedArray.push(rows[i].Id);
                 }
             }
             this.setState({
@@ -76,7 +89,7 @@ export class ResponseHandler extends React.Component<any, any> {
     }
     applySchedule(e : any){
         if (this.state.selected.length > 0) {
-            localStorage.setItem(this.props.formContext, this.state.selected);
+            localStorage.setItem(this.props.formContext, this.state.selected[0]);
             console.log('set schedule. lets show success!');
             this.setState({
                 alert : true
@@ -91,7 +104,6 @@ export class ResponseHandler extends React.Component<any, any> {
     render() {
 
         const rowMode : SelectRowMode = 'checkbox';
-
         const selectRow : SelectRow = {
             mode : rowMode,
             onSelect : this.onRowSelect.bind(this),
@@ -101,7 +113,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
-              if (item === 'rooms_name' || item ==='subcourses_uuid' ) {
+              if (item === 'rooms_name' || item ==='subcourses_uuid' || item === 'Id' ) {
                   return   <TableHeaderColumn isKey={true} dataAlign="center"
                                               dataField={item}> {item}</TableHeaderColumn>
               }
@@ -120,6 +132,19 @@ export class ResponseHandler extends React.Component<any, any> {
                        search
                        columnFilter
                        ref="table"  selectRow={selectRow} data = {this.props.responseContent} striped = {true} hover = {true}>
+                       {renderHead()}
+                   </BootstrapTable>
+               </div>
+           );
+       }
+       else if (this.props.isSchedule === 'true') {
+           return(
+               <div>
+                   <h3> Quality of this schedule is : {this.props.quality}</h3>
+                   <BootstrapTable
+                       search
+                       columnFilter
+                       ref="table" data = {this.props.responseContent} striped = {true} hover = {true}>
                        {renderHead()}
                    </BootstrapTable>
                </div>

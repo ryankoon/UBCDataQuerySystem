@@ -4,9 +4,7 @@ Should export a rendered module of dropdowns populated with rooms.
 import * as React from 'react';
 import * as request from 'superagent';
 import * as ReactBootstrap from 'react-bootstrap';
-import * as ReactDOM from 'react-dom';
 import {RoomForm} from "./RoomForm";
-import {Response} from "restify";
 import {ResponseHandler} from "./ResponseHandler";
 import Button = ReactBootstrap.Button;
 

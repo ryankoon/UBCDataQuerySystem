@@ -6,9 +6,12 @@ import {CourseExplorer} from './CourseExplorer';
 import {CourseScheduler} from "./CourseScheduler";
 import {FacebookButton} from './FacebookButton';
 export class App extends React.Component<any, any> {
-    handleSelect(index: any, last: any) {
-        console.log('Selected tab: ' + index + ', Last tab: ' + last);
-    } // send in this function... to do a state save.
+    constructor(props : any){
+        super(props)
+        this.state = {
+
+        }
+    }
     render() {
         return (
             <div>
