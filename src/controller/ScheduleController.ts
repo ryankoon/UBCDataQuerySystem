@@ -24,7 +24,7 @@ export interface TimeTable extends IObject{
 
 //TODO check if numbers are escaped on compile
 //Start times of courses
-export interface DAYMWF {
+export interface DAYMWF extends IObject {
     800: IObject;
     900: IObject;
     1000: IObject;
@@ -36,7 +36,7 @@ export interface DAYMWF {
     1600: IObject;
 }
 //Start times of courses
-export interface DAYTTH {
+export interface DAYTTH extends IObject {
     800: IObject;
     930: IObject;
     1100: IObject;
@@ -86,7 +86,7 @@ export default class ScheduleController {
     public allSchedules: CampusSchedule[];
     public static MWFTimes: string[] = ["800", "900", "1000", "1100", "1200", "1300", "1400", "1500", "1600"];
     public static TTHTimes: string[] = ["800", "930", "1100", "1230", "1400", "1530"];
-
+    private searchCutoff: number = 0;
 
     constructor() {
         this.allSchedules = [];
@@ -315,14 +315,13 @@ export default class ScheduleController {
         if (section && room && day && time && timetable && roomTimeTable) {
             let sectionId = section.id;
             let sectionScheduledTimes = timetable[day][sectionId];
-            if (section.SectionSize <= room.seats && (roomTimeTable[day][time] === undefined ||
+            if (section.Size <= room.seats && (roomTimeTable[day][time] === undefined ||
                 roomTimeTable[day][time] === "open") && (sectionScheduledTimes === undefined ||
                 sectionScheduledTimes.indexOf(time) === -1)) {
 
-                if (room.seats && section.SectionSize) {
-                    cost = room.seats - section.SectionSize;
+                if (room.seats && section.Size) {
+                    cost = room.seats - section.Size;
                 }
-                cost = room.seats - section.SectionSize;
             }
         } else {
             Log.error("A parameter is invalid for getSchedulingCost!");
@@ -453,7 +452,7 @@ export default class ScheduleController {
         let oldSchedule = (JSON.parse(JSON.stringify(schedule)));
         let oldCampusTimetable = (JSON.parse(JSON.stringify(campusTimetable)));
         let oldRoomsBookedTimes = (JSON.parse(JSON.stringify(roomsBookedTimes)));
-
+        this.searchCutoff += 1;
         if (currIndex > sections.length - 1) {
             if (schedule.scheduledSections > 0) {
                 this.allSchedules.push(schedule);
@@ -470,8 +469,10 @@ export default class ScheduleController {
                    let newRoomsBookedTimes = scheduleResult.newRoomsBookedTimes;
                    let cost = scheduleResult.cost;
                    // Skip this course anyways
-                   this.findAllSchedulesRecursively(oldSections, currIndex + 1, oldRooms, oldSchedule,
-                       oldCampusTimetable, oldRoomsBookedTimes);
+                   if (this.searchCutoff < 5000) {
+                       this.findAllSchedulesRecursively(oldSections, currIndex + 1, oldRooms, oldSchedule,
+                           oldCampusTimetable, oldRoomsBookedTimes);
+                   }
                    // Schedule this course
                    this.findAllSchedulesRecursively(sections, currIndex + 1, rooms, newSchedule,
                    newTimetable, newRoomsBookedTimes);

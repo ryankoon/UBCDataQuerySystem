@@ -25,7 +25,7 @@
     "cleanwin": "rmdir typings /s /q & rmdir node_modules /s /q & exit 0",
     "configure": "npm install; typings install --global;",
     "configurewin": "npm install & typings install --global",
-    "build": "tsc",
+    "build": "tsc -p tsconfig-no-tsx-files.json",
     "test": "mocha -c -R mochawesome",
     "cover": "istanbul cover _mocha",
     "coverwin": "istanbul cover node_modules/mocha/bin/_mocha",
