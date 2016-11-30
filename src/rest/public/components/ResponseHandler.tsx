@@ -37,7 +37,7 @@ export class ResponseHandler extends React.Component<any, any> {
             }
             else{
                 this.setState({
-                    selected: [...this.state.selected, row.RoomName]
+                    selected: [...this.state.selected, row.Id]
                 });
             }
             return true;
@@ -50,7 +50,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
             }
             else{
-                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.RoomName) });
+                this.setState({ selected: this.state.selected.filter( (ours : any) => ours !== row.Id) });
             }
             return true;
         }
@@ -71,7 +71,7 @@ export class ResponseHandler extends React.Component<any, any> {
             }
             else{
                 for (var i=0; i < rows.length; i++){
-                    interestedArray.push(rows[i].RoomName);
+                    interestedArray.push(rows[i].Id);
                 }
             }
             this.setState({
@@ -113,7 +113,7 @@ export class ResponseHandler extends React.Component<any, any> {
 
          var renderHead = (() => {
           return ( this.props.responseKeys.map( (item: any)=>{
-              if (item === 'rooms_name' || item ==='subcourses_uuid' || item === 'RoomName' ) {
+              if (item === 'rooms_name' || item ==='subcourses_uuid' || item === 'Id' ) {
                   return   <TableHeaderColumn isKey={true} dataAlign="center"
                                               dataField={item}> {item}</TableHeaderColumn>
               }
@@ -140,6 +140,7 @@ export class ResponseHandler extends React.Component<any, any> {
        else if (this.props.isSchedule === 'true') {
            return(
                <div>
+                   <h3> Quality of this schedule is : {this.props.quality}</h3>
                    <BootstrapTable
                        search
                        columnFilter

@@ -44,7 +44,8 @@ export class CourseScheduler extends React.Component<any, any> {
             this.setState({
                 schedule: true,
                 responseContent: result,
-                responseKeys: resultKeys
+                responseKeys: resultKeys,
+                quality : res.body.quality
             });
         }
 
@@ -89,7 +90,7 @@ export class CourseScheduler extends React.Component<any, any> {
         if (this.state.schedule === true) {
             return (
                 <div>
-                    <ResponseHandler isSchedule = 'true' responseKeys={this.state.responseKeys} responseContent ={this.state.responseContent} compiler="TypeScript" framework="React"/>
+                    <ResponseHandler quality={this.state.quality} isSchedule = 'true' responseKeys={this.state.responseKeys} responseContent ={this.state.responseContent} compiler="TypeScript" framework="React"/>
                 </div>
             )
         }
