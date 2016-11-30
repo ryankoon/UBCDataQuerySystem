@@ -84,7 +84,8 @@ export default class ExplorerController {
             let requiredFields: string[];
             if (type === 'courses') {
                 requiredFields = [datasetId + "_uuid", datasetId + "_dept", datasetId + "_id", datasetId + "_Section",
-                    datasetId + "_SectionSize", datasetId + "_SectionsToSchedule"];
+                    datasetId + "_SectionSize", datasetId + "_Avg", datasetId + "_Pass", datasetId + "_Fail",
+                    datasetId + "_Size", datasetId + "_SectionsToSchedule"];
             } else if (type === 'rooms') {
                 requiredFields = [datasetId + "_name", datasetId + "_seats"];
             }
