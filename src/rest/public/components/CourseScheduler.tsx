@@ -22,7 +22,7 @@ export class CourseScheduler extends React.Component<any, any> {
     }
     handleResponse(res : any, payload : any){
         // TODO: unremove comments. this is temporary to test FB
-   //     if (res.body && res.body.err && res.body.err.length > 0){
+        if (res.body && res.body.err && res.body.err.length > 0){
             // set localStorage to track ratings
             let userList = JSON.parse(localStorage.getItem('facebookUserIds'));
             let currentUser = localStorage.getItem('currentFacebookUserId');
@@ -36,19 +36,18 @@ export class CourseScheduler extends React.Component<any, any> {
                 errorMessage: res.body.err,
                 schedule : false
             });
-   //    }
-        /*
+       }
         else {
             let result = res.body.bestSchedule
             // TODO: ensure set keys works.
-            let resultKeys = Object.keys(result);
+            let resultKeys = Object.keys(result[0]);
             this.setState({
                 schedule: true,
                 responseContent: result,
                 responseKeys: resultKeys
             });
         }
-        */
+
     }
 
 
@@ -90,7 +89,7 @@ export class CourseScheduler extends React.Component<any, any> {
         if (this.state.schedule === true) {
             return (
                 <div>
-                    <ResponseHandler responseKeys={this.state.responseKeys} responseBody={this.state.responseBody} compiler="TypeScript" framework="React"/>
+                    <ResponseHandler isSchedule = 'true' responseKeys={this.state.responseKeys} responseContent ={this.state.responseContent} compiler="TypeScript" framework="React"/>
                 </div>
             )
         }
