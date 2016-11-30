@@ -236,7 +236,8 @@ export default class QueryController {
     public invalidateMultipleDatasets(queryKeys: string[]) {
         if (queryKeys && queryKeys.length > 0) {
             let datasetId = this.getDatasetId(queryKeys[0]);
-            if (datasetId && datasetId.toLowerCase() === "rooms") {
+            let singleString: string = queryKeys.join();
+            if (singleString && singleString.toLowerCase().indexOf("rooms_") !== -1) {
                 queryKeys.forEach(key => {
                     let keyDatasetId = this.getDatasetId(key);
                     if (datasetId !== keyDatasetId) {
