@@ -236,12 +236,14 @@ export default class QueryController {
     public invalidateMultipleDatasets(queryKeys: string[]) {
         if (queryKeys && queryKeys.length > 0) {
             let datasetId = this.getDatasetId(queryKeys[0]);
-            queryKeys.forEach(key => {
-                let keyDatasetId = this.getDatasetId(key);
-                if (datasetId !== keyDatasetId){
-                    throw new Error("Querying multiple datasets is not supported.");
-                }
-            });
+            if (datasetId === "rooms") {
+                queryKeys.forEach(key => {
+                    let keyDatasetId = this.getDatasetId(key);
+                    if (datasetId !== keyDatasetId) {
+                        throw new Error("Querying multiple datasets is not supported.");
+                    }
+                });
+            }
         }
     }
 
