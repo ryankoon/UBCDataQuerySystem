@@ -15,6 +15,7 @@
   ],
   "exclude": [
     "node_modules",
-    "src/rest/public"
+    "src/rest/public",
+    "src/rest/views"
   ]
 }
