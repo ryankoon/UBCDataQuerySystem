@@ -1548,27 +1548,27 @@ describe("QueryController", function () {
     it("Should invalidate queries with multiple datasets.", function() {
         let controller = new QueryController();
         let query: QueryRequest = {
-            "GET": ["asdf_uuid", "asdf_instructor", "aBadKey"],
+            "GET": ["rooms_uuid", "rooms_instructor", "aBadKey"],
             "WHERE": {
                 "AND": [
                     {"AND": [
-                        {"NOT": {"IS": {"asdf_instructor": "notAProf"}}},
+                        {"NOT": {"IS": {"rooms_instructor": "notAProf"}}},
                         {"NOT": {"LT": {"other_avg": -10}}},
-                        {"NOT": {"EQ": {"asdf_uuid": 11}}}
+                        {"NOT": {"EQ": {"rooms_uuid": 11}}}
                     ]
                     },
-                    {"NOT": {"IS": {"asdf_instructor": "selfTaught"}}}
+                    {"NOT": {"IS": {"rooms_instructor": "selfTaught"}}}
                 ]
             },
-            "GROUP": ["asdf_instructor", "asdf_uuid"],
-            "APPLY": [{"aBadKey": {"MAX": "asdf_key2"}}, {"anotherCustomKey": {"MIN": "asdf_key3"}}],
-            "ORDER": {"dir": "UP", "keys": ["asdf_uuid", "asdf_instructor"]},
+            "GROUP": ["rooms_instructor", "rooms_uuid"],
+            "APPLY": [{"aBadKey": {"MAX": "rooms_key2"}}, {"anotherCustomKey": {"MIN": "rooms_key3"}}],
+            "ORDER": {"dir": "UP", "keys": ["rooms_uuid", "rooms_instructor"]},
             "AS": "TABLE"
         };
 
         let allkeys = controller.getAllQueryKeys(query);
 
-        let expectedKeys: string[] = ["asdf_instructor", "other_avg", "asdf_uuid", "asdf_key2", "asdf_key3"];
+        let expectedKeys: string[] = ["rooms_instructor", "other_avg", "rooms_uuid", "rooms_key2", "rooms_key3"];
 
         expect(allkeys).to.be.have.members(expectedKeys);
         expect(() => {
