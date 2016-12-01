@@ -120,6 +120,7 @@ export default class ScheduleController {
 
         // 3. Calculate the quality
                 let quality = this.calculateQuality(bestSchedule, courseSections.length);
+                quality = Math.round(quality * 100) / 100;
                 result = {"bestSchedule": bestSchedule, "quality": quality};
             } else {
                 Log.error("No schedules were found!");
