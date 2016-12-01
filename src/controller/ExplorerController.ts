@@ -27,22 +27,27 @@ export default class ExplorerController {
         try {
             let reqBodyJson = JSON.parse(reqBody);
 
-            let reqKeys = Object.keys(reqBodyJson);
+            let getAndGroupKeys = Object.keys(reqBodyJson);
+
+            // Separate orderby key
+
+
+
             //remove latlon
             let tempKeys: string[] = [];
-            reqKeys.forEach(key => {
+            getAndGroupKeys.forEach(key => {
                 if (key !== "rooms_lat" && key !== "rooms_lon") {
                     tempKeys.push(key);
                 }
             });
-            reqKeys = tempKeys;
+            getAndGroupKeys = tempKeys;
 
 
             let whereObject: IObject = {};
             let andObjects: IObject[] = [];
             let optionalOrObjects: IObject = {"OR": []};
 
-            reqKeys.forEach(getKey => {
+            getAndGroupKeys.forEach(getKey => {
                 let comparatorObj = this.generateComparatorObject(getKey, reqBodyJson[getKey], numComparison);
                 // check for OR condition (ie when distance is set)
                 // building name would not need to be the same
@@ -78,7 +83,7 @@ export default class ExplorerController {
 
             // add required keys
             let queryController = new QueryController();
-            let datasetId = queryController.getDatasetId(reqKeys[0]);
+            let datasetId = queryController.getDatasetId(getAndGroupKeys[0]);
 
             // add required fields to return based on explorer types
             let requiredFields: string[];
@@ -100,18 +105,18 @@ export default class ExplorerController {
                 requiredFields = [datasetId + "_name", datasetId + "_seats"];
             }
             let tempFields = requiredFields;
-            reqKeys.forEach(field => {
+            getAndGroupKeys.forEach(field => {
                 if (requiredFields.indexOf(field) === -1) {
                     tempFields.push(field);
                 }
             });
-            reqKeys = tempFields;
+            getAndGroupKeys = tempFields;
 
             let courseQuery: QueryRequest =
                 {
-                    "GET": reqKeys,
+                    "GET": getAndGroupKeys,
                     "WHERE": whereObject,
-                    "GROUP": reqKeys,
+                    "GROUP": getAndGroupKeys,
                     "APPLY": [],
                     "AS": "TABLE"
                 };
@@ -127,7 +132,7 @@ export default class ExplorerController {
         let valueType: string = typeof(value);
         let parsedFloat = Number(value);
 
-        if (!isNaN(parsedFloat)){
+        if (!isNaN(parsedFloat) && key !== "subcourses_Section" && key !== "subcourses_Course"){
             valueType = "number";
 
             // assuming that the query is for WITHIN room/section size
