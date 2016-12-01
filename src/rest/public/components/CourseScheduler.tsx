@@ -40,7 +40,7 @@ export class CourseScheduler extends React.Component<any, any> {
             if (userList && userList.length > 0) {
                 for (var i = 0; i < userList.length; i++) {
                     if (userList[i] && userList[i].id === currentUser) {
-                        if (userList[i].rating < res.body.quality) {
+                        if (res.body.quality >= 0.8) {
                             // Lets send a message.
                             let userObj = {
                                 rating: res.body.quality,
@@ -64,7 +64,6 @@ export class CourseScheduler extends React.Component<any, any> {
         }
 
     }
-
 
     componentWillMount(){
         if (localStorage.getItem('rooms') !== null && localStorage.getItem('courses') !== null){

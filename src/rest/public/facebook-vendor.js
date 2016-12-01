@@ -14,7 +14,7 @@ window.fbAsyncInit = function() {
     js = d.createElement(s); js.id = id;
     js.src = "//connect.facebook.net/en_US/sdk.js";
     fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));3
+}(document, 'script', 'facebook-jssdk'));
 
 $(document).ready(function () {
 
@@ -78,23 +78,28 @@ $(document).ready(function () {
                 var permToken = 'EAAYw5AEZAoREBAMQ0YlZATZCCsZCpnGUhzASzPEaKRVdxfK6960qFlobKkdAsa2JQoHccVHMaLFsgw7z5wW5k5chrp86ZBKOJLvfEHhRkNY6yTCEPYgBZAyqmh7n9raeOjSTPKEaycJsBvSOT2F4wf';
                // https://graph.facebook.com/v2.2/319036708483383/notifications?access_token=1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8
                 if (localStorage.getItem('newRatingFound') !== null) {
-
                 var valueOfRatedUser = JSON.parse(localStorage.getItem('newRatingFound'));
-                var path = '/' + valueOfRatedUser.id + '/notifications?access_token=' + '1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8';
-
-                /*
-                Lets then check this users rating and see
-                 */
-
-
-                var params = {
-                    href : 'http:localhost:4321/scheduler',
-                    template: 'Your schedule score increased by ' + valueOfRatedUser.rating + '!'
-                }
-                var method = "post";
-                FB.api(path, method, params, function (res, err){
-                   console.log(res);
-                });
+                var allfbusers = JSON.parse(localStorage.getItem('facebookUserIds'));
+                allfbusers.forEach(function(fbuser)
+                    {
+                        var path = '/' + fbuser.id + '/notifications?access_token=' + '1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8';
+                        var params;
+                        if (fbuser.id == valueOfRatedUser.id) {
+                            params = {
+                                href: 'http:localhost:4321/scheduler',
+                                template: 'You achieved a high schedule score of ' + valueOfRatedUser.rating + '!'
+                            }
+                        } else {
+                            params = {
+                                href: 'http:localhost:4321/scheduler',
+                                template: '@['+ valueOfRatedUser.id + '] achieved a high schedule score of ' + valueOfRatedUser.rating + '!'
+                            }
+                        }
+                        var method = "post";
+                        FB.api(path, method, params, function (res, err) {
+                            console.log(res);
+                        });
+                    });
                 localStorage.removeItem('newRatingFound');
                 }
 
@@ -110,4 +115,68 @@ $(document).ready(function () {
             }
         });
     });
+
+    function loginfbAndUpdate() {
+        FB.getLoginStatus(function(response) {
+            console.log('Entered get login status');
+            if (response.status === 'connected') {
+                faceBookInitialLocalStorage(response);
+                /*
+                 GET /oauth/access_token
+                 ?client_id={app-id}
+                 &client_secret={app-secret}
+                 &grant_type=client_credentials
+                 Need to make a GRAPH API get to this address in order to get an APP access token
+                 */
+                var permToken = 'EAAYw5AEZAoREBAMQ0YlZATZCCsZCpnGUhzASzPEaKRVdxfK6960qFlobKkdAsa2JQoHccVHMaLFsgw7z5wW5k5chrp86ZBKOJLvfEHhRkNY6yTCEPYgBZAyqmh7n9raeOjSTPKEaycJsBvSOT2F4wf';
+                // https://graph.facebook.com/v2.2/319036708483383/notifications?access_token=1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8
+                if (localStorage.getItem('newRatingFound') !== null) {
+                    var valueOfRatedUser = JSON.parse(localStorage.getItem('newRatingFound'));
+                    var allfbusers = JSON.parse(localStorage.getItem('facebookUserIds'));
+                    allfbusers.forEach(function(fbuser)
+                    {
+                        var path = '/' + fbuser.id + '/notifications?access_token=' + '1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8';
+                        var params;
+                        if (fbuser.id == valueOfRatedUser.id) {
+                            params = {
+                                href: 'http:localhost:4321/scheduler',
+                                template: 'You achieved a high schedule score of ' + valueOfRatedUser.rating + '!'
+                            }
+                        } else {
+                            params = {
+                                href: 'http:localhost:4321/scheduler',
+                                template: '@['+ valueOfRatedUser.id + '] achieved a high schedule score of ' + valueOfRatedUser.rating + '!'
+                            }
+                        }
+                        var method = "post";
+                        FB.api(path, method, params, function (res, err) {
+                            console.log(res);
+                        });
+                    });
+                    localStorage.removeItem('newRatingFound');
+                }
+
+
+            }
+            else {
+                FB.login(function (response) {
+                    // need app access token
+                    // We have current user-ID... but now ...
+                    // can we notify users who are mutual friends?
+                    faceBookInitialLocalStorage(response);
+                });
+            }
+        });
+    }
+    var si;
+    $('#react-tabs-4').on("click", function () {
+            si = setInterval(function() {
+                if ($('.react-bs-table') && $('.react-bs-table').length > 0) {
+                    console.log("trying");
+                    loginfbAndUpdate();
+                    clearInterval(si);
+                }
+            }, 1000);
+        });
+
 });
