@@ -4,3 +4,8 @@
 .hide {
     display: none;
 }
+th {
+    white-space: initial !important;
+    text-overflow: initial !important;
+    word-break: break-word;
+}

@@ -52,7 +52,6 @@ export class CourseScheduler extends React.Component<any, any> {
                     }
                 }
             }
-
             let result = res.body.bestSchedule
             // TODO: ensure set keys works.
             let resultKeys = Object.keys(result[0]);
