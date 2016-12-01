@@ -7,6 +7,7 @@ import * as ReactBootstrap from 'react-bootstrap';
 import {RoomForm} from "./RoomForm";
 import {ResponseHandler} from "./ResponseHandler";
 import Button = ReactBootstrap.Button;
+import {Alerts} from "./Alert";
 
 
 export class RoomExplorer extends React.Component<any, any> {
@@ -18,12 +19,14 @@ export class RoomExplorer extends React.Component<any, any> {
             furniture_type : [],
             responseContent : [],
             responseKeys : [],
-            output : false
+            output : false,
+            triggerAlert : false,
+            errorMessage : null
+
         }
         this.handleResponse = this.handleResponse.bind(this);
     }
     componentWillReceiveProps(){
-    console.log('hit props');
     }
 
     handleResponse (data : any, sentStates : string) {
@@ -43,6 +46,12 @@ export class RoomExplorer extends React.Component<any, any> {
                 output : true,
                 responseKeys : keys
             })
+        }
+        else{
+            this.setState({
+                triggerAlert : true,
+                errorMessage : 'The course search retrieved no results.'
+            });
         }
     }
 
@@ -94,14 +103,27 @@ export class RoomExplorer extends React.Component<any, any> {
 
     render() {
         if (this.state.output === false) {
-            return (
-                <div>
-                    <RoomForm handleResponse={this.handleResponse.bind(this)} buildings={this.state.building_name}
-                              room_type={this.state.room_type} furniture={this.state.furniture_type}
-                              compiler="TypeScript"
-                              framework="React"/>
-                </div>
-            );
+            if (this.state.triggerAlert === false){
+                return (
+                    <div>
+                        <RoomForm handleResponse={this.handleResponse.bind(this)} buildings={this.state.building_name}
+                                  room_type={this.state.room_type} furniture={this.state.furniture_type}
+                                  compiler="TypeScript"
+                                  framework="React"/>
+                    </div>
+                );
+            }
+            else {
+                return (
+                    <div>
+                        <Alerts alertStyle="danger" message = {this.state.errorMessage}></Alerts>
+                        <RoomForm handleResponse={this.handleResponse.bind(this)} buildings={this.state.building_name}
+                                  room_type={this.state.room_type} furniture={this.state.furniture_type}
+                                  compiler="TypeScript"
+                                  framework="React"/>
+                    </div>
+                );
+            }
         }
         else{
             return (

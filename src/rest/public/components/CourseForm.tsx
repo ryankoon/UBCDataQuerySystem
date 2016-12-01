@@ -141,18 +141,6 @@ export class CourseForm extends React.Component<any, any> {
                             return <option  value={item}>{item}</option>
                         })}
                     </FormControl>
-                    <ControlLabel> Sort by a class average</ControlLabel>
-                    <ButtonGroup onChange = {this.setAverage.bind(this)}>
-                        <Radio name="average"  active value = "undefined" inline>Neither </Radio>
-                        <Radio name="average"  value = "high" inline>Highest </Radio>
-                        <Radio name="average"  value = "high" inline>Lowest </Radio>
-                    </ButtonGroup>
-                    <ControlLabel> Pass/Fail Sort </ControlLabel>
-                    <ButtonGroup onChange = {this.setPassFail.bind(this)}>
-                        <Radio name="average"  active value = "undefined" inline> Neither </Radio>
-                        <Radio name="average"  value = "pass" inline> Pass </Radio>
-                        <Radio name="average"  value = "fail" inline> Fail </Radio>
-                    </ButtonGroup>
                     <Button type="submit" onClick = {this.submitCourseQuery.bind(this)}> Submit Query </Button>
                 </FormGroup>
             </form>
