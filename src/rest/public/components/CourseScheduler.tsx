@@ -100,7 +100,10 @@ export class CourseScheduler extends React.Component<any, any> {
         }
     }
     render() {
-        if (this.state.schedule === true) {
+        if (this.state.schedule === false && (localStorage.getItem('rooms') === null || localStorage.getItem('courses') === null)){
+                return(<Alerts alertStyle="danger"  message = {this.state.errorMessage} ></Alerts>)
+        }
+        else if (this.state.schedule === true) {
             return (
                 <div>
                     <ResponseHandler quality={this.state.quality} isSchedule = 'true' responseKeys={this.state.responseKeys} responseContent ={this.state.responseContent} compiler="TypeScript" framework="React"/>
@@ -108,7 +111,10 @@ export class CourseScheduler extends React.Component<any, any> {
             )
         }
         else{
-            return(<Alerts alertStyle="danger"  message = {this.state.errorMessage} ></Alerts>)
+            return (
+            (<Alerts alertStyle="info"  message = 'Waiting for response....' ></Alerts>)
+            )
         }
+
     }
 }
