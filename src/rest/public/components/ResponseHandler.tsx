@@ -30,7 +30,7 @@ export class ResponseHandler extends React.Component<any, any> {
                 this.setState({
                     selected: [ ...this.state.selected, row.subcourses_uuid ]
                 });
-            }else if (this.props.formContext="rooms"){
+            }else if (this.props.formContext === "rooms"){
                 this.setState({
                     selected: [ ...this.state.selected, row.rooms_name ]
                 });
@@ -89,15 +89,33 @@ export class ResponseHandler extends React.Component<any, any> {
     }
     applySchedule(e : any){
         if (this.state.selected.length > 0) {
-            localStorage.setItem(this.props.formContext, this.state.selected[0]);
+            let temp : any = [];
+            var itemList : any = [];
+            if (this.props.formContext === 'rooms'){
+                itemList = this.state.selected[0];
+            }
+            else{
+                itemList = this.state.selected;
+            }
+            for (var i=0; i < itemList.length; i++)
+            {
+                temp.push(itemList[i]);
+            }
+            var currentLocalStorage = localStorage.getItem(this.props.formContext);
+            if (currentLocalStorage !== null) {
+                let ourArray = currentLocalStorage.split(',');
+                let mergedArray = temp.concat(ourArray);
+                localStorage.setItem(this.props.formContext, mergedArray);
+            }
+            else {
+                localStorage.setItem(this.props.formContext, temp);
+            }
+
             console.log('set schedule. lets show success!');
             this.setState({
                 alert : true
             });
 
-        }
-        else{
-            localStorage.removeItem(this.props.formContext);
         }
     }
 

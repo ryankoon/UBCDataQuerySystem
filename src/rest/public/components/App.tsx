@@ -11,6 +11,9 @@ export class App extends React.Component<any, any> {
         this.state = {
 
         }
+        localStorage.removeItem('rooms');
+        localStorage.removeItem('courses');
+
     }
     render() {
         return (
