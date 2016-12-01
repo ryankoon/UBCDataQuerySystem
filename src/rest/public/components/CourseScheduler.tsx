@@ -10,6 +10,10 @@ import {Alerts} from './Alert';
 import * as request from 'superagent';
 import * as superagent from "superagent";
 
+interface Window {
+    FB: any;
+}
+
 export class CourseScheduler extends React.Component<any, any> {
     constructor(props:any) {
         super(props);
@@ -23,21 +27,32 @@ export class CourseScheduler extends React.Component<any, any> {
     handleResponse(res : any, payload : any){
         // TODO: unremove comments. this is temporary to test FB
         if (res.body && res.body.err && res.body.err.length > 0){
-            // set localStorage to track ratings
-            let userList = JSON.parse(localStorage.getItem('facebookUserIds'));
-            let currentUser = localStorage.getItem('currentFacebookUserId');
-            for (var i=0; i < userList.length; i++){
-                if(userList[i] && userList[i].id === currentUser){
-                    userList[i].rating = res.body.quality; // TODO : ensure score is set.
-                }
-            }
-            localStorage.setItem('facebookUserIds', JSON.stringify(userList));
             this.setState({
                 errorMessage: res.body.err,
                 schedule : false
             });
        }
         else {
+            // set localStorage to track ratings
+            let userList = JSON.parse(localStorage.getItem('facebookUserIds'));
+            localStorage.setItem('facebookUserIds', JSON.stringify(userList));
+            let currentUser = localStorage.getItem('currentFacebookUserId');
+            if (userList && userList.length > 0) {
+                for (var i = 0; i < userList.length; i++) {
+                    if (userList[i] && userList[i].id === currentUser) {
+                        if (userList[i].rating < res.body.quality) {
+                            // Lets send a message.
+                            let userObj = {
+                                rating: res.body.quality,
+                                id: currentUser
+                            }
+                            localStorage.setItem('newRatingFound', JSON.stringify(userObj));
+                        }
+                        userList[i].rating = res.body.quality; // TODO : ensure score is set.
+                    }
+                }
+            }
+
             let result = res.body.bestSchedule
             // TODO: ensure set keys works.
             let resultKeys = Object.keys(result[0]);
