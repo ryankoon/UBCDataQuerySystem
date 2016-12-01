@@ -15,7 +15,7 @@ export class CourseForm extends React.Component<any, any> {
         this.state = {
             subcourses_title : null,
             subcourses_instructor : null,
-            subcourses_section : null,
+            subcourses_Section : null,
             subcourses_SectionSize : null,
             subcourses_dept : null,
             subcourses_average: null,
@@ -34,7 +34,7 @@ export class CourseForm extends React.Component<any, any> {
     }
     setSectionNumber(e : any) {
         this.setState({
-            subcourses_section : e.target.value
+            subcourses_Section : e.target.value
         });
     }
     setSectionSize(e: any){
