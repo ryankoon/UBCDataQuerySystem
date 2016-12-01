@@ -4,7 +4,7 @@
 .hide {
     display: none;
 }
-th {
+tr > th {
     white-space: initial !important;
     text-overflow: initial !important;
     word-break: break-word;
