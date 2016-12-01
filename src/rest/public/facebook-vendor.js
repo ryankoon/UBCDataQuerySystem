@@ -47,8 +47,18 @@ $(document).ready(function () {
                 localStorage.setItem('facebookUserIds', JSON.stringify(localFacebookIds));
             }
         }
-
         localStorage.setItem('currentFacebookUserId', currentUserId);
+        var params = {
+            client_id : 1742605689397521,
+            client_secret : '5b6416dcd978b547263135c130757dd3',
+            grant_type : response.authResponse.accessToken
+        }
+        /*
+        var queryString = 'client_id=' + params.client_id + '?client_secret=' + params.client_secret + '?grant_type=' + params.grant_type
+        FB.api('/oauth/access_token?' + queryString, 'GET', function (err, res){
+           console.log(res);
+        });
+        */
     }
 
 
@@ -65,27 +75,30 @@ $(document).ready(function () {
                  &grant_type=client_credentials
                  Need to make a GRAPH API get to this address in order to get an APP access token
                  */
+                var permToken = 'EAAYw5AEZAoREBAMQ0YlZATZCCsZCpnGUhzASzPEaKRVdxfK6960qFlobKkdAsa2JQoHccVHMaLFsgw7z5wW5k5chrp86ZBKOJLvfEHhRkNY6yTCEPYgBZAyqmh7n9raeOjSTPKEaycJsBvSOT2F4wf';
+               // https://graph.facebook.com/v2.2/319036708483383/notifications?access_token=1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8
+                if (localStorage.getItem('newRatingFound') !== null) {
 
-                var path = '/' + response.authResponse.userID + '/notifications';
+                var valueOfRatedUser = JSON.parse(localStorage.getItem('newRatingFound'));
+                var path = '/' + valueOfRatedUser.id + '/notifications?access_token=' + '1742605689397521|F-vL6J-Q0jTYAYfFcp8vCMI5ch8';
+
+                /*
+                Lets then check this users rating and see
+                 */
+
+
                 var params = {
-                    access_token : response.authResponse.accessToken, // need APP access token.
                     href : 'http:localhost:4321/scheduler',
-                    template: {Message : 'hello bob'}
+                    template: 'Your schedule score increased by ' + valueOfRatedUser.rating + '!'
                 }
                 var method = "post";
                 FB.api(path, method, params, function (res, err){
                    console.log(res);
                 });
-/*
-                FB.api('/' + response.authResponse.userId +
-                    '/notifications?' +
-                    'access_token=' + response.authResponse.accessToken + '&' +
-                    'href="http://localhost:4321/scheduler&' +
-                    '&template="hi im bob"'
-                    , function (res) {
-                        console.log(res);
-                    });
-                    */
+                localStorage.removeItem('newRatingFound');
+                }
+
+
             }
             else {
                 FB.login(function (response) {
