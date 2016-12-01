@@ -89,7 +89,14 @@ export class ResponseHandler extends React.Component<any, any> {
     }
     applySchedule(e : any){
         if (this.state.selected.length > 0) {
-            localStorage.setItem(this.props.formContext, this.state.selected[0]);
+            let temp : any = [];
+            var itemList = this.state.selected[0];
+            for (var i=0; i < itemList.length; i++)
+            {
+                temp.push(itemList[i]);
+            }
+            localStorage.setItem(this.props.formContext, temp);
+
             console.log('set schedule. lets show success!');
             this.setState({
                 alert : true
