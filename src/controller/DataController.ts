@@ -63,7 +63,7 @@ export default class DataController {
                             let roomsNearby: IRoom[] = [];
 
                             result.forEach((response: gDistanceResponse, index: number) => {
-                                if (response.distanceValue <= distance*1000) {
+                                if (response.distanceValue <= distance) {
                                     let travelModeColumnName: string = travelBy + "_distance";
                                     rooms[index].traveldistance = response.distanceValue;
                                     roomsNearby.push(rooms[index]);
