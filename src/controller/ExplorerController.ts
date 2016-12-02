@@ -26,11 +26,18 @@ export default class ExplorerController {
                       numComparison: string = "EQ"): QueryRequest {
         try {
             let reqBodyJson = JSON.parse(reqBody);
+            let reqKeys = Object.keys(reqBodyJson);
+            let getAndGroupKeys: string[] = [];
+            let orderByKeys: string[] = [];
 
-            let getAndGroupKeys = Object.keys(reqBodyJson);
-
-            // Separate orderby key
-
+            // Separate getandgroup keys and orderby keys
+            reqKeys.forEach(reqKey => {
+                if (reqKey === "orderby") {
+                    orderByKeys = reqBodyJson[reqKey];
+                } else {
+                    getAndGroupKeys.push(reqKey);
+                }
+            });
 
 
             //remove latlon
@@ -104,6 +111,7 @@ export default class ExplorerController {
             } else if (type === 'rooms') {
                 requiredFields = [datasetId + "_name", datasetId + "_seats"];
             }
+            //remove duplicates caused by required fields and requested fields overlap
             let tempFields = requiredFields;
             getAndGroupKeys.forEach(field => {
                 if (requiredFields.indexOf(field) === -1) {
@@ -112,14 +120,28 @@ export default class ExplorerController {
             });
             getAndGroupKeys = tempFields;
 
-            let courseQuery: QueryRequest =
-                {
-                    "GET": getAndGroupKeys,
-                    "WHERE": whereObject,
-                    "GROUP": getAndGroupKeys,
-                    "APPLY": [],
-                    "AS": "TABLE"
-                };
+            let courseQuery: QueryRequest;
+
+            if (orderByKeys.length > 0) {
+                courseQuery =
+                    {
+                        "GET": getAndGroupKeys,
+                        "WHERE": whereObject,
+                        "GROUP": getAndGroupKeys,
+                        "APPLY": [],
+                        "ORDER": {"dir": "DOWN", "keys": orderByKeys},
+                        "AS": "TABLE"
+                    };
+            } else {
+                courseQuery =
+                    {
+                        "GET": getAndGroupKeys,
+                        "WHERE": whereObject,
+                        "GROUP": getAndGroupKeys,
+                        "APPLY": [],
+                        "AS": "TABLE"
+                    };
+            }
 
             return courseQuery;
         } catch (err) {
@@ -136,7 +158,8 @@ export default class ExplorerController {
             valueType = "number";
 
             // assuming that the query is for WITHIN room/section size
-            if (numComparator === "LT") {
+            // override rooms_seats
+            if (numComparator === "LT" && key !== "rooms_seats") {
                 result[key] = parsedFloat + 1;
             } else {
                 result[key] = parsedFloat;
@@ -150,7 +173,13 @@ export default class ExplorerController {
         } else if (valueType === "number") {
             let querykeyvalueObj = result;
                 result = {};
-                result[numComparator] = querykeyvalueObj;
+
+                // override numComparator for rooms_seats
+                if (key === "rooms_seats") {
+                    result["GT"] = querykeyvalueObj;
+                } else {
+                    result[numComparator] = querykeyvalueObj;
+                }
         }
 
         return result;

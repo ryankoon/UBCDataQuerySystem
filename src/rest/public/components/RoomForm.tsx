@@ -112,7 +112,7 @@ export class RoomForm extends React.Component<any, any> {
                     <FormControl input="number" onChange = {this.setDistance.bind(this)} componentClass="textarea" placeholder="Please enter a distance in km.">
                     </FormControl>
 
-                    <ControlLabel> Within Room Size </ControlLabel>
+                    <ControlLabel>Room Size Greater Than:</ControlLabel>
                     <FormControl onChange = {this.setSize.bind(this)} componentClass="textarea" placeholder="Please enter a room size.">
                     </FormControl>
 
