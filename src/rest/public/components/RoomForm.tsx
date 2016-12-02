@@ -108,8 +108,8 @@ export class RoomForm extends React.Component<any, any> {
                     </FormControl>
 
 
-                    <ControlLabel> Within Distance </ControlLabel>
-                    <FormControl input="number" onChange = {this.setDistance.bind(this)} componentClass="textarea" placeholder="Please enter a distance in km.">
+                    <ControlLabel> Within Distance (Walking Route)</ControlLabel>
+                    <FormControl input="number" onChange = {this.setDistance.bind(this)} componentClass="textarea" placeholder="Please enter a distance in meters.">
                     </FormControl>
 
                     <ControlLabel>Room Size Greater Than:</ControlLabel>
