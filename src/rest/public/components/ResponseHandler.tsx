@@ -91,12 +91,15 @@ export class ResponseHandler extends React.Component<any, any> {
         if (this.state.selected.length > 0) {
             let temp : any = [];
             var itemList : any = [];
+            /*
             if (this.props.formContext === 'rooms'){
                 itemList = this.state.selected[0];
             }
             else{
                 itemList = this.state.selected;
             }
+            */
+            itemList = this.state.selected;
             for (var i=0; i < itemList.length; i++)
             {
                 temp.push(itemList[i]);

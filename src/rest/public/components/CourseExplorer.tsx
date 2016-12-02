@@ -19,6 +19,7 @@ export class CourseExplorer extends React.Component<any, any> {
             sections : [],
             responseContent : [],
             responseKeys : [],
+            courseNumbers : [],
             output : false,
             triggerAlert : false,
             errorMessage : null
@@ -63,6 +64,7 @@ export class CourseExplorer extends React.Component<any, any> {
                 let arr_title : Array<string> = [];
                 let arr_size : Array<Number> = [];
                 let arr_section : Array<string> = [];
+                let arr_courseNumber : Array<any> = [];
 
 
                 for (let i=0; i < arrayOfCourseObjects.length; i++) {
@@ -83,12 +85,19 @@ export class CourseExplorer extends React.Component<any, any> {
                     if (arr_size.indexOf(arrayOfCourseObjects[i].subcourses_Size)=== -1) {
                         arr_size.push(arrayOfCourseObjects[i].subcourses_Size);
                     }
-
+                    if (arr_courseNumber.indexOf(arrayOfCourseObjects[i].subcourses_id)=== -1) {
+                        arr_courseNumber.push(arrayOfCourseObjects[i].subcourses_id);
+                    }
                 }
 
                 let sorted_size : Array<Number> = arr_size.sort(function (a : any,b : any) {
                     return a-b;
                 });
+
+                let sorted_courseNumber : Array<Number> = arr_courseNumber.sort(function(a: any, b : any){
+                   return a-b;
+                });
+
                 let sorted_arr_instructors : Array<string> = arr_instructors.sort(function (a,b)  {
                     if (a < b) return -1;
                     if (b > a) return 1;
@@ -99,8 +108,9 @@ export class CourseExplorer extends React.Component<any, any> {
                     instructors : sorted_arr_instructors,
                     depts : arr_dept,
                     titles: arr_title,
-                   sections : arr_section,
-                    sizes : sorted_size
+                    sections : arr_section,
+                    sizes : sorted_size,
+                    courseNumbers : sorted_courseNumber
                 })
             }).catch(err => {
             // TODO: need to display warning / error handling
@@ -112,7 +122,9 @@ export class CourseExplorer extends React.Component<any, any> {
             if (this.state.triggerAlert === false){
                 return (
                     <div>
-                        <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap = {this.props.OnClick} sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
+                        <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap = {this.props.OnClick}
+                                    courses = {this.state.courseNumbers}
+                                    sizes = {this.state.sizes} instructors = {this.state.instructors} depts ={this.state.depts} sections = {this.state.sections} titles = {this.state.titles}  compiler="TypeScript" framework="React"/>
                     </div>
                 );
             }
@@ -121,6 +133,7 @@ export class CourseExplorer extends React.Component<any, any> {
                     <div>
                         <Alerts alertStyle="danger" message = {this.state.errorMessage}></Alerts>
                         <CourseForm handleResponse={this.handleResponse.bind(this)} tabSwap={this.props.OnClick}
+                                    courses = {this.state.courseNumbers}
                                     sizes={this.state.sizes} instructors={this.state.instructors}
                                     depts={this.state.depts} sections={this.state.sections} titles={this.state.titles}
                                     compiler="TypeScript" framework="React"/>
