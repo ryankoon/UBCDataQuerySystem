@@ -158,7 +158,8 @@ export default class ExplorerController {
             valueType = "number";
 
             // assuming that the query is for WITHIN room/section size
-            if (numComparator === "LT") {
+            // override rooms_seats
+            if (numComparator === "LT" && key !== "rooms_seats") {
                 result[key] = parsedFloat + 1;
             } else {
                 result[key] = parsedFloat;
@@ -172,7 +173,13 @@ export default class ExplorerController {
         } else if (valueType === "number") {
             let querykeyvalueObj = result;
                 result = {};
-                result[numComparator] = querykeyvalueObj;
+
+                // override numComparator for rooms_seats
+                if (key === "rooms_seats") {
+                    result["GT"] = querykeyvalueObj;
+                } else {
+                    result[numComparator] = querykeyvalueObj;
+                }
         }
 
         return result;
