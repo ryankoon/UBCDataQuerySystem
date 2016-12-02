@@ -131,10 +131,10 @@ export class CourseForm extends React.Component<any, any> {
         let orderByArray : Array<string> = [];
 
         if (orderByFail === true){
-            orderByArray.push('subcourses_Fail');
+            orderByArray.push('subcourses_Pass');
         }
         if (orderByPass === true){
-            orderByArray.push('subcourses_Pass');
+            orderByArray.push('subcourses_Fail');
         }
         if (orderByAverage === true) {
             orderByArray.push('subcourses_Avg');
