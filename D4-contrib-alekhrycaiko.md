@@ -19,3 +19,19 @@ other contribs:
 - our scrumboard.
 - planning
 - worked with ryan to parallelize our development the best we could.
+
+
+
+various pull requests, just look through pull-requests for my name:
+
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/97
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/91
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/88
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/85
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/77
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/75
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/69
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/67
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/66
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/64
+https://github.com/CS310-2016Fall/cpsc310project_team52/pull/63
