@@ -8,6 +8,7 @@ import FormGroup = ReactBootstrap.FormGroup;
 import Button = ReactBootstrap.Button;
 import Radio = ReactBootstrap.Radio;
 import ButtonGroup = ReactBootstrap.ButtonGroup;
+import Checkbox = ReactBootstrap.Checkbox;
 
 export class CourseForm extends React.Component<any, any> {
     constructor(props : any){
@@ -19,7 +20,10 @@ export class CourseForm extends React.Component<any, any> {
             subcourses_SectionSize : null,
             subcourses_dept : null,
             subcourses_average: null,
-            subcourses_passfail : null
+            subcourses_passfail : null,
+            orderByAverage : false,
+            orderByPass : false,
+            orderByFail : false
         }
     }
     setCourseName(e : any) {
@@ -71,13 +75,71 @@ export class CourseForm extends React.Component<any, any> {
             })
         }
     }
-
+    setOrderByAverage(e:any) {
+        if (e.target.checked){
+            this.setState({
+                orderByAverage : true
+            });
+        }
+        else{
+            this.setState({
+                orderByAverage: false
+            })
+        }
+    }
+    setOrderByPass(e:any) {
+        if (e.target.checked) {
+            this.setState({
+                orderByPass : true
+            })
+        }
+        else{
+            this.setState({
+                orderByPass : false
+            })
+        }
+    }
+    setOrderByFail(e:any) {
+        if (e.target.checked){
+            this.setState({
+                orderByFail : true
+            })
+        }else{
+            this.setState({
+                orderByFail : false
+            })
+        }
+    }
     submitCourseQuery(e: any) {
         e.preventDefault();
+
+
         let tempState = this.state;
 
+        /*
+        Need to account for the ordering now (hacky unfortunately)
+         */
+        let orderByFail = this.state.orderByFail;
+        let orderByPass = this.state.orderByPass;
+        let orderByAverage = this.state.orderByAverage;
+        let orderByArray : Array<string> = [];
+
+        if (orderByFail === true){
+            orderByArray.push('subcourses_Fail');
+        }
+        if (orderByPass === true){
+            orderByArray.push('subcourses_Pass');
+        }
+        if (orderByAverage === true) {
+            orderByArray.push('subcourses_Avg');
+        }
+        if (orderByArray.length > 0 ){
+            tempState['orderby'] = orderByArray;
+        }
+
         for (var key in tempState){
-            if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === 'undefined'){
+            if(tempState[key] === null || tempState[key] === "select" || tempState[key] === "" || tempState[key] === 'undefined'
+                || key === 'orderByFail' || key === 'orderByPass' || key === 'orderByAverage'){
                 delete tempState[key];
             }
         }
@@ -141,6 +203,18 @@ export class CourseForm extends React.Component<any, any> {
                             return <option  value={item}>{item}</option>
                         })}
                     </FormControl>
+                    <FormGroup>
+                        Order by :
+                        <Checkbox onChange={this.setOrderByPass.bind(this)} value="pass" inline>
+                            Pass
+                        </Checkbox>
+                        <Checkbox onChange={this.setOrderByFail.bind(this)} value="fail"  inline>
+                            Fail
+                        </Checkbox>
+                        <Checkbox onChange={this.setOrderByAverage.bind(this)} value="average"inline>
+                            Avg
+                        </Checkbox>
+                    </FormGroup>
                     <Button type="submit" onClick = {this.submitCourseQuery.bind(this)}> Submit Query </Button>
                 </FormGroup>
             </form>
