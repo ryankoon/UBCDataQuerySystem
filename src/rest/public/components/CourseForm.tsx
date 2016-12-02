@@ -197,7 +197,7 @@ export class CourseForm extends React.Component<any, any> {
                     </FormControl>
                     <ControlLabel>Departments</ControlLabel>
                     <FormControl onChange = {this.setDepartmentName.bind(this)} componentClass="select" placeholder="SectionNumber" >
-                        <option value = "undefined"> Select a section. </option>
+                        <option value = "undefined"> Select a department. </option>
                         {this.props.depts.map((item:any, index: any) =>{
                             return <option  value={item}>{item}</option>
                         })}
@@ -211,7 +211,7 @@ export class CourseForm extends React.Component<any, any> {
                     </FormControl>
                     <ControlLabel> Within section size </ControlLabel>
                     <FormControl onChange = {this.setSectionSize.bind(this)} componentClass="select" placeholder="Size" >
-                        <option value = "undefined"> Select a section. </option>
+                        <option value = "undefined"> Select a section size. </option>
                         {this.props.sizes.map((item:any, index: any) =>{
                             return <option  value={item}>{item}</option>
                         })}
