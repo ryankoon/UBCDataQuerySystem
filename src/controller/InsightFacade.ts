@@ -265,7 +265,7 @@ export default class InsightFacade implements IInsightFacade {
                 let courseQuery : QueryRequest =
                     {
                         "GET": ["subcourses_instructor", "subcourses_dept", "subcourses_uuid", "subcourses_title",
-                            "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section"],
+                            "subcourses_Size", "subcourses_SectionsToSchedule", "subcourses_Section", "subcourses_Course"],
                         "WHERE": {},
                         "AS" : "TABLE"
                     };

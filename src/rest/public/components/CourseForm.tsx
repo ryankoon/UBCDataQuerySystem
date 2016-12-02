@@ -21,6 +21,7 @@ export class CourseForm extends React.Component<any, any> {
             subcourses_dept : null,
             subcourses_average: null,
             subcourses_passfail : null,
+            subcourses_Course : null,
             orderByAverage : false,
             orderByPass : false,
             orderByFail : false
@@ -50,6 +51,11 @@ export class CourseForm extends React.Component<any, any> {
         this.setState({
             subcourses_dept : e.target.value
         });
+    }
+    setCourseNumber(e : any) {
+        this.setState({
+            subcourses_Course : e.target.value
+        })
     }
     setAverage(e : any) {
         if (e.target.value === 'undefined' || e.target.value === null){
@@ -175,6 +181,13 @@ export class CourseForm extends React.Component<any, any> {
                             return <option  value={item}>{item}</option>
                         })}
                     </FormControl>
+                    <ControlLabel> Course Number </ControlLabel>
+                    <FormControl onChange = {this.setCourseNumber.bind(this)} componentClass="select" placeholder="Course Number">
+                        <option value = "undefined"> Select a course number. </option>
+                        {this.props.courses.map((item:any, index: any) =>{
+                            return <option  value={item}>{item}</option>
+                        })}
+                    </FormControl>
                     <ControlLabel> Instructors </ControlLabel>
                     <FormControl onChange = {this.setInstructor.bind(this)} componentClass="select" placeholder="Instructor" >
                         <option value = "undefined"> Select an instructor. </option>
@@ -204,7 +217,7 @@ export class CourseForm extends React.Component<any, any> {
                         })}
                     </FormControl>
                     <FormGroup>
-                        Order by :
+                        Order by
                         <Checkbox onChange={this.setOrderByPass.bind(this)} value="pass" inline>
                             Pass
                         </Checkbox>
