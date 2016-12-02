@@ -7,7 +7,7 @@ import Log from "../src/Util";
 import {expect} from 'chai';
 import {IApplyObject} from "../src/controller/IEBNF";
 
-describe('queryUtility checkDuplicateTarget', function () {
+describe('QueryUtility', function () {
     it("Should return true if APPLY does have two targets with the same name", (done) => {
         let controller = new QueryUtility();
         let applyArray: IApplyObject[] = [ {"courseAverage": {"AVG": "courses_avg"}}, {"courseAverage": {"MAX": "courses_fail"}} ];

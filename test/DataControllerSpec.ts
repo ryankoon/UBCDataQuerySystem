@@ -113,7 +113,7 @@ describe("DataController", function () {
             }
         ];
 
-        controller.roomsWithinDistance(from, rooms, 10, 'walking')
+        controller.roomsWithinDistance(from, rooms, 10000, 'walking')
             .then((result) => {
                 expect(result).to.deep.equal(rooms);
                 done();
